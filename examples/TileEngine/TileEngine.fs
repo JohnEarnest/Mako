@@ -57,16 +57,7 @@
 :image sprite-tiles "spriteTemplate.png" 16 24
 :array sprites 1024
 
-: sprite@    4 * sprites + ;
-: .sprite-t  1 + ;
-: .sprite-x  2 + ;
-: .sprite-y  3 + ;
-: .sprite-w  @ 0x0F00 and  256 / 1 + 8 * ;
-: .sprite-h  @ 0xF000 and 4096 / 1 + 8 * ;
-: px         sprite@ .sprite-x @ ;
-: py         sprite@ .sprite-y @ ;
-: px!        sprite@ .sprite-x ! ;
-: py!        sprite@ .sprite-y ! ;
+:include "../Sprites.fs"
 
 :  rot   >r swap r> swap ; # (a b c -- b c a)
 : -rot   swap >r swap r> ; # (a b c -- c a b)
