@@ -135,6 +135,7 @@ public class Maker implements MakoConstants {
 		constants.put("scroll-y", 0);
 		constants.put("clear-color", 0xFF000000);
 		try {
+			path = new File(filename).getParent();
 			compileFile(filename);
 		}
 		catch(FileNotFoundException e) {
@@ -193,7 +194,6 @@ public class Maker implements MakoConstants {
 	private void compileFile(String filename) throws FileNotFoundException {
 		if (imported.contains(filename)) { return; }
 		imported.add(filename);
-		path = new File(filename).getParent();
 		Scanner in = new Scanner(new File(filename));
 		String source = "";
 		while(in.hasNextLine()) { source += in.nextLine() + '\n'; }
@@ -293,6 +293,7 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":include")) {
 			String fileName = tokens.remove().toString();
+			if (path != null) { fileName = path + File.separator + fileName; }
 			compileFile(fileName);
 		}
 
@@ -397,8 +398,10 @@ public class Maker implements MakoConstants {
 		else if (token.equals("keys")) { romAdd(OP_KEYIN,  TAG_CODE); }
 		
 		// pseudo-ops
-		else if (token.equals("<=")) { romAdd(OP_SGT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
-		else if (token.equals(">=")) { romAdd(OP_SLT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
+		else if (token.equals("<="))    { romAdd(OP_SGT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
+		else if (token.equals(">="))    { romAdd(OP_SLT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
+		else if (token.equals("2dup"))  { romAdd(OP_OVER, TAG_CODE); romAdd(OP_OVER, TAG_CODE); }
+		else if (token.equals("2drop")) { romAdd(OP_DROP, TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
 		else if (token.equals("i")) {
 			romAdd(OP_RTS, TAG_CODE);
 			romAdd(OP_DUP, TAG_CODE);

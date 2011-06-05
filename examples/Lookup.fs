@@ -16,9 +16,9 @@
 	loop
 		dup @ i xor
 		-if r> drop swap drop 1 + exit then
-		2 + over over >
+		2 + 2dup >
 	while
-	r> drop drop drop -1
+	r> drop 2drop -1
 ;
 
 : lookup (target count* -- found*)
@@ -36,14 +36,16 @@
 	100   2
 	666  11
 
+:include "Print.fs"
+
 : main
-	871 table lookup @ NO ! # 20 expected
-	112 table lookup @ NO ! #  7 expected
-	243 table lookup @ NO ! #  3 expected
-	100 table lookup @ NO ! #  2 expected
-	666 table lookup   NO ! # -1 expected (out of range)
-	999 table lookup   NO ! # -1 expected (not found)
-	10 CO !
+	871 table lookup ? # 20 expected
+	112 table lookup ? #  7 expected
+	243 table lookup ? #  3 expected
+	100 table lookup ? #  2 expected
+	666 table lookup . # -1 expected (out of range)
+	999 table lookup . # -1 expected (not found)
+	cr
 	
 	loop
 		sync

@@ -75,12 +75,12 @@
 
 	rot >r sprite@ >r
 	i .sprite-y @
-	over over i .sprite-h +
+	2dup i .sprite-h +
 	<= -rot >= and
 	
 	r> r> swap >r
 	i .sprite-x @
-	over over r> .sprite-w +
+	2dup r> .sprite-w +
 	<= -rot >= and
 
 	and
@@ -116,13 +116,13 @@
 : c-px! ( x sprite-id )
 	dup px >r dup >r px!
 	r> r> swap dup c-actor?
-	if px! else drop drop then
+	if px! else 2drop then
 ;
 
 : c-py! ( x sprite-id )
 	dup py >r dup >r py!
 	r> r> swap dup c-actor?
-	if py! else drop drop then
+	if py! else 2drop then
 ;
 
 :const player 0
@@ -146,14 +146,15 @@
 
 (
 	# test c-sprite?
+	# you must include "../Print.fs"
 	32x32 1 sprite@ !
 	32  1 px!
 	64  1 py!
-	 32  64 1 c-sprite? NO ! # -1 expected
-	 35  68 1 c-sprite? NO ! # -1 expected
-	 68  35 1 c-sprite? NO ! #  0 expected
-	100 100 1 c-sprite? NO ! #  0 expected
-	10 CO !
+	 32  64 1 c-sprite? . # -1 expected
+	 35  68 1 c-sprite? . # -1 expected
+	 68  35 1 c-sprite? . #  0 expected
+	100 100 1 c-sprite? . #  0 expected
+	cr
 )
 
 	# init sprite
