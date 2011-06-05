@@ -99,7 +99,7 @@
 : inc@       dup @  1 + swap ! ;
 : dec@       dup @  1 - swap ! ;
 : brownian   RN @ 3 mod 1 - +  ;
-: rand-mag   RN @ 2 mod 2* 1 - RN @ 2 mod 1 + * ;
+: rand-mag   RN @ 2 mod 2 * 1 - RN @ 2 mod 1 + * ;
 : sprite@    4 * sprites + ;
 : .sprite-x  2 + ;
 : .sprite-y  3 + ;

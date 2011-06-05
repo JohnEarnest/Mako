@@ -51,8 +51,6 @@ public class Maker implements MakoConstants {
 		mnemonics.put(OP_NOT,    "NOT");
 		mnemonics.put(OP_SGT,    "SGT");
 		mnemonics.put(OP_SLT,    "SLT");
-		mnemonics.put(OP_ROR,    "ROR");
-		mnemonics.put(OP_ROL,    "ROL");
 		mnemonics.put(OP_SYNC,   "SYNC");
 		mnemonics.put(OP_KEYIN,  "KEYIN");
 	}
@@ -110,7 +108,6 @@ public class Maker implements MakoConstants {
 		variables.put("RN", RN);
 
 		variables.put("CO", CO); // character-out (debug)
-		variables.put("NO", NO); // numeric-out (debug)
 		variables.put("BK", BK); // breakpoint
 
 		constants.put("key-up", 0x01);
@@ -396,8 +393,6 @@ public class Maker implements MakoConstants {
 		else if (token.equals("not"))  { romAdd(OP_NOT,    TAG_CODE); }
 		else if (token.equals(">"))    { romAdd(OP_SGT,    TAG_CODE); }
 		else if (token.equals("<"))    { romAdd(OP_SLT,    TAG_CODE); }
-		else if (token.equals("2*"))   { romAdd(OP_ROL,    TAG_CODE); }
-		else if (token.equals("2/"))   { romAdd(OP_ROR,    TAG_CODE); }
 		else if (token.equals("sync")) { romAdd(OP_SYNC,   TAG_CODE); }
 		else if (token.equals("keys")) { romAdd(OP_KEYIN,  TAG_CODE); }
 		

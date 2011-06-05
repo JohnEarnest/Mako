@@ -57,7 +57,7 @@
 :image sprite-tiles "spriteTemplate.png" 16 24
 :array sprites 1024
 
-: sprite@    2* 2* sprites + ;
+: sprite@    4 * sprites + ;
 : .sprite-t  1 + ;
 : .sprite-x  2 + ;
 : .sprite-y  3 + ;

@@ -17,7 +17,7 @@
 :const sprite-tiles grid-tiles
 :array sprites 1024
 
-: sprite@    2* 2* sprites + ;
+: sprite@    4 * sprites + ;
 : .sprite-t  1 + ;
 : .sprite-x  2 + ;
 : .sprite-y  3 + ;
@@ -28,12 +28,12 @@
 
 :array velocities 512
 
-: vx         2* velocities +     @ ;
-: vy         2* velocities + 1 + @ ;
-: vx!        2* velocities + ! ;
-: vy!        2* velocities + 1 + ! ;
+: vx         2 * velocities +     @ ;
+: vy         2 * velocities + 1 + @ ;
+: vx!        2 * velocities + ! ;
+: vy!        2 * velocities + 1 + ! ;
 : rand2      RN @ 2 mod ;
-: rand-mag   rand2 2* 1 - rand2 1 + * ;
+: rand-mag   rand2 2 * 1 - rand2 1 + * ;
 
 :var counter
 

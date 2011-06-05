@@ -80,8 +80,6 @@ public class MakoVM implements MakoConstants {
 			case OP_NOT    : push(~pop());                           break;
 			case OP_SGT    : a = pop(); b = pop(); push(b>a ? -1:0); break;
 			case OP_SLT    : a = pop(); b = pop(); push(b<a ? -1:0); break;
-			case OP_ROR    : push(pop()>>>1);                        break;
-			case OP_ROL    : push(pop() <<1);                        break;
 			case OP_KEYIN  : push(keys);                             break;
 		}
 	}
@@ -94,7 +92,6 @@ public class MakoVM implements MakoConstants {
 	private void stor(int addr, int value) {
 		if (addr == RN) { rand.setSeed(value); return; }
 		if (addr == CO) { System.out.print((char)value); return; }
-		if (addr == NO) { System.out.print(value+" "); return; }
 		if (addr == BK) {
 			System.out.format("Breakpoint @%d.%n", m[PC]);
 			try { System.in.read(); }

@@ -27,10 +27,8 @@ public interface MakoConstants {
 	public static final int OP_NOT    = 27;
 	public static final int OP_SGT    = 28;
 	public static final int OP_SLT    = 29;
-	public static final int OP_ROR    = 30;
-	public static final int OP_ROL    = 31;
-	public static final int OP_SYNC   = 32;
-	public static final int OP_KEYIN  = 33;
+	public static final int OP_SYNC   = 30;
+	public static final int OP_KEYIN  = 31;
 
 	public static final int PC =  0; // program counter
 	public static final int DP =  1; // data stack pointer
@@ -47,8 +45,7 @@ public interface MakoConstants {
 	public static final int RN = 11; // random number
 
 	public static final int CO = 12; // character-out (debug)
-	public static final int NO = 13; // numeric-out (debug)
-	public static final int BK = 14; // breakpoint
+	public static final int BK = 13; // breakpoint
 
-	public static final int RESERVED_HEADER = 15;
+	public static final int RESERVED_HEADER = 14;
 }
