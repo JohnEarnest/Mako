@@ -117,6 +117,9 @@ public class Maker implements MakoConstants {
 		constants.put("key-a",  0x10);
 		constants.put("key-b",  0x20);
 
+		constants.put("sprite-mirror-horiz", 0x10000);
+		constants.put("sprite-mirror-vert",  0x20000);
+
 		constants.put("true", -1);
 		constants.put("false", 0);
 

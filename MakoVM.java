@@ -119,9 +119,15 @@ public class MakoVM implements MakoConstants {
 		if (status % 2 == 0) { return; }
 		final int w = (((status & 0x0F00) >>  8) + 1) << 3;
 		final int h = (((status & 0xF000) >> 12) + 1) << 3;
+
+		int xd = 1; int x0 = 0; int x1 = w;
+		int yd = 1; int y0 = 0; int y1 = h;
+		if ((status & H_MIRROR_MASK) != 0) { xd = -1; x0 = w - 1; x1 = -1; }
+		if ((status & V_MIRROR_MASK) != 0) { yd = -1; y0 = h - 1; y1 = -1; }
+
 		int i = m[ST] + (tile * w * h);
-		for(int y = 0; y < h; y++) {
-			for(int x = 0; x < w; x++) {
+		for(int y = y0; y != y1; y += yd) {
+			for(int x = x0; x != x1; x += xd) {
 				int c = m[i++];
 				if ((c & 0xFF000000) == 0xFF000000) { drawPixel(x+px, y+py, c); }
 			}
