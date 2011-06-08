@@ -1,5 +1,4 @@
 import java.awt.Image;
-import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
@@ -12,21 +11,16 @@ public class MakoVM implements MakoConstants {
 	
 	private int keys = 0;
 	private final Random rand = new Random();
-
 	private final MemoryImageSource mis;
 	private final Image target;
 	private final Image buffer;
-	private final Graphics g;
 
 	public MakoVM(int[] m) {
 		this.m = m;
-		mis = new MemoryImageSource(320,240,p,0,320);
+		mis = new MemoryImageSource(320, 240, p, 0, 320);
 		target = Toolkit.getDefaultToolkit().createImage(mis);
-		buffer = new BufferedImage(320,240, BufferedImage.TYPE_INT_ARGB);
-		g = buffer.getGraphics();
+		buffer = new BufferedImage(320, 240, BufferedImage.TYPE_INT_ARGB);
 		mis.setAnimated(true);
-		mis.setFullBufferUpdates(true);
-		for(int x = 0; x < p.length; x++) { p[x] = 0xFF000000; }
 	}
 
 	private void push(int v)      { m[m[DP]++] = v; }
@@ -38,11 +32,7 @@ public class MakoVM implements MakoConstants {
 	public void run() {
 		while(true) {
 			if (m[m[PC]] == OP_SYNC) { sync(); m[PC]++; break; }
-			try { tick(); }
-			catch(IndexOutOfBoundsException e) {
-				System.out.format("PC: %d Return: %d%n", m[PC], rpop());
-				throw e;
-			}
+			tick();
 		}
 	}
 
@@ -87,7 +77,6 @@ public class MakoVM implements MakoConstants {
 	}
 
 	private void stor(int addr, int value) {
-		if (addr == RN) { rand.setSeed(value); return; }
 		if (addr == CO) { System.out.print((char)value); return; }
 		if (addr == BK) {
 			System.out.format("Breakpoint @%d.%n", m[PC]);
@@ -98,6 +87,7 @@ public class MakoVM implements MakoConstants {
 	}
 
 	private void drawPixel(int x, int y, int c) {
+		if ((c & 0xFF000000) != 0xFF000000)         { return; }
 		if (x < 0 || x >= 320 || y < 0 || y >= 240) { return; }
 		p[x + (y * 320)] = c;
 	}
@@ -107,8 +97,7 @@ public class MakoVM implements MakoConstants {
 		int i = m[GT] + (tile * 8 * 8);
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
-				int c = m[i++];
-				if ((c & 0xFF000000) == 0xFF000000) { drawPixel(x+px, y+py, c); }
+				drawPixel(x+px, y+py, m[i++]);
 			}
 		}
 	}
@@ -126,8 +115,7 @@ public class MakoVM implements MakoConstants {
 		int i = m[ST] + (tile * w * h);
 		for(int y = y0; y != y1; y += yd) {
 			for(int x = x0; x != x1; x += xd) {
-				int c = m[i++];
-				if ((c & 0xFF000000) == 0xFF000000) { drawPixel(x+px, y+py, c); }
+				drawPixel(x+px, y+py, m[i++]);
 			}
 		}
 	}
@@ -136,7 +124,7 @@ public class MakoVM implements MakoConstants {
 		final int scrollx = m[SX];
 		final int scrolly = m[SY];
 		final int clear   = m[CL];
-		for(int x = 0; x < 320*240; x++) {
+		for(int x = 0; x < 320 * 240; x++) {
 			p[x] = clear;
 		}
 		int i = m[GP];
@@ -147,20 +135,20 @@ public class MakoVM implements MakoConstants {
 			i += m[GS];
 		}
 		for(int sprite = 0; sprite < 1024; sprite += 4) {
-			final int status = m[m[SP] + sprite];
-			final int tile = m[m[SP] + sprite + 1];
-			final int px   = m[m[SP] + sprite + 2];
-			final int py   = m[m[SP] + sprite + 3];
+			final int status = m[m[SP] + sprite    ];
+			final int tile   = m[m[SP] + sprite + 1];
+			final int px     = m[m[SP] + sprite + 2];
+			final int py     = m[m[SP] + sprite + 3];
 			drawSprite(tile, status, px - scrollx, py - scrolly);
 		}
 		synchronized(target) {
-			mis.newPixels(0, 0, 320, 240);
+			mis.newPixels();
 		}
 	}
 
 	public Image getBuffer() {
 		synchronized(target) {
-			g.drawImage(target, 0, 0, null);
+			buffer.getGraphics().drawImage(target, 0, 0, null);
 		}
 		return buffer;
 	}
