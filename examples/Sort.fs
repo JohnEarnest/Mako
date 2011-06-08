@@ -15,12 +15,10 @@
 
 	1 - for
 		dup i +
-
 		i for
-			over i + @ over @
-			> if drop dup i + then
+			over i + @ over @ >
+			if drop dup i + then
 		next
-
 		over i + swap@
 	next
 	drop

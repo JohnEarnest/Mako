@@ -2,7 +2,6 @@ import java.awt.Image;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.awt.image.DirectColorModel;
 import java.awt.image.MemoryImageSource;
 import java.util.Random;
 
@@ -14,7 +13,6 @@ public class MakoVM implements MakoConstants {
 	private int keys = 0;
 	private final Random rand = new Random();
 
-	private final DirectColorModel dcm;
 	private final MemoryImageSource mis;
 	private final Image target;
 	private final Image buffer;
@@ -22,8 +20,7 @@ public class MakoVM implements MakoConstants {
 
 	public MakoVM(int[] m) {
 		this.m = m;
-		dcm = new DirectColorModel(32,0xFF0000,0x00FF00,0x0000FF,0xFF000000);
-		mis = new MemoryImageSource(320,240,dcm,p,0,320);
+		mis = new MemoryImageSource(320,240,p,0,320);
 		target = Toolkit.getDefaultToolkit().createImage(mis);
 		buffer = new BufferedImage(320,240, BufferedImage.TYPE_INT_ARGB);
 		g = buffer.getGraphics();
