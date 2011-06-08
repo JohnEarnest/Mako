@@ -19,3 +19,7 @@
 : py         sprite@ .sprite-y @ ;
 : px!        sprite@ .sprite-x ! ;
 : py!        sprite@ .sprite-y ! ;
+
+: face-left  dup @ sprite-mirror-horiz not and swap ! ;
+: face-right dup @ sprite-mirror-horiz or      swap ! ;
+: flip-h     dup @ sprite-mirror-horiz xor     swap ! ;

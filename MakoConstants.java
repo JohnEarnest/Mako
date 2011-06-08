@@ -49,6 +49,6 @@ public interface MakoConstants {
 
 	public static final int RESERVED_HEADER = 14;
 
-	public static final int H_MIRROR_MASK = 0x10000;
-	public static final int V_MIRROR_MASK = 0x20000;
+	public static final int H_MIRROR_MASK = 0x10000; // sprite is mirrored horizontally?
+	public static final int V_MIRROR_MASK = 0x20000; // sprite is mirrored vertically?
 }

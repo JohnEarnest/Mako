@@ -110,7 +110,8 @@ public class MakoVM implements MakoConstants {
 		int i = m[GT] + (tile * 8 * 8);
 		for(int y = 0; y < 8; y++) {
 			for(int x = 0; x < 8; x++) {
-				drawPixel(x+px, y+py, m[i++]);
+				int c = m[i++];
+				if ((c & 0xFF000000) == 0xFF000000) { drawPixel(x+px, y+py, c); }
 			}
 		}
 	}

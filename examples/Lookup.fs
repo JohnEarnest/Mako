@@ -27,6 +27,9 @@
 	scan
 ;
 
+(
+# a use example:
+
 :data table
 	5        # number of entries
 	243   3
@@ -43,11 +46,8 @@
 	112 table lookup ? #  7 expected
 	243 table lookup ? #  3 expected
 	100 table lookup ? #  2 expected
-	666 table lookup . # -1 expected (out of range)
-	999 table lookup . # -1 expected (not found)
+	666 table lookup . # -1 expected
+	999 table lookup . # -1 expected
 	cr
-	
-	loop
-		sync
-	again
 ;
+)
