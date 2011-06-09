@@ -58,10 +58,15 @@
 	 0  1  2  3  4  5  6  7
 	 8  9 10 11 12 13 14 15
 
-: player 0 sprite-id + @ ;
-: janet  1 sprite-id + @ ;
-: bill   2 sprite-id + @ ;
-: meg    3 sprite-id + @ ;
+:const player-id 0
+:const janet-id  1
+:const bill-id   2
+:const meg-id    3
+
+: player player-id sprite-id + @ ;
+: janet  janet-id  sprite-id + @ ;
+: bill   bill-id   sprite-id + @ ;
+: meg    meg-id    sprite-id + @ ;
 
 :include "../Sprites.fs"
 :include "../Print.fs"
@@ -169,9 +174,9 @@
 # null-terminated strings.
 : show-text (msg* -- )
 
-	dup @ swap 1 + swap
+	dup @ swap 1 + swap 1 -
 	for
-		29 i - 41 * text-start-x + GP @ + >r
+		28 i - 41 * text-start-x + GP @ + >r
 		loop
 			dup @ dup
 			-if drop break then			
@@ -243,6 +248,9 @@
 :data   helo 2
 :string $ "     Shouldn't you be, like,"
 :string $ "     cleaning or something?"
+
+:data   laugh 1
+:string $ "     Tee hee hee!"
 
 : main
 
@@ -322,6 +330,8 @@
 				janet face-player
 				10 janet sprite@ .sprite-t !
 				helo show-text
+				12 janet sprite@ .sprite-t !
+				laugh show-text
 				 8 janet sprite@ .sprite-t !
 			else
 				1 player sprite@ .sprite-t ! 10 for sync next
