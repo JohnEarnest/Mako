@@ -7,7 +7,7 @@
 ##
 ##  The words c-px! and c-py! only update the position
 ##  of a sprite if doing so does not cause the sprite
-##  to collide with the terrain. The word c-actor?
+##  to collide with the terrain. The word c-ground?
 ##  returns a flag to indicate if a 16x32 sprite is
 ##  currently colliding with the terrain, calibrated
 ##  for 3:4 perspective.
@@ -54,6 +54,9 @@
 :image sprite-tiles "Scrubby.png" 16 32
 :array sprites 1024 
 
+:include "../Sprites.fs"
+:include "../Print.fs"
+
 :data sprite-id
 	 0  1  2  3  4  5  6  7
 	 8  9 10 11 12 13 14 15
@@ -67,13 +70,6 @@
 : janet  janet-id  sprite-id + @ ;
 : bill   bill-id   sprite-id + @ ;
 : meg    meg-id    sprite-id + @ ;
-
-:include "../Sprites.fs"
-:include "../Print.fs"
-
-:  rot   >r swap r> swap ; # (a b c -- b c a)
-: -rot   swap >r swap r> ; # (a b c -- c a b)
-: swap@  2dup @ >r @ swap ! r> swap ! ;
 
 : tile@ ( x y -- tile-index )
 	# tile-id = m[((y/8) * (41 + m[GS])) + (x/8) + m[GP]]
@@ -91,10 +87,10 @@
 	tile@ 16 mod 7 >
 ;
 
-: c-actor? ( sprite-id -- flag )
+: c-ground? ( sprite-id -- flag )
 	sprite@ dup .sprite-x @ swap .sprite-y @
 	swap  1 + swap 24 +
-	over 13 + over  7 + c-tile? >r
+	over 13 + over  7 + c-tile?       >r
 	over 13 + over      c-tile? r> or >r
 	over  7 + over  7 + c-tile? r> or >r
 	over  7 + over      c-tile? r> or >r
@@ -102,15 +98,40 @@
 	                    c-tile? r> or
 ;
 
+:array sprite-solid 256
+: solid? sprite-solid + @ ; ( sprite-id -- flag )
+: solid! sprite-solid + ! ; ( flag sprite-id -- )
+
+: c-npc? ( id-a id-b -- flag )
+	over py over py  6 - >=        >r
+	over py over py  6 + <  r> and >r
+	over px over px 14 - >= r> and >r
+	over px over px 14 + <  r> and >r
+	2drop r>
+;
+
+: c-npcs? ( sprite-id -- flag )
+	255 for
+		# do not check if a sprite
+		# collides with itself or
+		# is not defined as 'solid'
+		dup i xor i solid? and if
+			dup i c-npc?
+			if r> 2drop true exit then
+		then
+	next
+	drop false
+;
+
 : c-px! ( x sprite-id )
-	dup px >r dup >r px!
-	r> r> swap dup c-actor?
+	dup px >r dup >r px! r> r> swap
+	dup c-ground? over c-npcs? or
 	if px! else 2drop then
 ;
 
 : c-py! ( x sprite-id )
-	dup py >r dup >r py!
-	r> r> swap dup c-actor?
+	dup py >r dup >r py! r> r> swap
+	dup c-ground? over c-npcs? or
 	if py! else 2drop then
 ;
 
@@ -121,6 +142,8 @@
 		1 +
 	again
 ;
+
+: swap@  2dup @ >r @ swap ! r> swap ! ;
 
 # sort sprite drawing orders by their
 # y-coordinates for simulated perspective.
@@ -138,9 +161,13 @@
 
 		# swap mappings in the id table:
 		dup sprite-id indexof
-		i sprite-id indexof swap@
+		  i sprite-id indexof swap@
 
-		# swap a pair of sprite entries:
+		# swap entries in the solid table:
+		dup sprite-solid +
+		  i sprite-solid + swap@
+
+		# swap sprite registers:
 		sprite@ i sprite@
 		3 for
 			over i +
@@ -199,24 +226,6 @@
 	next
 ;
 
-# return true if a point lies within
-# a given sprite, respecting its current
-# location and size.
-: c-sprite? ( x y sprite-id -- flag )
-
-	rot >r sprite@ >r
-	i .sprite-y @
-	2dup i .sprite-h +
-	<= -rot >= and
-	
-	r> r> swap >r
-	i .sprite-x @
-	2dup r> .sprite-w +
-	<= -rot >= and
-
-	and
-;
-
 # return true if the player is in
 # the right position and facing direction
 # for a 'use action' to activate an npc:
@@ -250,44 +259,34 @@
 
 : main
 
-(
-	# test c-sprite?
-	# you must include "../Print.fs"
-	32x32 1 sprite@ !
-	32  1 px!
-	64  1 py!
-	 32  64 1 c-sprite? . # -1 expected
-	 35  68 1 c-sprite? . # -1 expected
-	 68  35 1 c-sprite? . #  0 expected
-	100 100 1 c-sprite? . #  0 expected
-	cr
-)
-
 	# init sprite
 	16x32 player sprite@ !
-	  0 player tile!
-	160 player px!
-	120 player py!
+	    0 player tile!
+	  160 player px!
+	  120 player py!
 
 	# init npc1
 	16x32 janet sprite@ !
-	  8 janet tile!
-	120 janet px!
-	 60 janet py!
+	    8 janet tile!
+	  120 janet px!
+	   60 janet py!
+	 true janet solid!
 	200 flipcnt !
 
 	# init npc2
 	16x32 bill sprite@ !
-	 16 bill tile!
-	250 bill px!
-	 70 bill py!
+	   16 bill tile!
+	  250 bill px!
+	   70 bill py!
+	 true bill solid!
 	300 clipcnt !
 
 	# init npc3
 	16x32 meg sprite@ !
-	 20 meg tile!
-	 60 meg px!
-	130 meg py!
+	   20 meg tile!
+	   60 meg px!
+	  130 meg py!
+     false meg solid!
 
 	loop
 

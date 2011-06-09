@@ -65,8 +65,8 @@ class MakoPanel extends JPanel implements KeyListener {
 		masks.put(KeyEvent.VK_ESCAPE, 0x20);
 	}
 
-	private final int w = 640;
-	private final int h = 480;
+	private final int w = 960;
+	private final int h = 720;
 	public final MakoVM vm;
 	public int keys = 0;
 	

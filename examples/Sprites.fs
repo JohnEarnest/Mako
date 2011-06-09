@@ -29,3 +29,24 @@
 : face-right  sprite@ dup @ sprite-mirror-horiz or      swap ! ;
 : flip-horiz  sprite@ dup @ sprite-mirror-horiz xor     swap ! ;
 : flip-vert   sprite@ dup @ sprite-mirror-vert  xor     swap ! ;
+
+:  rot   >r swap r> swap ; (a b c -- b c a)
+: -rot   swap >r swap r> ; (a b c -- c a b)
+
+# return true if a point lies within
+# a given sprite, respecting its current
+# location and size.
+: c-sprite? ( x y sprite-id -- flag )
+
+	rot >r sprite@ >r
+	i .sprite-y @
+	2dup i .sprite-h +
+	<= -rot >= and
+	
+	r> r> swap >r
+	i .sprite-x @
+	2dup r> .sprite-w +
+	<= -rot >= and
+
+	and
+;
