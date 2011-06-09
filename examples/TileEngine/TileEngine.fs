@@ -11,9 +11,6 @@
 ##  returns a flag to indicate if a 16x32 sprite is
 ##  currently colliding with the terrain, calibrated
 ##  for 3:4 perspective.
-##  More generally, c-sprite? returns true if a point
-##  lies within a given sprite, respecting its current
-##  location and size.
 ##
 ##  John Earnest
 ##
@@ -57,27 +54,21 @@
 :image sprite-tiles "Scrubby.png" 16 32
 :array sprites 1024 
 
+:data sprite-id
+	 0  1  2  3  4  5  6  7
+	 8  9 10 11 12 13 14 15
+
+: player 0 sprite-id + @ ;
+: janet  1 sprite-id + @ ;
+: bill   2 sprite-id + @ ;
+: meg    3 sprite-id + @ ;
+
 :include "../Sprites.fs"
 :include "../Print.fs"
 
 :  rot   >r swap r> swap ; # (a b c -- b c a)
 : -rot   swap >r swap r> ; # (a b c -- c a b)
 : swap@  2dup @ >r @ swap ! r> swap ! ;
-
-: c-sprite? ( x y sprite-id -- flag )
-
-	rot >r sprite@ >r
-	i .sprite-y @
-	2dup i .sprite-h +
-	<= -rot >= and
-	
-	r> r> swap >r
-	i .sprite-x @
-	2dup r> .sprite-w +
-	<= -rot >= and
-
-	and
-;
 
 : tile@ ( x y -- tile-index )
 	# tile-id = m[((y/8) * (41 + m[GS])) + (x/8) + m[GP]]
@@ -118,10 +109,6 @@
 	if py! else 2drop then
 ;
 
-:data sprite-id
-	 0  1  2  3  4  5  6  7
-	 8  9 10 11 12 13 14 15
-
 : indexof (value array)
 	loop
 		2dup @ xor
@@ -160,51 +147,102 @@
 	next
 ;
 
+# wait for key-a to be pressed
+# and then released before continuing.
+: wait
+	85 GP @ 1186 + !
+	loop keys key-a and  if break then sync again
+	loop keys key-a and -if break then sync again
+	-1 GP @ 1186 + !
+;
+
 # What offset needs to be added to an
 # ASCII character to get the appropriate
 # grid tile index?
-:const text-offset 48
+:const text-offset  48
+:const text-start-x  3
+:const text-start-y 25
 
 # Draw a series of strings to the display.
 # The address provided should point to a
 # line count followed by a series of
 # null-terminated strings.
-: showtext (msg* -- )
-	(msg* --)
-	dup @
-	(msg* lines)
-	swap 1 + swap
-	(string* lines)
+: show-text (msg* -- )
+
+	dup @ swap 1 + swap
 	for
-		29 i - 41 * 8 + GP @ +
-		(string* [41*[i-29]]+4+m[GP])
-		>r
+		29 i - 41 * text-start-x + GP @ + >r
 		loop
-			(string* | grid*)
 			dup @ dup
-			(string* char char | grid)
-			-if drop break then
-			
+			-if drop break then			
 			text-offset + i !
+
+			# sync while the text is drawn
+			# to create a 'typewriter' effect:
+			sync
 			1 + r> 1 + >r
 		again
 		r> drop 1 +
 	next
+	drop
+	
+	wait
+
+	# clear the text area
+	163 for
+		-1 GP @ text-start-y 41 * + i + !
+	next
 ;
 
-: player 0 sprite-id + @ ;
-: janet  1 sprite-id + @ ;
-: bill   2 sprite-id + @ ;
-: meg    3 sprite-id + @ ;
+# return true if a point lies within
+# a given sprite, respecting its current
+# location and size.
+: c-sprite? ( x y sprite-id -- flag )
+
+	rot >r sprite@ >r
+	i .sprite-y @
+	2dup i .sprite-h +
+	<= -rot >= and
+	
+	r> r> swap >r
+	i .sprite-x @
+	2dup r> .sprite-w +
+	<= -rot >= and
+
+	and
+;
+
+# return true if the player is in
+# the right position and facing direction
+# for a 'use action' to activate an npc:
+: use-object ( sprite -- flag )
+	>r
+	player sprite@ @ sprite-mirror-horiz and
+	if   # facing right
+		player px 24 +
+		player py 24 +
+	else # facing left
+		player px  8 -
+		player py 24 +
+	then
+	r> c-sprite?
+;
+
+: face-player ( sprite -- )
+	dup px player px >
+	if
+		sprite@ face-left
+	else
+		sprite@ face-right
+	then
+;
 
 :var   flipcnt
 :var   clipcnt
 
-:data   helo 4
-:string $ "Shouldn't you be, like,"
-:string $ "cleaning or something?"
-:string $ " "
-:string $ " "
+:data   helo 2
+:string $ "     Shouldn't you be, like,"
+:string $ "     cleaning or something?"
 
 : main
 
@@ -229,7 +267,7 @@
 
 	# init npc1
 	16x32 janet sprite@ !
-	 10 janet sprite@ .sprite-t !
+	  8 janet sprite@ .sprite-t !
 	120 janet px!
 	 60 janet py!
 	200 flipcnt !
@@ -246,8 +284,6 @@
 	 20 meg sprite@ .sprite-t !
 	 60 meg px!
 	130 meg py!
-
-	helo showtext
 
 	loop
 
@@ -281,13 +317,20 @@
 		then
 
 		keys key-a and if
-			#65 CO !
-			1 player sprite@ .sprite-t ! 10 for sync next
-			2 player sprite@ .sprite-t ! 10 for sync next
-			3 player sprite@ .sprite-t ! 10 for sync next
-			2 player sprite@ .sprite-t ! 10 for sync next
-			1 player sprite@ .sprite-t ! 10 for sync next
-			0 player sprite@ .sprite-t !
+
+			janet use-object if
+				janet face-player
+				10 janet sprite@ .sprite-t !
+				helo show-text
+				 8 janet sprite@ .sprite-t !
+			else
+				1 player sprite@ .sprite-t ! 10 for sync next
+				2 player sprite@ .sprite-t ! 10 for sync next
+				3 player sprite@ .sprite-t ! 10 for sync next
+				2 player sprite@ .sprite-t ! 10 for sync next
+				1 player sprite@ .sprite-t ! 10 for sync next
+				0 player sprite@ .sprite-t !
+			then
 		then
 
 		sort-sprites
