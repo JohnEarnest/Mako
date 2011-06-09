@@ -17,9 +17,15 @@
 
 : px         sprite@ .sprite-x @ ;
 : py         sprite@ .sprite-y @ ;
+: tile       sprite@ .sprite-t @ ;
 : px!        sprite@ .sprite-x ! ;
 : py!        sprite@ .sprite-y ! ;
+: tile!      sprite@ .sprite-t ! ;
 
-: face-left  dup @ sprite-mirror-horiz not and swap ! ;
-: face-right dup @ sprite-mirror-horiz or      swap ! ;
-: flip-h     dup @ sprite-mirror-horiz xor     swap ! ;
+# Assume that sprites are drawn
+# facing left normally: 
+
+: face-left   sprite@ dup @ sprite-mirror-horiz not and swap ! ;
+: face-right  sprite@ dup @ sprite-mirror-horiz or      swap ! ;
+: flip-horiz  sprite@ dup @ sprite-mirror-horiz xor     swap ! ;
+: flip-vert   sprite@ dup @ sprite-mirror-vert  xor     swap ! ;

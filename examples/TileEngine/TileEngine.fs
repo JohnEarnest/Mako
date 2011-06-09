@@ -235,11 +235,7 @@
 
 : face-player ( sprite -- )
 	dup px player px >
-	if
-		sprite@ face-left
-	else
-		sprite@ face-right
-	then
+	if face-left else face-right then
 ;
 
 :var   flipcnt
@@ -269,34 +265,34 @@
 
 	# init sprite
 	16x32 player sprite@ !
-	  0 player sprite@ .sprite-t !
+	  0 player tile!
 	160 player px!
 	120 player py!
 
 	# init npc1
 	16x32 janet sprite@ !
-	  8 janet sprite@ .sprite-t !
+	  8 janet tile!
 	120 janet px!
 	 60 janet py!
 	200 flipcnt !
 
 	# init npc2
 	16x32 bill sprite@ !
-	 16 bill sprite@ .sprite-t !
+	 16 bill tile!
 	250 bill px!
 	 70 bill py!
 	300 clipcnt !
 
 	# init npc3
 	16x32 meg sprite@ !
-	 20 meg sprite@ .sprite-t !
+	 20 meg tile!
 	 60 meg px!
 	130 meg py!
 
 	loop
 
-		keys key-lf and if player px 1 - player c-px! player sprite@ face-left  then
-		keys key-rt and if player px 1 + player c-px! player sprite@ face-right then
+		keys key-lf and if player px 1 - player c-px! player face-left  then
+		keys key-rt and if player px 1 + player c-px! player face-right then
 		keys key-up and if player py 1 - player c-py! then
 		keys key-dn and if player py 1 + player c-py! then
 
@@ -305,7 +301,7 @@
 		if
 			flipcnt @ 1 - flipcnt !
 		else
-			janet sprite@ flip-h
+			janet flip-horiz
 			RN @ 600 mod 200 + flipcnt !
 		then
 
@@ -314,12 +310,12 @@
 		if
 			clipcnt @ 1 - clipcnt !
 		else
-			bill sprite@ .sprite-t @ 16 xor
+			bill tile 16 xor
 			-if  # clipboard is currently up
-				17 bill sprite@ .sprite-t !
+				17 bill tile!
 				50 clipcnt !
 			else # clipboard is currently down
-				16 bill sprite@ .sprite-t !
+				16 bill tile!
 				RN @ 600 mod 200 + clipcnt !
 			then
 		then
@@ -328,18 +324,18 @@
 
 			janet use-object if
 				janet face-player
-				10 janet sprite@ .sprite-t !
+				10 janet tile!
 				helo show-text
-				12 janet sprite@ .sprite-t !
+				12 janet tile!
 				laugh show-text
-				 8 janet sprite@ .sprite-t !
+				 8 janet tile!
 			else
-				1 player sprite@ .sprite-t ! 10 for sync next
-				2 player sprite@ .sprite-t ! 10 for sync next
-				3 player sprite@ .sprite-t ! 10 for sync next
-				2 player sprite@ .sprite-t ! 10 for sync next
-				1 player sprite@ .sprite-t ! 10 for sync next
-				0 player sprite@ .sprite-t !
+				1 player tile! 10 for sync next
+				2 player tile! 10 for sync next
+				3 player tile! 10 for sync next
+				2 player tile! 10 for sync next
+				1 player tile! 10 for sync next
+				0 player tile!
 			then
 		then
 
