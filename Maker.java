@@ -148,8 +148,8 @@ public class Maker implements MakoConstants {
 			throw new Error("No entrypoint defined!");
 		}
 
-		buildRegion("data-stack",     20);
-		buildRegion("return-stack",   20);
+		buildRegion("data-stack",     50);
+		buildRegion("return-stack",   50);
 		buildRegion("grid",         1271);
 		buildRegion("grid-tiles",     64);
 		buildRegion("sprites",      1024);
@@ -487,10 +487,19 @@ public class Maker implements MakoConstants {
 			}
 			else if (t == TAG_CODE) {
 				if (paramOps.contains(rom.get(index))) {
-					System.out.format("%5s %d%n",
-						mnemonics.get(rom.get(index)),
-						rom.get(index+1)
-					);
+					if (rom.get(index) == OP_CALL) {
+						System.out.format("%5s %d %s%n",
+							mnemonics.get(rom.get(index)),
+							rom.get(index+1),
+							getLabel(rom.get(index+1))
+						);
+					}
+					else {
+						System.out.format("%5s %d%n",
+							mnemonics.get(rom.get(index)),
+							rom.get(index+1)
+						);
+					}
 					index++;
 				}
 				else {

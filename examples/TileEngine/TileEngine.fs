@@ -57,19 +57,16 @@
 :include "../Sprites.fs"
 :include "../Print.fs"
 
+: inc@   dup @ 1 + swap !       ;
+: dec@   dup @ 1 - swap !       ;
+: =      xor -if -1 else 0 then ;
+
 :data sprite-id
 	 0  1  2  3  4  5  6  7
 	 8  9 10 11 12 13 14 15
 
 :const player-id 0
-:const janet-id  1
-:const bill-id   2
-:const meg-id    3
-
 : player player-id sprite-id + @ ;
-: janet  janet-id  sprite-id + @ ;
-: bill   bill-id   sprite-id + @ ;
-: meg    meg-id    sprite-id + @ ;
 
 : tile@ ( x y -- tile-index )
 	# tile-id = m[((y/8) * (41 + m[GS])) + (x/8) + m[GP]]
@@ -135,6 +132,13 @@
 	if py! else 2drop then
 ;
 
+: move-player ( -- )
+	keys key-lf and if player px 1 - player c-px! player face-left  then
+	keys key-rt and if player px 1 + player c-px! player face-right then
+	keys key-up and if player py 1 - player c-py! then
+	keys key-dn and if player py 1 + player c-py! then
+;
+
 : indexof (value array)
 	loop
 		2dup @ xor
@@ -181,7 +185,7 @@
 
 # wait for key-a to be pressed
 # and then released before continuing.
-: wait
+: wait ( -- )
 	85 GP @ 1186 + !
 	loop keys key-a and  if break then sync again
 	loop keys key-a and -if break then sync again
@@ -247,6 +251,9 @@
 	if face-left else face-right then
 ;
 
+: >actor   swap over solid! >sprite ;
+: actor>   dup >r sprite> r> solid? ;
+
 :var   flipcnt
 :var   clipcnt
 
@@ -257,60 +264,42 @@
 :data   laugh 1
 :string $ "     Tee hee hee!"
 
+:const janet-id  1
+:const bill-id   2
+:const meg-id    3
+
+: janet  janet-id  sprite-id + @ ;
+: bill   bill-id   sprite-id + @ ;
+: meg    meg-id    sprite-id + @ ;
+
 : main
 
-	# init sprite
-	16x32 player sprite@ !
-	    0 player tile!
-	  160 player px!
-	  120 player py!
+	16x32  0 160 120 player      >sprite
+	16x32  8 120  60 true  janet >actor
+	16x32 16 250  70 true  bill  >actor
+	16x32 20  60 130 false meg   >actor
 
-	# init npc1
-	16x32 janet sprite@ !
-	    8 janet tile!
-	  120 janet px!
-	   60 janet py!
-	 true janet solid!
 	200 flipcnt !
-
-	# init npc2
-	16x32 bill sprite@ !
-	   16 bill tile!
-	  250 bill px!
-	   70 bill py!
-	 true bill solid!
 	300 clipcnt !
-
-	# init npc3
-	16x32 meg sprite@ !
-	   20 meg tile!
-	   60 meg px!
-	  130 meg py!
-     false meg solid!
 
 	loop
 
-		keys key-lf and if player px 1 - player c-px! player face-left  then
-		keys key-rt and if player px 1 + player c-px! player face-right then
-		keys key-up and if player py 1 - player c-py! then
-		keys key-dn and if player py 1 + player c-py! then
-
-		# animate npc1
+		# animate janet
 		flipcnt @
 		if
-			flipcnt @ 1 - flipcnt !
+			flipcnt dec@
 		else
 			janet flip-horiz
 			RN @ 600 mod 200 + flipcnt !
 		then
 
-		# animate npc2
+		# animate bill
 		clipcnt @
 		if
-			clipcnt @ 1 - clipcnt !
+			clipcnt dec@
 		else
-			bill tile 16 xor
-			-if  # clipboard is currently up
+			bill tile 16 =
+			if  # clipboard is currently up
 				17 bill tile!
 				50 clipcnt !
 			else # clipboard is currently down
@@ -320,7 +309,6 @@
 		then
 
 		keys key-a and if
-
 			janet use-object if
 				janet face-player
 				10 janet tile!
@@ -338,6 +326,7 @@
 			then
 		then
 
+		move-player
 		sort-sprites
 
 		sync
