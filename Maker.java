@@ -52,7 +52,6 @@ public class Maker implements MakoConstants {
 		mnemonics.put(OP_SGT,    "SGT");
 		mnemonics.put(OP_SLT,    "SLT");
 		mnemonics.put(OP_SYNC,   "SYNC");
-		mnemonics.put(OP_KEYIN,  "KEYIN");
 	}
 
 	private static final Set<Integer> paramOps = new HashSet<Integer>();
@@ -106,6 +105,7 @@ public class Maker implements MakoConstants {
 		variables.put("SY", SY);
 		variables.put("CL", CL);
 		variables.put("RN", RN);
+		variables.put("KY", KY);
 
 		variables.put("CO", CO); // character-out (debug)
 
@@ -397,13 +397,17 @@ public class Maker implements MakoConstants {
 		else if (token.equals(">"))    { romAdd(OP_SGT,    TAG_CODE); }
 		else if (token.equals("<"))    { romAdd(OP_SLT,    TAG_CODE); }
 		else if (token.equals("sync")) { romAdd(OP_SYNC,   TAG_CODE); }
-		else if (token.equals("keys")) { romAdd(OP_KEYIN,  TAG_CODE); }
 		
 		// pseudo-ops
 		else if (token.equals("<="))    { romAdd(OP_SGT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
 		else if (token.equals(">="))    { romAdd(OP_SLT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
 		else if (token.equals("2dup"))  { romAdd(OP_OVER, TAG_CODE); romAdd(OP_OVER, TAG_CODE); }
 		else if (token.equals("2drop")) { romAdd(OP_DROP, TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
+		else if (token.equals("keys")) {
+			romAdd(OP_CONST, TAG_CODE);
+			romAdd(KY,       TAG_CODE);
+			romAdd(OP_LOAD,  TAG_CODE); 
+		}
 		else if (token.equals("i")) {
 			romAdd(OP_RTS, TAG_CODE);
 			romAdd(OP_DUP, TAG_CODE);

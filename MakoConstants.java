@@ -28,7 +28,6 @@ public interface MakoConstants {
 	public static final int OP_SGT    = 28;
 	public static final int OP_SLT    = 29;
 	public static final int OP_SYNC   = 30;
-	public static final int OP_KEYIN  = 31;
 
 	public static final int PC =  0; // program counter
 	public static final int DP =  1; // data stack pointer
@@ -43,10 +42,11 @@ public interface MakoConstants {
 	public static final int GS =  9; // grid horizontal skip
 	public static final int CL = 10; // clear color
 	public static final int RN = 11; // random number
+	public static final int KY = 12; // key input
 
-	public static final int CO = 12; // character-out (debug)
+	public static final int CO = 13; // character-out (debug)
 
-	public static final int RESERVED_HEADER = 13;
+	public static final int RESERVED_HEADER = 14;
 
 	public static final int H_MIRROR_MASK = 0x10000; // sprite is mirrored horizontally?
 	public static final int V_MIRROR_MASK = 0x20000; // sprite is mirrored vertically?

@@ -66,12 +66,12 @@ public class MakoVM implements MakoConstants {
 			case OP_NOT    : push(~pop());                           break;
 			case OP_SGT    : a = pop(); b = pop(); push(b>a ? -1:0); break;
 			case OP_SLT    : a = pop(); b = pop(); push(b<a ? -1:0); break;
-			case OP_KEYIN  : push(keys);                             break;
 		}
 	}
 
 	private int load(int addr) {
 		if (addr == RN) { return rand.nextInt(); }
+		if (addr == KY) { return keys; }
 		return m[addr];
 	}
 
