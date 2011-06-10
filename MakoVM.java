@@ -30,10 +30,9 @@ public class MakoVM implements MakoConstants {
 	private int mod(int a, int b) { a %= b; return a < 0 ? a+b : a; }
 
 	public void run() {
-		while(true) {
-			if (m[m[PC]] == OP_SYNC) { sync(); m[PC]++; break; }
-			tick();
-		}
+		while(m[m[PC]] != OP_SYNC) { tick(); }
+		sync();
+		m[PC]++;
 	}
 
 	public void tick() {
@@ -78,11 +77,6 @@ public class MakoVM implements MakoConstants {
 
 	private void stor(int addr, int value) {
 		if (addr == CO) { System.out.print((char)value); return; }
-		if (addr == BK) {
-			System.out.format("Breakpoint @%d.%n", m[PC]);
-			try { System.in.read(); }
-			catch(Exception e) { e.printStackTrace(); }
-		}
 		m[addr] = value;
 	}
 

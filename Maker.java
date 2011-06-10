@@ -108,7 +108,6 @@ public class Maker implements MakoConstants {
 		variables.put("RN", RN);
 
 		variables.put("CO", CO); // character-out (debug)
-		variables.put("BK", BK); // breakpoint
 
 		constants.put("key-up", 0x01);
 		constants.put("key-rt", 0x02);
