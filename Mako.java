@@ -38,7 +38,7 @@ public class Mako {
 
 		while(true) {
 			view.vm.run();
-			view.vm.setKeys(view.keys);
+			view.vm.keys = view.keys;
 			view.repaint();
 			try { Thread.sleep(10); }
 			catch(InterruptedException ie) {}

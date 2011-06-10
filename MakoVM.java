@@ -8,8 +8,8 @@ public class MakoVM implements MakoConstants {
 
 	public final int[] m;                      // main memory
 	public final int[] p = new int[320 * 240]; // pixel buffer
-	
-	private int keys = 0;
+	public int keys = 0;
+
 	private final Random rand = new Random();
 	private final MemoryImageSource mis;
 	private final Image target;
@@ -145,9 +145,5 @@ public class MakoVM implements MakoConstants {
 			buffer.getGraphics().drawImage(target, 0, 0, null);
 		}
 		return buffer;
-	}
-
-	public void setKeys(int k) {
-		keys = k;
 	}
 }
