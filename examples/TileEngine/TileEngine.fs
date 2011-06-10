@@ -55,6 +55,7 @@
 :array sprites 1024 
 
 :include "../Sprites.fs"
+:include "../Lookup.fs"
 :include "../Print.fs"
 
 : inc@   dup @ 1 + swap !       ;
@@ -139,6 +140,35 @@
 	keys key-dn and if player py 1 + player c-py! then
 ;
 
+:array sprite-trigger 256
+: trigger? sprite-trigger + @ ; ( sprite-id -- addr )
+: trigger! sprite-trigger + ! ; ( addr sprite-id -- )
+
+# return true if the player is in
+# the right position and facing direction
+# for a 'use action' to activate an npc:
+: use-object ( sprite -- flag )
+	>r
+	player sprite@ @ sprite-mirror-horiz and
+	if   # facing right
+		player px 24 +
+		player py 24 +
+	else # facing left
+		player px  8 -
+		player py 24 +
+	then
+	r> c-sprite?
+;
+
+: use-prompt
+	false 255 for
+		i use-object i trigger? and
+		if drop true then
+	next
+	if 85 else -1 then
+	GP @ 1186 + !
+;
+
 : indexof (value array)
 	loop
 		2dup @ xor
@@ -170,6 +200,10 @@
 		# swap entries in the solid table:
 		dup sprite-solid +
 		  i sprite-solid + swap@
+
+		# swap entries in the trigger table:
+		dup sprite-trigger +
+		  i sprite-trigger + swap@
 
 		# swap sprite registers:
 		sprite@ i sprite@
@@ -230,22 +264,6 @@
 	next
 ;
 
-# return true if the player is in
-# the right position and facing direction
-# for a 'use action' to activate an npc:
-: use-object ( sprite -- flag )
-	>r
-	player sprite@ @ sprite-mirror-horiz and
-	if   # facing right
-		player px 24 +
-		player py 24 +
-	else # facing left
-		player px  8 -
-		player py 24 +
-	then
-	r> c-sprite?
-;
-
 : face-player ( sprite -- )
 	dup px player px >
 	if face-left else face-right then
@@ -253,16 +271,15 @@
 
 : >actor   swap over solid! >sprite ;
 : actor>   dup >r sprite> r> solid? ;
+: clear-actors
+	255 for
+		0 0 0 0 0 i >actor
+		0 i trigger!
+	next
+;
 
 :var   flipcnt
 :var   clipcnt
-
-:data   helo 2
-:string $ "     Shouldn't you be, like,"
-:string $ "     cleaning or something?"
-
-:data   laugh 1
-:string $ "     Tee hee hee!"
 
 :const janet-id  1
 :const bill-id   2
@@ -271,6 +288,31 @@
 : janet  janet-id  sprite-id + @ ;
 : bill   bill-id   sprite-id + @ ;
 : meg    meg-id    sprite-id + @ ;
+
+:data   helo 2
+:string $ "     Shouldn't you be, like,"
+:string $ "     cleaning or something?"
+
+:data   laugh 1
+:string $ "     Tee hee hee!"
+
+: janet-trigger
+	janet face-player
+	10 janet tile!
+	helo show-text
+	12 janet tile!
+	laugh show-text
+	8 janet tile!
+;
+
+:data   fluffles 2
+:string $ " Have you seen Fluffles anywhere,"
+:string $ " mister robot?"
+
+: meg-trigger
+	meg face-player
+	fluffles show-text
+;
 
 : main
 
@@ -281,6 +323,9 @@
 
 	200 flipcnt !
 	300 clipcnt !
+
+	' janet-trigger janet trigger!
+	' meg-trigger   meg   trigger!
 
 	loop
 
@@ -309,14 +354,13 @@
 		then
 
 		keys key-a and if
-			janet use-object if
-				janet face-player
-				10 janet tile!
-				helo show-text
-				12 janet tile!
-				laugh show-text
-				 8 janet tile!
+			0
+			255 for
+				i use-object if drop i trigger? then
+			next
+			dup if exec
 			else
+				drop
 				1 player tile! 10 for sync next
 				2 player tile! 10 for sync next
 				3 player tile! 10 for sync next
@@ -326,6 +370,7 @@
 			then
 		then
 
+		use-prompt
 		move-player
 		sort-sprites
 
