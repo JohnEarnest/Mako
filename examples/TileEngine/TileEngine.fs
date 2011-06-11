@@ -347,7 +347,7 @@
 	' meg-trigger   meg   trigger!
 
 	0xFFFF0000 CL !
-#map-transition
+	map-transition
 
 	loop
 
