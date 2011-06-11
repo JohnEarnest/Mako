@@ -1,0 +1,7 @@
+syntax "maker" "\.fs$"
+# comments
+color yellow "#.*"
+# multiline comments
+color magenta start="\(" end="\)"
+# numbers
+color cyan "-?[0-9]"
