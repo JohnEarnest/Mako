@@ -58,8 +58,9 @@
 :include "../Lookup.fs"
 :include "../Print.fs"
 
-: inc@   dup @ 1 + swap !       ;
-: dec@   dup @ 1 - swap !       ;
+: inc@   dup @  1 + swap !      ;
+: dec@   dup @  1 - swap !      ;
+: neg@   dup @ -1 * swap !      ;
 : =      xor -if -1 else 0 then ;
 
 :data sprite-id
@@ -69,9 +70,9 @@
 :const player-id 0
 : player player-id sprite-id + @ ;
 
-: tile@ ( x y -- tile-index )
-	# tile-id = m[((y/8) * (41 + m[GS])) + (x/8) + m[GP]]
-	8 / GS @ 41 + * swap 8 / + GP @ + @
+: tile@ ( x y -- tile-address )
+	# tile-addr = ((y/8) * (41 + m[GS])) + (x/8) + m[GP]
+	8 / GS @ 41 + * swap 8 / + GP @ +
 ;
 
 : c-tile? ( x y -- flag )
@@ -82,7 +83,7 @@
 	# store collision data separately or
 	# use a complex lookup table:
 
-	tile@ 16 mod 7 >
+	tile@ @ 16 mod 7 >
 ;
 
 : c-ground? ( sprite-id -- flag )
@@ -264,6 +265,24 @@
 	next
 ;
 
+: map-transition
+	40 for
+		30 for
+			i j tile@ neg@
+			sync
+		next
+	next
+
+	wait
+
+	40 for
+		30 for
+			 j i tile@ neg@
+			sync
+		next
+	next
+;
+
 : face-player ( sprite -- )
 	dup px player px >
 	if face-left else face-right then
@@ -326,6 +345,9 @@
 
 	' janet-trigger janet trigger!
 	' meg-trigger   meg   trigger!
+
+	0xFFFF0000 CL !
+#map-transition
 
 	loop
 

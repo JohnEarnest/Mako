@@ -84,7 +84,10 @@ class MakoPanel extends JPanel implements KeyListener {
 		                             0, 0, 320, 240, this);
 	}
 
-	public void keyPressed(KeyEvent k)  { if (masks.containsKey(k.getKeyCode())) { keys |=   masks.get(k.getKeyCode()) ; }}
+	public void keyPressed(KeyEvent k)  {
+		if (k.getKeyCode() == KeyEvent.VK_ESCAPE) { System.exit(0); }
+		if (masks.containsKey(k.getKeyCode())) { keys |=   masks.get(k.getKeyCode()) ; }
+	}
 	public void keyReleased(KeyEvent k) { if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }}
 	public void keyTyped(KeyEvent k) {}
 }

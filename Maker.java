@@ -571,10 +571,10 @@ public class Maker implements MakoConstants {
 			// hex, binary and decimal numbers with C-style prefixes.
 			try {
 				if (token.startsWith("0x")) {
-					ret.add(Integer.parseInt(token.substring(2), 16));
+					ret.add((int)Long.parseLong(token.substring(2), 16));
 				}
 				else if (token.startsWith("0b")) {
-					ret.add(Integer.parseInt(token.substring(2), 2));
+					ret.add((int)Long.parseLong(token.substring(2), 2));
 				}
 				else {
 					ret.add(Integer.parseInt(token));
