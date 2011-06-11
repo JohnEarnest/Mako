@@ -1,0 +1,83 @@
+{
+        BBEditDocumentType = "CodelessLanguageModule";
+        BBLMColorsSyntax = YES;
+        BBLMIsCaseSensitive = YES;
+        BBLMKeywordList = (
+			true,
+			false,
+			:,
+			";",
+			:var,
+			:array,
+			:data,
+			:string,
+			:const,
+			:image,
+			:include,
+			if,
+			-if,
+			else,
+			then,
+			loop,
+			while,
+			until,
+			again,
+			break,
+			exit,
+			for,
+			next,
+
+			PC,
+			DP,
+			RP,
+			GP,
+			GT,
+			SP,
+			ST,
+			GS,
+			SX,
+			SY,
+			CL,
+			RN,
+			KY,
+			CO,
+			key-up,
+			key-dn,
+			key-lf,
+			key-rt,
+			key-a,
+			key-b,
+			sprite-mirror-horiz,
+			sprite-mirror-vert,
+			grid-skip,
+			scroll-x,
+			scroll-y,
+			clear-color,
+			data-stack,
+			return-stack,
+			grid,
+			grid-tiles,
+			sprites,
+			sprite-tiles,
+			main,
+        );
+        BBLMLanguageCode = fs;
+        "BBLMLanguageDisplayName" = "Maker Forth";
+        BBLMScansFunctions = NO;
+        BBLMSuffixMap = (
+                {
+                        BBLMLanguageSuffix = ".fs";
+                },
+        );
+        "Language Features" = {
+                "Open Block Comments" = "(";
+                "Close Block Comments" = ")";
+                "Open Line Comments" = "#";
+
+                "Open Strings 1" = "\"";
+                "Close Strings 1" = "\"";
+                "End-of-line Ends Strings 1" = NO;
+
+                "Identifier and Keyword Characters" = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz:;-";
+        };
+}
