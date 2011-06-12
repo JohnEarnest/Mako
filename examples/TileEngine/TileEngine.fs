@@ -51,8 +51,18 @@
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF487990
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF000000
+:array solid-tiles 64 0xFF487990
+
+#:array solid-tiles 512 0xFF000000
 :image sprite-tiles "Scrubby.png" 16 32
-:array sprites 1024 
+:array sprites 1024 0
 
 :include "../Sprites.fs"
 :include "../Lookup.fs"
@@ -97,7 +107,7 @@
 	                    c-tile? r> or
 ;
 
-:array sprite-solid 256
+:array sprite-solid 256 0
 : solid? sprite-solid + @ ; ( sprite-id -- flag )
 : solid! sprite-solid + ! ; ( flag sprite-id -- )
 
@@ -141,7 +151,7 @@
 	keys key-dn and if player py 1 + player c-py! then
 ;
 
-:array sprite-trigger 256
+:array sprite-trigger 256 0
 : trigger? sprite-trigger + @ ; ( sprite-id -- addr )
 : trigger! sprite-trigger + ! ; ( addr sprite-id -- )
 
@@ -265,22 +275,35 @@
 	next
 ;
 
+: animate-transition
+	80 for
+		119 for
+			i 136 + sprite@ .sprite-x
+			dup @ 4 i 2 mod if + else - then swap !
+		next
+		sync
+	next
+;
+
+# Using the highest 120 sprites, animate
+# a venetian blinds-like transition effect.
+# The solid-color sprites are produced
+# by padding memory before the sprite sheet.
 : map-transition
-	40 for
-		30 for
-			i j tile@ neg@
-			sync
-		next
-	next
 
-	wait
-
-	40 for
-		30 for
-			 j i tile@ neg@
-			sync
-		next
+	# initialize the 'blinds'
+	119 for
+		64x8 -1
+		i 2 / 5 mod 64 * i 2 mod if -320 else 320 then + # x-position 
+		i 2 / 5 / 16 * i 2 mod if 8 + then               # y-position
+		i 136 + >sprite
 	next
+	
+	animate-transition
+
+	# swap screens
+
+	animate-transition
 ;
 
 : face-player ( sprite -- )
@@ -300,13 +323,9 @@
 :var   flipcnt
 :var   clipcnt
 
-:const janet-id  1
-:const bill-id   2
-:const meg-id    3
-
-: janet  janet-id  sprite-id + @ ;
-: bill   bill-id   sprite-id + @ ;
-: meg    meg-id    sprite-id + @ ;
+: janet  1 sprite-id + @ ;
+: bill   2 sprite-id + @ ;
+: meg    3 sprite-id + @ ;
 
 :data   helo 2
 :string $ "     Shouldn't you be, like,"
@@ -346,8 +365,8 @@
 	' janet-trigger janet trigger!
 	' meg-trigger   meg   trigger!
 
-	0xFFFF0000 CL !
-	map-transition
+	#0xFFFF0000 CL !
+	#map-transition
 
 	loop
 

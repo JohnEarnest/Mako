@@ -13,9 +13,9 @@
 ######################################################
 
 :image grid-tiles "text.png" 8 8
-:array grid 1271
+:array grid 1271 0
 :const sprite-tiles grid-tiles
-:array sprites 1024
+:array sprites 1024 0
 
 : sprite@    4 * sprites + ;
 : .sprite-t  1 + ;
@@ -26,7 +26,7 @@
 : px!        sprite@ .sprite-x ! ;
 : py!        sprite@ .sprite-y ! ;
 
-:array velocities 512
+:array velocities 512 0
 
 : vx         2 * velocities +     @ ;
 : vy         2 * velocities + 1 + @ ;

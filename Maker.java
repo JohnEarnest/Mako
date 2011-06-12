@@ -227,7 +227,11 @@ public class Maker implements MakoConstants {
 			romAdd(0, TAG_DATA);
 		}
 		else if (token.equals(":array")) {
-			buildRegion(tokens.remove().toString(), (Integer)tokens.remove());
+			String name = tokens.remove().toString();
+			int count = (Integer)tokens.remove();
+			int value = (Integer)tokens.remove();
+			variables.put(name, rom.size());
+			for(int x = 0; x < count; x++) { romAdd(value, TAG_ARRAY); }
 		}
 		else if (token.equals(":data")) {
 			variables.put(tokens.remove().toString(), rom.size());

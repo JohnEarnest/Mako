@@ -1,6 +1,5 @@
 import java.awt.Image;
 import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 import java.util.Random;
 
@@ -8,18 +7,16 @@ public class MakoVM implements MakoConstants {
 
 	public final int[] m;                      // main memory
 	public final int[] p = new int[320 * 240]; // pixel buffer
+	public final Image buffer;
 	public int keys = 0;
 
 	private final Random rand = new Random();
 	private final MemoryImageSource mis;
-	private final Image target;
-	private final Image buffer;
 
 	public MakoVM(int[] m) {
 		this.m = m;
 		mis = new MemoryImageSource(320, 240, p, 0, 320);
-		target = Toolkit.getDefaultToolkit().createImage(mis);
-		buffer = new BufferedImage(320, 240, BufferedImage.TYPE_INT_ARGB);
+		buffer = Toolkit.getDefaultToolkit().createImage(mis);
 		mis.setAnimated(true);
 	}
 
@@ -37,8 +34,7 @@ public class MakoVM implements MakoConstants {
 
 	public void tick() {
 		int o = m[m[PC]++];
-		int a = 0;
-		int b = 0;
+		int a, b;
 
 		switch(o) {
 			case OP_CONST  :  push(m[m[PC]++]);                      break;
@@ -100,12 +96,10 @@ public class MakoVM implements MakoConstants {
 		if (status % 2 == 0) { return; }
 		final int w = (((status & 0x0F00) >>  8) + 1) << 3;
 		final int h = (((status & 0xF000) >> 12) + 1) << 3;
-
 		int xd = 1; int x0 = 0; int x1 = w;
 		int yd = 1; int y0 = 0; int y1 = h;
 		if ((status & H_MIRROR_MASK) != 0) { xd = -1; x0 = w - 1; x1 = -1; }
 		if ((status & V_MIRROR_MASK) != 0) { yd = -1; y0 = h - 1; y1 = -1; }
-
 		int i = m[ST] + (tile * w * h);
 		for(int y = y0; y != y1; y += yd) {
 			for(int x = x0; x != x1; x += xd) {
@@ -117,10 +111,7 @@ public class MakoVM implements MakoConstants {
 	private void sync() {
 		final int scrollx = m[SX];
 		final int scrolly = m[SY];
-		final int clear   = m[CL];
-		for(int x = 0; x < 320 * 240; x++) {
-			p[x] = clear;
-		}
+		java.util.Arrays.fill(p, m[CL]);
 		int i = m[GP];
 		for(int y = 0; y < 31; y++) {
 			for(int x = 0; x < 41; x++) {
@@ -135,15 +126,6 @@ public class MakoVM implements MakoConstants {
 			final int py     = m[m[SP] + sprite + 3];
 			drawSprite(tile, status, px - scrollx, py - scrolly);
 		}
-		synchronized(target) {
-			mis.newPixels();
-		}
-	}
-
-	public Image getBuffer() {
-		synchronized(target) {
-			buffer.getGraphics().drawImage(target, 0, 0, null);
-		}
-		return buffer;
+		mis.newPixels();
 	}
 }

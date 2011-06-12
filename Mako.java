@@ -80,8 +80,8 @@ class MakoPanel extends JPanel implements KeyListener {
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 		g2.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		g2.drawImage(vm.getBuffer(), 0, 0,   w,   h,
-		                             0, 0, 320, 240, this);
+		g2.drawImage(vm.buffer, 0, 0,   w,   h,
+		                        0, 0, 320, 240, this);
 	}
 
 	public void keyPressed(KeyEvent k)  {
