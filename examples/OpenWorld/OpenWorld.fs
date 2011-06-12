@@ -23,11 +23,13 @@
 
 :include "../Sprites.fs"
 :include "../Util.fs"
-:include "../Print.fs"
 
 : grid-tile@  GS @ 41 + * swap + GP @ +  ;
 : cam-x       GP @ grid - grid-width mod ;
 : cam-y       GP @ grid - grid-width /   ;
+
+:const player 0
+:const speed  2
 
 : scroll-grid-x
 	SX @ +
@@ -47,9 +49,6 @@
 	SY !
 ;
 
-:const player 0
-:const speed  2
-
 : main
 	
 	# init player sprite
@@ -65,7 +64,7 @@
 			or or or
 			if    2 random 2 +
 			else  4 random 5 random 16 * + 4 + then
-			i j tile@ !
+			i j grid-tile@ !
 		next
 	next
 
