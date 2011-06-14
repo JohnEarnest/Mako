@@ -14,6 +14,7 @@
 			:const,
 			:image,
 			:include,
+			:proto,
 			if,
 			-if,
 			else,

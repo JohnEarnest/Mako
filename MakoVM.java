@@ -37,31 +37,32 @@ public class MakoVM implements MakoConstants {
 		int a, b;
 
 		switch(o) {
-			case OP_CONST  :  push(m[m[PC]++]);                      break;
-			case OP_CALL   : rpush(m[PC]+1); m[PC] = m[m[PC]];       break;
-			case OP_JUMP   :                 m[PC] = m[m[PC]];       break;
-			case OP_JUMPZ  : m[PC] = pop()==0 ? m[m[PC]] : m[PC]+1;  break;
-			case OP_JUMPIF : m[PC] = pop()!=0 ? m[m[PC]] : m[PC]+1;  break;
-			case OP_LOAD   : push(load(pop()));                      break;
-			case OP_STOR   : stor(pop(),pop());                      break;
-			case OP_RETURN : m[PC] = rpop();                         break;
-			case OP_DROP   : pop();                                  break;
-			case OP_SWAP   : a = pop(); b = pop(); push(a); push(b); break;
-			case OP_DUP    : push(m[m[DP]-1]);                       break;
-			case OP_OVER   : push(m[m[DP]-2]);                       break;
-			case OP_STR    : rpush(pop());                           break;
-			case OP_RTS    : push(rpop());                           break;
-			case OP_ADD    : a = pop(); b = pop(); push(b+a);        break;
-			case OP_SUB    : a = pop(); b = pop(); push(b-a);        break;
-			case OP_MUL    : a = pop(); b = pop(); push(b*a);        break;
-			case OP_DIV    : a = pop(); b = pop(); push(b/a);        break;
-			case OP_MOD    : a = pop(); b = pop(); push(mod(b,a));   break;
-			case OP_AND    : a = pop(); b = pop(); push(b&a);        break;
-			case OP_OR     : a = pop(); b = pop(); push(b|a);        break;
-			case OP_XOR    : a = pop(); b = pop(); push(b^a);        break;
-			case OP_NOT    : push(~pop());                           break;
-			case OP_SGT    : a = pop(); b = pop(); push(b>a ? -1:0); break;
-			case OP_SLT    : a = pop(); b = pop(); push(b<a ? -1:0); break;
+			case OP_CONST  :  push(m[m[PC]++]);                       break;
+			case OP_CALL   : rpush(m[PC]+1); m[PC] = m[m[PC]];        break;
+			case OP_JUMP   :                 m[PC] = m[m[PC]];        break;
+			case OP_JUMPZ  : m[PC] = pop()==0 ? m[m[PC]] : m[PC]+1;   break;
+			case OP_JUMPIF : m[PC] = pop()!=0 ? m[m[PC]] : m[PC]+1;   break;
+			case OP_LOAD   : push(load(pop()));                       break;
+			case OP_STOR   : stor(pop(),pop());                       break;
+			case OP_RETURN : m[PC] = rpop();                          break;
+			case OP_DROP   : pop();                                   break;
+			case OP_SWAP   : a = pop(); b = pop(); push(a); push(b);  break;
+			case OP_DUP    : push(m[m[DP]-1]);                        break;
+			case OP_OVER   : push(m[m[DP]-2]);                        break;
+			case OP_STR    : rpush(pop());                            break;
+			case OP_RTS    : push(rpop());                            break;
+			case OP_ADD    : a = pop(); b = pop(); push(b+a);         break;
+			case OP_SUB    : a = pop(); b = pop(); push(b-a);         break;
+			case OP_MUL    : a = pop(); b = pop(); push(b*a);         break;
+			case OP_DIV    : a = pop(); b = pop(); push(b/a);         break;
+			case OP_MOD    : a = pop(); b = pop(); push(mod(b,a));    break;
+			case OP_AND    : a = pop(); b = pop(); push(b&a);         break;
+			case OP_OR     : a = pop(); b = pop(); push(b|a);         break;
+			case OP_XOR    : a = pop(); b = pop(); push(b^a);         break;
+			case OP_NOT    : push(~pop());                            break;
+			case OP_SGT    : a = pop(); b = pop(); push(b>a ? -1:0);  break;
+			case OP_SLT    : a = pop(); b = pop(); push(b<a ? -1:0);  break;
+			case OP_NEXT   : if (--m[m[RP]-1] >= 0) m[PC] = m[m[PC]]; break;
 		}
 	}
 

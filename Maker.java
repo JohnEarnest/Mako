@@ -9,6 +9,7 @@ public class Maker implements MakoConstants {
 	private Map<String, Integer> dictionary = new TreeMap<String, Integer>();
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
 	private Map<String, Integer> constants = new TreeMap<String, Integer>();
+	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
 	private Set<String> imported = new HashSet<String>();
 	private List<Integer> rom = new ArrayList<Integer>();
 	private List<Integer> tag = new ArrayList<Integer>();
@@ -52,6 +53,7 @@ public class Maker implements MakoConstants {
 		mnemonics.put(OP_SGT,    "SGT");
 		mnemonics.put(OP_SLT,    "SLT");
 		mnemonics.put(OP_SYNC,   "SYNC");
+		mnemonics.put(OP_NEXT,   "NEXT");
 	}
 
 	private static final Set<Integer> paramOps = new HashSet<Integer>();
@@ -61,6 +63,7 @@ public class Maker implements MakoConstants {
 		paramOps.add(OP_JUMP);
 		paramOps.add(OP_JUMPZ);
 		paramOps.add(OP_JUMPIF);
+		paramOps.add(OP_NEXT);
 	}
 
 	public static void main(String[] args) {
@@ -109,12 +112,12 @@ public class Maker implements MakoConstants {
 
 		variables.put("CO", CO); // character-out (debug)
 
-		constants.put("key-up", 0x01);
-		constants.put("key-rt", 0x02);
-		constants.put("key-dn", 0x04);
-		constants.put("key-lf", 0x08);
-		constants.put("key-a",  0x10);
-		constants.put("key-b",  0x20);
+		constants.put("key-up", KEY_UP);
+		constants.put("key-rt", KEY_RT);
+		constants.put("key-dn", KEY_DN);
+		constants.put("key-lf", KEY_LF);
+		constants.put("key-a",  KEY_A);
+		constants.put("key-b",  KEY_B);
 
 		constants.put("sprite-mirror-horiz", H_MIRROR_MASK);
 		constants.put("sprite-mirror-vert",  V_MIRROR_MASK);
@@ -145,6 +148,12 @@ public class Maker implements MakoConstants {
 		}
 		if (!dictionary.containsKey("main")) {
 			throw new Error("No entrypoint defined!");
+		}
+		if (prototypes.size() > 0) {
+			for(String s : prototypes.keySet()) {
+				System.out.println("unresolved prototype '"+s+"'");
+			}
+			throw new Error();
 		}
 
 		buildRegion("data-stack",     50);
@@ -216,7 +225,13 @@ public class Maker implements MakoConstants {
 		// defining words
 		if (token.equals(":")) {
 			compiling = true;
-			dictionary.put(tokens.remove().toString(), rom.size());
+			String wordName = tokens.remove().toString();
+			dictionary.put(wordName, rom.size());
+			if (prototypes.containsKey(wordName)) {
+				for(Integer a : prototypes.remove(wordName)) {
+					rom.set(a, rom.size());
+				}
+			}
 		}
 		else if (token.equals(";")) {
 			compiling = false;
@@ -302,6 +317,10 @@ public class Maker implements MakoConstants {
 			if (path != null) { fileName = path + File.separator + fileName; }
 			compileFile(fileName);
 		}
+		else if (token.equals(":proto")) {
+			String wordName = tokens.remove().toString();
+			prototypes.put(wordName, new ArrayList<Integer>());
+		}
 
 		// branching constructs
 		else if (token.equals("if")) {
@@ -362,6 +381,7 @@ public class Maker implements MakoConstants {
 			loopStack.push(rom.size());
 		}
 		else if (token.equals("next")) {
+			/*
 			romAdd(OP_RTS,          TAG_CODE);
 			romAdd(OP_CONST,        TAG_CODE);
 			romAdd(1,               TAG_CODE);
@@ -373,6 +393,8 @@ public class Maker implements MakoConstants {
 			romAdd(0,               TAG_CODE);
 			romAdd(OP_SLT,          TAG_CODE);
 			romAdd(OP_JUMPZ,        TAG_CODE);
+			*/
+			romAdd(OP_NEXT,         TAG_CODE);
 
 			romAdd(loopStack.pop(), TAG_CODE);
 			romAdd(OP_RTS,          TAG_CODE);
@@ -444,6 +466,11 @@ public class Maker implements MakoConstants {
 			romAdd(-3,             TAG_CODE);
 		}
 
+		else if (prototypes.containsKey(token)) {
+			if (compiling) { romAdd(OP_CALL, TAG_CODE); }
+			prototypes.get(token).add(rom.size());
+			romAdd(-5, compiling ? TAG_CODE : TAG_ARRAY);
+		}
 		else if (constants.containsKey(token)) {
 			if (compiling) { romAdd(OP_CONST, TAG_CODE); }
 			romAdd(constants.get(token), compiling ? TAG_CODE : TAG_ARRAY);

@@ -46,23 +46,23 @@ public class Mako {
 	}
 }
 
-class MakoPanel extends JPanel implements KeyListener {
+class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 
 	private static final Map<Integer, Integer> masks = new HashMap<Integer, Integer>();
 	{
-		masks.put(KeyEvent.VK_UP,     0x01); // key-up
-		masks.put(KeyEvent.VK_RIGHT,  0x02); // key-rt
-		masks.put(KeyEvent.VK_DOWN,   0x04); // key-dn
-		masks.put(KeyEvent.VK_LEFT,   0x08); // key-lf
-		masks.put(KeyEvent.VK_W,      0x01);
-		masks.put(KeyEvent.VK_D,      0x02);
-		masks.put(KeyEvent.VK_S,      0x04);
-		masks.put(KeyEvent.VK_A,      0x08);
-		masks.put(KeyEvent.VK_ENTER,  0x10); // key-a
-		masks.put(KeyEvent.VK_SPACE,  0x10);
-		masks.put(KeyEvent.VK_Z,      0x10);
-		masks.put(KeyEvent.VK_X,      0x20); // key-b
-		masks.put(KeyEvent.VK_ESCAPE, 0x20);
+		masks.put(KeyEvent.VK_UP,     KEY_UP); // key-up
+		masks.put(KeyEvent.VK_RIGHT,  KEY_RT); // key-rt
+		masks.put(KeyEvent.VK_DOWN,   KEY_DN); // key-dn
+		masks.put(KeyEvent.VK_LEFT,   KEY_LF); // key-lf
+		masks.put(KeyEvent.VK_W,      KEY_UP);
+		masks.put(KeyEvent.VK_D,      KEY_RT);
+		masks.put(KeyEvent.VK_S,      KEY_DN);
+		masks.put(KeyEvent.VK_A,      KEY_LF);
+		masks.put(KeyEvent.VK_ENTER,  KEY_A); // key-a
+		masks.put(KeyEvent.VK_SPACE,  KEY_A);
+		masks.put(KeyEvent.VK_Z,      KEY_A);
+		masks.put(KeyEvent.VK_X,      KEY_B); // key-b
+		masks.put(KeyEvent.VK_ESCAPE, KEY_B);
 	}
 
 	private final int w = 960;

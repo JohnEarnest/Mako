@@ -14,7 +14,7 @@
 :image sprite-tiles "protoTiles.png" 8 8
 :array sprites 1024 0
 :image grid-tiles "protoTiles.png" 8 8
-:array grid 2601 1
+:array grid 2500 1
 
 :const grid-height  50
 :const grid-width   50
@@ -28,26 +28,26 @@
 : cam-x       GP @ grid - grid-width mod ;
 : cam-y       GP @ grid - grid-width /   ;
 
-:const player 0
-:const speed  2
-
 : scroll-grid-x
 	SX @ +
 	dup 8 > cam-x grid-width 41 - < and
-	if GP inc@ player px 8 - player px! 8 - then
+	if GP inc@ 255 for i px 8 - i px! next 8 - then
 	dup 0 < cam-x 0 > and
-	if GP dec@ player px 8 + player px! 8 + then
+	if GP dec@ 255 for i px 8 + i px! next 8 + then
 	SX !
 ;
 
 : scroll-grid-y
 	SY @ +
 	dup 8 > cam-y grid-height 31 - < and
-	if grid-width GP +@ player py 8 - player py! 8 - then	
+	if grid-width GP +@ 255 for i py 8 - i py! next 8 - then	
 	dup 0 < cam-y 0 > and
-	if grid-width GP -@ player py 8 + player py! 8 + then
+	if grid-width GP -@ 255 for i py 8 + i py! next 8 + then
 	SY !
 ;
+
+:const player 0
+:const speed  2
 
 : main
 	

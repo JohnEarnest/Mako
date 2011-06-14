@@ -8,7 +8,8 @@
 ##
 ######################################################
 
-: =       xor -if -1 else 0 then    ;
+: =       xor -if -1 else  0 then   ;
+: !=      xor -if  0 else -1 then   ;
 : inc@    dup @ 1 + swap !          ;
 : dec@    dup @ 1 - swap !          ;
 : neg@    dup @ -1 * swap !         ;

@@ -28,6 +28,7 @@ public interface MakoConstants {
 	public static final int OP_SGT    = 28;
 	public static final int OP_SLT    = 29;
 	public static final int OP_SYNC   = 30;
+	public static final int OP_NEXT   = 31;
 
 	public static final int PC =  0; // program counter
 	public static final int DP =  1; // data stack pointer
@@ -50,4 +51,11 @@ public interface MakoConstants {
 
 	public static final int H_MIRROR_MASK = 0x10000; // sprite is mirrored horizontally?
 	public static final int V_MIRROR_MASK = 0x20000; // sprite is mirrored vertically?
+
+	public static final int KEY_UP = 0x01;
+	public static final int KEY_RT = 0x02;
+	public static final int KEY_DN = 0x04;
+	public static final int KEY_LF = 0x08;
+	public static final int KEY_A  = 0x10;
+	public static final int KEY_B  = 0x20;
 }
