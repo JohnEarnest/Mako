@@ -21,6 +21,7 @@ public class MacroBench implements MakoConstants {
 		runTest("StressTest","examples/StressTest/StressTest.fs", false);
 		runTest("TileEngine","examples/TileEngine/TileEngine.fs", false);
 		runTest("OpenWorld", "examples/OpenWorld/OpenWorld.fs",   false);
+		//runTest("Bitmaps",   "examples/Bitmaps/Bitmaps.fs",       false);
 		runTest("Pong",      "examples/Pong/Pong.fs",             false);
 		System.out.println();
 	}
