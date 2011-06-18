@@ -16,3 +16,4 @@
 : +@      swap over @ swap + swap ! ;
 : -@      swap over @ swap - swap ! ;
 : random  RN @ swap mod             ;
+: abs     dup 0 < if -1 * then      ;
