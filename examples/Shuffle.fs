@@ -9,7 +9,7 @@
 ##
 ######################################################
 
-: swap@   dup @ >r over @ swap ! r> swap ! ;
+: swap@  2dup @ >r @ swap ! r> swap ! ;
 
 : shuffle (addr length -- )
 	1 - for

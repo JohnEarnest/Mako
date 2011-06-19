@@ -16,69 +16,24 @@
 ##
 ######################################################
 
-:image grid-tiles "LabTiles.png" 8 8
-:data  grid
-
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 10  9 11 29 11 10 28 11 14 11 11 15 15 30 30  8  8  8  8  8  8  8 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 12 10 28 10 14 11 11 12 10 14 28 15 15 30 30  8  8  8  8  8  8  8 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 10 28 13 10 29 12 10 12 13 28 12 15 15 30 30  8  8  8  8  8  8  8 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15  9 10 28 12 11 11  8 13 12 29 12 15 15 30 30  8  8  8  8  8  8  8 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15  5  5  1  1  1  1  1  1  1  1  1 15 15  5  5  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15  5  5  1  1  1  1  1  1  1  1  1 15 15  5  5  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 15 15 15 15 15 15 15 15  5  5  1  1  1  1  1  1  1  1  1 15 15  5  5  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 13 11 11 29 28 11 15 15  5  5  1  1  1  1  1  1  1  1  1 28 10  5  5  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 28 29 13 11 11 28 15 15  5  5  1  1  1  1  1  1  1  1  1 11 11  5  5  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 28 12 28 28 12 11 28 12  5  5  1  1  1  1  1  1  1  1  1 28 11  5  6  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 12 13 11 12 11 10 28 12  5  5  1  1  1  1  1  1  1  1  1 11 10  6  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1 13 11  5  6  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1 12 28  6  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1 15 15  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF487990
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF000000
-:array solid-tiles 64 0xFF487990
-
-#:array solid-tiles 512 0xFF000000
-:image sprite-tiles "Scrubby.png" 16 32
+:array solid-tiles 512 0xFF000000
+:image sprite-tiles "Scrubby.png"  16 32
+:image grid-tiles   "LabTiles.png"  8  8
 :array sprites 1024 0
 
 :include "../Sprites.fs"
-:include "../Lookup.fs"
+:include "../Util.fs"
 :include "../Print.fs"
 
-: inc@   dup @  1 + swap !      ;
-: dec@   dup @  1 - swap !      ;
-: neg@   dup @ -1 * swap !      ;
-: =      xor -if -1 else 0 then ;
+# How many actors do we need to deal with
+# on the screen at once? (counts from zero)
+:const actor-limit 15
 
 :data sprite-id
 	 0  1  2  3  4  5  6  7
 	 8  9 10 11 12 13 14 15
 
-:const player-id 0
-: player player-id sprite-id + @ ;
+: player 0 sprite-id + @ ;
 
 : tile@ ( x y -- tile-address )
 	# tile-addr = ((y/8) * (41 + m[GS])) + (x/8) + m[GP]
@@ -120,7 +75,7 @@
 ;
 
 : c-npcs? ( sprite-id -- flag )
-	255 for
+	actor-limit for
 		# do not check if a sprite
 		# collides with itself or
 		# is not defined as 'solid'
@@ -172,7 +127,7 @@
 ;
 
 : use-prompt
-	false 255 for
+	false actor-limit for
 		i use-object i trigger? and
 		if drop true then
 	next
@@ -180,15 +135,13 @@
 	GP @ 1186 + !
 ;
 
-: indexof (value array)
+: indexof (value array -- address)
 	loop
-		2dup @ xor
-		-if swap drop exit then
+		2dup @ =
+		if swap drop exit then
 		1 +
 	again
 ;
-
-: swap@  2dup @ >r @ swap ! r> swap ! ;
 
 # sort sprite drawing orders by their
 # y-coordinates for simulated perspective.
@@ -197,7 +150,7 @@
 # in lockstep with sprite registers.
 : sort-sprites
 
-	15 for
+	actor-limit for
 		i
 		i for
 			dup py i py <
@@ -289,7 +242,7 @@
 # a venetian blinds-like transition effect.
 # The solid-color sprites are produced
 # by padding memory before the sprite sheet.
-: map-transition
+: map-transition ( setup-delegate -- )
 
 	# initialize the 'blinds'
 	119 for
@@ -300,9 +253,7 @@
 	next
 	
 	animate-transition
-
-	# swap screens
-
+	exec
 	animate-transition
 ;
 
@@ -311,110 +262,45 @@
 	if face-left else face-right then
 ;
 
-: >actor   swap over solid! >sprite ;
-: actor>   dup >r sprite> r> solid? ;
-: clear-actors
-	255 for
-		0 0 0 0 0 i >actor
-		0 i trigger!
-	next
+: player-center ( -- x y )
+	player px 8 +
+	player py 28 +
 ;
 
-:var   flipcnt
-:var   clipcnt
-
-: janet  1 sprite-id + @ ;
-: bill   2 sprite-id + @ ;
-: meg    3 sprite-id + @ ;
-
-:data   helo 2
-:string $ "     Shouldn't you be, like,"
-:string $ "     cleaning or something?"
-
-:data   laugh 1
-:string $ "     Tee hee hee!"
-
-: janet-trigger
-	janet face-player
-	10 janet tile!
-	helo show-text
-	12 janet tile!
-	laugh show-text
-	8 janet tile!
+: use-logic
+	keys key-a and if
+		0
+		15 for
+			i use-object if drop i trigger? then
+		next
+		dup if exec
+		else
+			drop
+			1 player tile! 10 for sync next
+			2 player tile! 10 for sync next
+			3 player tile! 10 for sync next
+			2 player tile! 10 for sync next
+			1 player tile! 10 for sync next
+			0 player tile!
+		then
+	then
 ;
 
-:data   fluffles 2
-:string $ " Have you seen Fluffles anywhere,"
-:string $ " mister robot?"
+: >actor   swap over solid! >sprite ; (status tile x y solid? sprite-id -- )
+: actor>   dup >r sprite> r> solid? ; (sprite-id -- status tile x y solid? )
+: clear-actors   actor-limit for 0 0 0 0 0 i >actor 0 i trigger! next ;
 
-: meg-trigger
-	meg face-player
-	fluffles show-text
-;
+# Every map is defined in a separate file,
+# with two entrypoints- one 'load' routine and
+# a main loop. Map files may also contain various
+# one-off scripts and special purpose logic.
+
+:include "StorageCloset.fs"
+:include "StartingRoom.fs"
 
 : main
-
-	16x32  0 160 120 player      >sprite
-	16x32  8 120  60 true  janet >actor
-	16x32 16 250  70 true  bill  >actor
-	16x32 20  60 130 false meg   >actor
-
-	200 flipcnt !
-	300 clipcnt !
-
-	' janet-trigger janet trigger!
-	' meg-trigger   meg   trigger!
-
-	#0xFFFF0000 CL !
-	#map-transition
-
-	loop
-
-		# animate janet
-		flipcnt @
-		if
-			flipcnt dec@
-		else
-			janet flip-horiz
-			RN @ 600 mod 200 + flipcnt !
-		then
-
-		# animate bill
-		clipcnt @
-		if
-			clipcnt dec@
-		else
-			bill tile 16 =
-			if  # clipboard is currently up
-				17 bill tile!
-				50 clipcnt !
-			else # clipboard is currently down
-				16 bill tile!
-				RN @ 600 mod 200 + clipcnt !
-			then
-		then
-
-		keys key-a and if
-			0
-			255 for
-				i use-object if drop i trigger? then
-			next
-			dup if exec
-			else
-				drop
-				1 player tile! 10 for sync next
-				2 player tile! 10 for sync next
-				3 player tile! 10 for sync next
-				2 player tile! 10 for sync next
-				1 player tile! 10 for sync next
-				0 player tile!
-			then
-		then
-
-		use-prompt
-		move-player
-		sort-sprites
-
-		sync
-	again
+	#load-starting-room
+	#main-starting-room
+	load-storage-closet
+	main-storage-closet
 ;

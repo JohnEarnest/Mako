@@ -14,6 +14,7 @@
 : .sprite-y  3 + ;
 : .sprite-w  @ 0x0F00 and  256 / 1 + 8 * ;
 : .sprite-h  @ 0xF000 and 4096 / 1 + 8 * ;
+: invisible  1 xor ;
 
 : px         sprite@ .sprite-x @ ;
 : py         sprite@ .sprite-y @ ;
