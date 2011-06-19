@@ -79,8 +79,8 @@
 	clear-actors
 	room GP !
 
-	16x32  0 150 100 player >sprite
-	16x32  4 120  60 true picky >actor
+	16x32  0 150 100 true player >actor
+	16x32  4 120  60 true picky  >actor
 
 	' picky-trigger picky trigger!
 	500 random 200 + walk-count !
