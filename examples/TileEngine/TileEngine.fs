@@ -299,8 +299,8 @@
 :include "StartingRoom.fs"
 
 : main
-	#load-starting-room
-	#main-starting-room
-	load-storage-closet
-	main-storage-closet
+	load-starting-room
+	main-starting-room
+	#load-storage-closet
+	#main-storage-closet
 ;
