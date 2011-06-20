@@ -32,8 +32,8 @@ public class Mako {
 		window.add(view);
 		window.setTitle("Mako");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.pack();
 		window.setResizable(false);
+		window.pack();
 		window.setVisible(true);
 
 		while(true) {
