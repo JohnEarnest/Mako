@@ -8,15 +8,15 @@
 ##
 ######################################################
 
-: =        xor -if -1 else  0 then   ;
-: !=       xor -if  0 else -1 then   ;
-: inc@     dup @ 1 + swap !          ;
-: dec@     dup @ 1 - swap !          ;
-: neg@     dup @ -1 * swap !         ;
-: +@       swap over @ swap + swap ! ;
-: -@       swap over @ swap - swap ! ;
-: random   RN @ swap mod             ;
-: brownian RN @ 3 mod 1 -            ;
+: =        xor -if true  else false then ;
+: !=       xor -if false else true  then ;
+: inc@     dup @ 1 + swap !              ;
+: dec@     dup @ 1 - swap !              ;
+: neg@     dup @ -1 * swap !             ;
+: +@       swap over @ swap + swap !     ;
+: -@       swap over @ swap - swap !     ;
+: random   RN @ swap mod                 ;
+: brownian RN @ 3 mod 1 -                ;
 
 : abs     dup 0 < if -1 * then      ;
 : later   r> r> swap >r >r          ;

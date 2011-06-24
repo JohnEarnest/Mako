@@ -233,6 +233,18 @@ public class Maker implements MakoConstants {
 				}
 			}
 		}
+		else if (token.equals(":vector")) {
+			compiling = true;
+			String wordName = tokens.remove().toString();
+			dictionary.put(wordName, rom.size());
+			if (prototypes.containsKey(wordName)) {
+				for(Integer a : prototypes.remove(wordName)) {
+					rom.set(a, rom.size());
+				}
+			}
+			romAdd(OP_JUMP,      TAG_CODE);
+			romAdd(rom.size()+1, TAG_CODE);
+		}
 		else if (token.equals(";")) {
 			compiling = false;
 			romAdd(OP_RETURN, TAG_CODE);
