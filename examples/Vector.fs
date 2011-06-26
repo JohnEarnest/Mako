@@ -23,7 +23,7 @@
 	dup 2 + swap 1 + !
 ;
 
-: default   ('word --)
+: default   ('word -- 'word)
 	2 + exec
 ;
 

@@ -468,7 +468,14 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals("'")) {
 			romAdd(OP_CONST, TAG_CODE);
-			romAdd(dictionary.get(tokens.remove().toString()), TAG_CODE);
+			String methodName = tokens.remove().toString();
+			if (prototypes.containsKey(methodName)) {
+				prototypes.get(methodName).add(rom.size());
+				romAdd(-5, TAG_CODE);
+			}
+			else {
+				romAdd(dictionary.get(methodName), TAG_CODE);
+			}
 		}
 		else if (token.equals("exec")) {
 			romAdd(OP_CONST,       TAG_CODE);
