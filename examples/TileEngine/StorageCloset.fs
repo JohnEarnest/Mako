@@ -38,7 +38,8 @@
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 
-: picky 1 sprite-id + @ ;
+: picky    1 sprite-id + @ ;
+: entrance 2 sprite-id + @ ;
 
 :var walk-x
 :var walk-y
@@ -79,10 +80,12 @@
 	clear-actors
 	room GP !
 
-	16x32  0 150 100 true player >actor
-	16x32  4 120  60 true picky  >actor
+	16x32 0 150 100 true player >actor
+	16x32 4 120  60 true picky  >actor
+	32x16 invisible 0 144 112 false entrance >actor   
 
-	' picky-trigger picky trigger!
+	' picky-trigger picky    trigger!
+	' use-return    entrance trigger!
 	300 random 100 + walk-count !
 	0 walk-x !
 	0 walk-y !

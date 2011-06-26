@@ -228,7 +228,20 @@
 	next
 ;
 
-: animate-transition
+# Using the highest 120 sprites, create
+# a venetian blinds-like transition effect.
+# The solid-color sprites are produced
+# by padding memory before the sprite sheet.
+: init-blinds
+	119 for
+		64x8 -1
+		i 2 / 5 mod 64 * i 2 mod if -320 else 320 then + # x-position 
+		i 2 / 5 / 16 * i 2 mod if 8 + then               # y-position
+		i 136 + >sprite
+	next
+;
+
+: animate-blinds
 	80 for
 		119 for
 			i 136 + sprite@ .sprite-x
@@ -238,23 +251,30 @@
 	next
 ;
 
-# Using the highest 120 sprites, animate
-# a venetian blinds-like transition effect.
-# The solid-color sprites are produced
-# by padding memory before the sprite sheet.
-: map-transition ( setup-delegate -- )
-
-	# initialize the 'blinds'
-	119 for
-		64x8 -1
-		i 2 / 5 mod 64 * i 2 mod if -320 else 320 then + # x-position 
-		i 2 / 5 / 16 * i 2 mod if 8 + then               # y-position
-		i 136 + >sprite
-	next
-	
-	animate-transition
-	exec
-	animate-transition
+# Load a new map. Every map has an init routine
+# that sets up any sprites and local state before
+# the map can be 'run' and a main loop. The map
+# transition is itself a subroutine call, so this
+# method both transitions to the new map and handles
+# restoring everything for the return trip.
+# Before calling this routine, the init address
+# of the current map should be on the stack, and
+# this routine will do the same for subsequent calls.
+: load-map ( 'current-init 'next-main 'next-init -- 'current-init)
+	init-blinds
+	animate-blinds   # fade to black
+	player py >r     # store the player's position
+	player px >r
+	dup exec         # call the next map's init
+	animate-blinds   # fade in next map
+	swap exec        # call the next map's main
+	drop             # discard the next map's init addr
+	init-blinds
+	animate-blinds   # fade to black
+	dup exec         # call the original map's init
+	r> player px!    # restore player position
+	r> player py!
+	animate-blinds   # fade back to original map
 ;
 
 : face-player ( sprite -- )
@@ -286,6 +306,12 @@
 	then
 ;
 
+# break out of a map's main loop when invoked
+# as a use-action trigger. This will be used
+# most frequently as the trigger code for
+# doors that return to a source room.
+: use-return r> r> 2drop ;
+
 : >actor   swap over solid! >sprite ; (status tile x y solid? sprite-id -- )
 : actor>   dup >r sprite> r> solid? ; (sprite-id -- status tile x y solid? )
 : clear-actors   actor-limit for 0 0 0 0 0 i >actor 0 i trigger! next ;
@@ -299,8 +325,9 @@
 :include "StartingRoom.fs"
 
 : main
-	load-starting-room
+	' load-starting-room dup exec
 	main-starting-room
+
 	#load-storage-closet
 	#main-storage-closet
 ;

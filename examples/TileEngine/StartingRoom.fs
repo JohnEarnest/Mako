@@ -74,10 +74,10 @@
 	fluffles show-text
 ;
 
-:proto load-starting-room
 : go-closet
-	' load-storage-closet map-transition
-	main-storage-closet
+	' main-storage-closet
+	' load-storage-closet
+	load-map
 ;
 
 : load-starting-room
