@@ -291,7 +291,7 @@
 	keys key-a and if
 		0
 		15 for
-			i use-object if drop i trigger? then
+			i use-object if i . cr drop i trigger? then
 		next
 		dup if exec
 		else
@@ -324,7 +324,11 @@
 :include "StorageCloset.fs"
 :include "StartingRoom.fs"
 
+:string hello "Hello, World!"
+
 : main
+	hello typeln
+
 	' load-starting-room dup exec
 	main-starting-room
 
