@@ -21,6 +21,7 @@
 :image grid-tiles   "LabTiles.png"  8  8
 :array sprites 1024 0
 
+:include "../Grid.fs"
 :include "../Sprites.fs"
 :include "../Util.fs"
 :include "../Print.fs"
@@ -35,11 +36,6 @@
 
 : player 0 sprite-id + @ ;
 
-: tile@ ( x y -- tile-address )
-	# tile-addr = ((y/8) * (41 + m[GS])) + (x/8) + m[GP]
-	8 / GS @ 41 + * swap 8 / + GP @ +
-;
-
 : c-tile? ( x y -- flag )
 	# By following the simple rule that tiles
 	# on the left side of the tile sheet are
@@ -48,7 +44,7 @@
 	# store collision data separately or
 	# use a complex lookup table:
 
-	tile@ @ 16 mod 7 >
+	pixel-grid@ @ 16 mod 7 >
 ;
 
 : c-ground? ( sprite-id -- flag )
@@ -324,14 +320,7 @@
 :include "StorageCloset.fs"
 :include "StartingRoom.fs"
 
-:string hello "Hello, World!"
-
 : main
-	hello typeln
-
 	' load-starting-room dup exec
 	main-starting-room
-
-	#load-storage-closet
-	#main-storage-closet
 ;

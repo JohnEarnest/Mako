@@ -10,7 +10,8 @@
 ##
 ######################################################
 
-: emit    CO ! ;
+:vector emit CO ! ;
+
 : cr      10 emit ;
 : tab      9 emit ;
 : space   32 emit ;
