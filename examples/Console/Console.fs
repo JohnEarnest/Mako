@@ -57,16 +57,15 @@
 	' emit devector
 ;
 
-:string hello "Hello, World!"
-:string alpha "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-
 : main
 
 	init-console
 
-	alpha typeln 0
+	string "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" typeln
+	0
 	loop
-		hello type space dup . cr
+		string "Hello, World!" type space
+		dup . cr
 		1 +
 		sync
 	again

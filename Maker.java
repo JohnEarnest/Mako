@@ -270,6 +270,18 @@ public class Maker implements MakoConstants {
 			}
 			romAdd(0, TAG_STRING);
 		}
+		else if (token.equals("string")) {
+			romAdd(OP_JUMP, TAG_CODE);
+			romAdd(-1,      TAG_CODE);
+			int start = rom.size();
+			for(char c : tokens.remove().toString().toCharArray()) {
+				romAdd((int)c, TAG_STRING);
+			}
+			romAdd(0, TAG_STRING);
+			rom.set(start-1, rom.size());
+			romAdd(OP_CONST, TAG_CODE);
+			romAdd(start,    TAG_CODE);
+		}
 		else if (token.equals(":const")) {
 			String constName = tokens.remove().toString();
 			Object constValue = tokens.remove();
