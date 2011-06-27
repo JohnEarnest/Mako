@@ -14,10 +14,8 @@
 
 :include "../Print.fs"
 :include "../Vector.fs"
-:include "../Grid.fs"
 :include "../Util.fs"
 
-:const grid-skip -1
 :image grid-tiles "transparentFont.png" 8 8
 :array console-display 1271 0
 :var   cursor 0
@@ -34,7 +32,7 @@
 
 	cursor @ 1199 > if
 		# animate scrolling the grid
-		6 for 1 scroll-grid-y sync next
+		6 for SY inc@ sync next
 		# reset the scroll registers
 		console-display GP ! 0 SY !
 		# shift the data on the grid
@@ -49,10 +47,8 @@
 
 : init-console ( -- )
 	' console-emit ' emit revector
+	-1 GS !
 	console-display GP !
-	console-display grid-start !
-	40 grid-width  !
-	31 grid-height !
 	0 cursor !
 	1270 for -1 console-display i + ! next
 ;
