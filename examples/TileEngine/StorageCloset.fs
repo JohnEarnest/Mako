@@ -82,7 +82,7 @@
 
 	16x32 0 150 100 true player >actor
 	16x32 4 120  60 true picky  >actor
-	32x16 invisible 0 144 112 false entrance >actor   
+	32x8 invisible 0 144 120 false entrance >actor
 
 	' picky-trigger picky    trigger!
 	' use-return    entrance trigger!

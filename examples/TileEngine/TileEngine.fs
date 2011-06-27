@@ -5,13 +5,6 @@
 ##  A demonstration of using the Mako grid for
 ##  tile-based top-down games with collision.
 ##
-##  The words c-px! and c-py! only update the position
-##  of a sprite if doing so does not cause the sprite
-##  to collide with the terrain. The word c-ground?
-##  returns a flag to indicate if a 16x32 sprite is
-##  currently colliding with the terrain, calibrated
-##  for 3:4 perspective.
-##
 ##  John Earnest
 ##
 ######################################################
@@ -110,6 +103,7 @@
 # the right position and facing direction
 # for a 'use action' to activate an npc:
 : use-object ( sprite -- flag )
+	dup player = if drop false exit then
 	>r
 	player sprite@ @ sprite-mirror-horiz and
 	if   # facing right
@@ -119,11 +113,15 @@
 		player px  8 -
 		player py 24 +
 	then
-	r> c-sprite?
+	i c-sprite?
+	player px  8 +
+	player py 24 +
+	r> c-sprite? or
 ;
 
 : use-prompt
-	false actor-limit for
+	false
+	actor-limit for
 		i use-object i trigger? and
 		if drop true then
 	next
@@ -283,22 +281,22 @@
 	player py 28 +
 ;
 
+: animate-clean ( -- )
+	1 player tile! 10 for sync next
+	2 player tile! 10 for sync next
+	3 player tile! 10 for sync next
+	2 player tile! 10 for sync next
+	1 player tile! 10 for sync next
+	0 player tile!
+;
+
 : use-logic
 	keys key-a and if
 		0
 		15 for
-			i use-object if i . cr drop i trigger? then
+			dup 0 = i use-object and if drop i trigger? then
 		next
-		dup if exec
-		else
-			drop
-			1 player tile! 10 for sync next
-			2 player tile! 10 for sync next
-			3 player tile! 10 for sync next
-			2 player tile! 10 for sync next
-			1 player tile! 10 for sync next
-			0 player tile!
-		then
+		dup if exec else drop animate-clean then
 	then
 ;
 
