@@ -12,9 +12,23 @@ import javax.swing.*;
 **/
 public class Palette extends JPanel implements MouseListener, KeyListener {
 
-	// statically load every tileset we can find:
 	private static final List<Image> tilesets = new ArrayList<Image>();
-	{
+
+	private final GridPad pad;
+	private Image tiles;
+	private int tilesetIndex = 0;
+	private int x = 0;
+	private int y = 0;
+
+	public Palette(GridPad pad) {
+		this.pad = pad;
+		addMouseListener(this);
+		loadTiles();
+		setTiles(tilesets.get(tilesetIndex));
+	}
+
+	private void loadTiles() {
+		tilesets.clear();
 		for(String filename : new File("tilesets/").list()) {
 			try {
 				if (!filename.toLowerCase().endsWith(".png")) { continue; }
@@ -27,18 +41,6 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 			}
 			catch(Throwable t) { continue; }
 		}
-	}
-
-	private final GridPad pad;
-	private Image tiles;
-	private int tilesetIndex = 0;
-	private int x = 0;
-	private int y = 0;
-
-	public Palette(GridPad pad) {
-		this.pad = pad;
-		addMouseListener(this);
-		setTiles(tilesets.get(tilesetIndex));
 	}
 
 	private void setTiles(Image tiles) {
@@ -122,6 +124,12 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 			tilesetIndex++;
 			if (tilesetIndex >= tilesets.size()) { tilesetIndex = 0; }
 			setTiles(tilesets.get(tilesetIndex));
+		}
+		else if (e.getKeyChar() == 'p') {
+			System.out.print("Reloading tileset...");
+			loadTiles();
+			setTiles(tilesets.get(tilesetIndex));
+			System.out.println(" Complete.");
 		}
 		else { return; }
 		pad.repaint();

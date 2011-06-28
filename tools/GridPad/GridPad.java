@@ -12,7 +12,7 @@ public class GridPad extends JFrame {
 
 	private final JLabel  status  = new JLabel("ready.");
 	private final Palette palette = new Palette(this);
-	private final Editor  editor  = new Editor(palette, status);
+	private final Editor  editor  = new Editor(this, palette, status);
 
 	public static void main(String[] args) {
 		new GridPad();
@@ -38,9 +38,21 @@ public class GridPad extends JFrame {
 		toolbar.add(palette, BorderLayout.CENTER);
 		toolbar.add(tools,   BorderLayout.SOUTH);
 
+		JScrollPane scroll = new JScrollPane(
+			editor,
+			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+			JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+		);
+		scroll.getViewport().setPreferredSize(new Dimension(
+			41 * TILE_WIDTH  * SCALE,
+			31 * TILE_HEIGHT * SCALE	
+		));
+		scroll.getHorizontalScrollBar().setBlockIncrement(TILE_WIDTH * SCALE);
+		scroll.getVerticalScrollBar().setBlockIncrement(TILE_HEIGHT * SCALE);
+
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
-		mainPanel.add(editor,  BorderLayout.CENTER);
+		mainPanel.add(scroll,  BorderLayout.CENTER);
 		mainPanel.add(toolbar, BorderLayout.EAST);
 
 		setLayout(new BorderLayout());

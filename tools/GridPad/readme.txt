@@ -29,3 +29,11 @@ Keys:
 - Control + F : Fill. Fill the selected region with the current tile.
 
 - Delete: Erase the selected region, replacing tiles with transparency.
+
+- ',' : reduce   the horizontal size of the map by 40 tiles
+
+- '.' : increase the horizontal size of the map by 40 tiles
+
+- '<' : reduce   the vertical size of the map by 30 tiles
+
+- '>' : increase the vertical size of the map by 30 tiles

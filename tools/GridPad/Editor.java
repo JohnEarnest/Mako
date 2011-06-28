@@ -13,6 +13,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private final int CONTROL_V = 22;
 	private final int CONTROL_Z = 26;
 
+	private final JFrame  host;
 	private final Palette palette;
 	private final JLabel  status;
 
@@ -29,7 +30,8 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private Stack<Edit> undo = new Stack<Edit>();
 	private Stack<Edit> redo = new Stack<Edit>();
 
-	public Editor(Palette palette, JLabel status) {
+	public Editor(JFrame host, Palette palette, JLabel status) {
+		this.host    = host;
 		this.palette = palette;
 		this.status  = status;
 		addMouseListener(this);
@@ -42,32 +44,38 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			grid[0].length * GridPad.TILE_WIDTH  * GridPad.SCALE,
 			grid.length    * GridPad.TILE_HEIGHT * GridPad.SCALE
 		));
+		revalidate();
 	}
 
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setColor(Color.PINK);
 		g.fillRect(0, 0, getWidth(), getHeight());
-		g.setColor(new Color(255, 100, 100));
-		g.fillRect(
-			0,
-			getHeight() - GridPad.TILE_HEIGHT * GridPad.SCALE,
-			getWidth(),
-			GridPad.TILE_HEIGHT * GridPad.SCALE
-		);
-		g.fillRect(
-			getWidth() - GridPad.TILE_WIDTH * GridPad.SCALE,
-			0,
-			GridPad.TILE_WIDTH * GridPad.SCALE,
-			getHeight()
-		);
-		g.setColor(new Color(255, 200, 200));
-		g.fillRect(
-			0,
-			GridPad.TILE_HEIGHT * GridPad.SCALE * 24,
-			getWidth() - GridPad.TILE_WIDTH * GridPad.SCALE,
-			GridPad.TILE_HEIGHT * GridPad.SCALE * 6
-		);
+
+		for(int y = 0; y < grid.length; y += (y == 0) ? 31 : 30) {
+			for(int x = 0; x < grid[0].length; x += (x == 0) ? 41 : 40) {
+				g.setColor(new Color(255, 100, 100));
+				g.fillRect(
+					GridPad.TILE_WIDTH  * GridPad.SCALE * x,
+					GridPad.TILE_HEIGHT * GridPad.SCALE * (y + ((y == 0) ? 30 : 29)),
+					GridPad.TILE_WIDTH  * GridPad.SCALE *      ((x == 0) ? 41 : 40),
+					GridPad.TILE_HEIGHT * GridPad.SCALE
+				);
+				g.fillRect(
+					GridPad.TILE_WIDTH  * GridPad.SCALE * (x + ((x == 0) ? 40 : 39)),
+					GridPad.TILE_HEIGHT * GridPad.SCALE * y,
+					GridPad.TILE_WIDTH  * GridPad.SCALE,
+					GridPad.TILE_HEIGHT * GridPad.SCALE *      ((y == 0) ? 31 : 30)
+				);
+				g.setColor(new Color(255, 200, 200));
+				g.fillRect(
+					GridPad.TILE_WIDTH  * GridPad.SCALE * x,
+					GridPad.TILE_HEIGHT * GridPad.SCALE * (y + ((y == 0) ? 24 : 23)),
+					GridPad.TILE_WIDTH  * GridPad.SCALE *      ((x == 0) ? 40 : 39),
+					GridPad.TILE_HEIGHT * GridPad.SCALE * 6
+				);
+			}
+		}
 
 		final int xtiles = palette.getTiles().getWidth(this) / GridPad.TILE_WIDTH;
 		for(int a = 0; a < grid.length; a++) {
@@ -256,6 +264,44 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 				setGrid(newGrid);
 			}
 			status.repaint();
+		}
+		else if (e.getKeyChar() == ',') { // shrink horizontally
+			if (grid[0].length < 81) { return; }
+			int[][] newgrid = new int[grid.length][grid[0].length - 40];
+			for(int a = 0; a < newgrid.length; a++) {
+				for(int b = 0; b < newgrid[0].length; b++) {
+					newgrid[a][b] = grid[a][b];
+				}
+			}
+			setGrid(newgrid);
+		}
+		else if (e.getKeyChar() == '.') { // grow horizontally
+			int[][] newgrid = new int[grid.length][grid[0].length + 40];
+			for(int a = 0; a < newgrid.length; a++) {
+				for(int b = 0; b < newgrid[0].length; b++) {
+					newgrid[a][b] = (b < grid[0].length) ? grid[a][b] : -1;
+				}
+			}
+			setGrid(newgrid);
+		}
+		else if (e.getKeyChar() == '<') { // shrink vertically
+			if (grid.length < 61) { return; }
+			int[][] newgrid = new int[grid.length - 30][grid[0].length];
+			for(int a = 0; a < newgrid.length; a++) {
+				for(int b = 0; b < newgrid[0].length; b++) {
+					newgrid[a][b] = grid[a][b];
+				}
+			}
+			setGrid(newgrid);
+		}
+		else if (e.getKeyChar() == '>') {
+			int[][] newgrid = new int[grid.length + 30][grid[0].length];
+			for(int a = 0; a < newgrid.length; a++) {
+				for(int b = 0; b < newgrid[0].length; b++) {
+					newgrid[a][b] = (a < grid.length) ? grid[a][b] : -1;
+				}
+			}
+			setGrid(newgrid);
 		}
 		repaint();
 	}
