@@ -76,13 +76,13 @@
 	drop false
 ;
 
-: c-px! ( x sprite-id )
+: c-px! ( x sprite-id -- )
 	dup px >r dup >r px! r> r> swap
 	dup c-ground? over c-npcs? or
 	if px! else 2drop then
 ;
 
-: c-py! ( x sprite-id )
+: c-py! ( x sprite-id -- )
 	dup py >r dup >r py! r> r> swap
 	dup c-ground? over c-npcs? or
 	if py! else 2drop then
@@ -119,7 +119,7 @@
 	r> c-sprite? or
 ;
 
-: use-prompt
+: use-prompt ( -- )
 	false
 	actor-limit for
 		i use-object i trigger? and
@@ -142,7 +142,7 @@
 # sprite 'ids' should be fetched through
 # the sprite-id table, which is sorted
 # in lockstep with sprite registers.
-: sort-sprites
+: sort-sprites ( -- )
 
 	actor-limit for
 		i
