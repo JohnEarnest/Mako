@@ -245,6 +245,66 @@
 	next
 ;
 
+:var room-width
+:var room-height
+:var room-start
+
+: >room ( w h grid -- )
+	dup GP !
+	room-start !
+	room-height !
+	dup room-width !
+	1 - 40 * GS !
+;
+
+: scroll-room ( -- )
+	player px 312 > if
+		player px 16 + player px!
+		39 for
+			GP inc@
+			actor-limit for 8 i sprite@ .sprite-x -@ next
+			sync
+		next
+	then
+	player px 4 < if
+		player px 28 - player px!
+		39 for
+			GP dec@
+			actor-limit for 8 i sprite@ .sprite-x +@ next
+			sync
+		next
+	then
+	player py 212 > if
+		player py 20 + player py!
+		29 for
+			GP @ room-width @ 40 * 1 + + GP !
+			actor-limit for 8 i sprite@ .sprite-y -@ next
+			sync
+		next
+	then
+	player py -8 < if
+		player py 32 - player py!
+		29 for
+			GP @ room-width @ 40 * 1 + - GP !
+			actor-limit for 8 i sprite@ .sprite-y +@ next
+			sync
+		next
+	then
+;
+
+# Update the scroll registers and
+# grid index to reflect the room the player
+# is in. Call this if the player teleports
+# into a room larger than a single board.
+: scroll-pos ( -- )
+	player px 320 /
+	actor-limit for dup 320 * i sprite@ .sprite-x -@ next
+	40 * GP +@
+	player py 240 /
+	actor-limit for dup 240 * i sprite@ .sprite-y -@ next
+	drop #40 * room-width @ * 1 + 30 * GP +@
+;
+
 # Load a new map. Every map has an init routine
 # that sets up any sprites and local state before
 # the map can be 'run' and a main loop. The map
@@ -268,6 +328,7 @@
 	dup exec         # call the original map's init
 	r> player px!    # restore player position
 	r> player py!
+	scroll-pos       # fix the map position
 	animate-blinds   # fade back to original map
 ;
 
@@ -293,7 +354,7 @@
 : use-logic
 	keys key-a and if
 		0
-		15 for
+		actor-limit for
 			dup 0 = i use-object and if drop i trigger? then
 		next
 		dup if exec else drop animate-clean then
@@ -317,8 +378,11 @@
 
 :include "StorageCloset.fs"
 :include "StartingRoom.fs"
+:include "BigRoom.fs"
 
 : main
 	' load-starting-room dup exec
 	main-starting-room
+	#' load-big-room dup exec
+	#main-big-room
 ;

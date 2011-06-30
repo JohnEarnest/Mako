@@ -85,10 +85,12 @@
 	clear-actors
 	room GP !
 
-	16x32  0 160 120 player      >sprite
-	16x32  8 120  60 true  janet >actor
-	16x32 16 250  70 true  bill  >actor
-	16x32 20  60 130 false meg   >actor
+	1 1 room >room
+
+	16x32  0 160 120 true  player >actor
+	16x32  8 120  60 true  janet  >actor
+	16x32 16 250  70 true  bill   >actor
+	16x32 20  60 130 false meg    >actor
 
 	16x32           29 240 24 false door1         >actor
 	48x16 invisible  0 216 56 false door1-trigger >actor

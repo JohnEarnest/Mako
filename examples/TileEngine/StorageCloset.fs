@@ -78,7 +78,7 @@
 : load-storage-closet
 
 	clear-actors
-	room GP !
+	1 1 room >room
 
 	16x32 0 150 100 true player >actor
 	16x32 4 120  60 true picky  >actor
