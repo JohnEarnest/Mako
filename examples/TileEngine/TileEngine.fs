@@ -261,6 +261,20 @@
 	1 - 40 * GS !
 ;
 
+: shift-sprites-x ( x -- )
+	actor-limit for
+		dup i sprite@ .sprite-x +@
+	next
+	drop
+;
+
+: shift-sprites-y ( y -- )
+	actor-limit for
+		dup i sprite@ .sprite-y +@
+	next
+	drop
+;
+
 # When the player walks off the edge of the board,
 # animate a transition to the adjacent board.
 : scroll-room ( -- )
@@ -268,7 +282,7 @@
 		player px 16 + player px!
 		39 for
 			GP inc@
-			actor-limit for 8 i sprite@ .sprite-x -@ next
+			-8 shift-sprites-x
 			sync
 		next
 	then
@@ -276,23 +290,23 @@
 		player px 28 - player px!
 		39 for
 			GP dec@
-			actor-limit for 8 i sprite@ .sprite-x +@ next
+			8 shift-sprites-x
 			sync
 		next
 	then
 	player py 212 > if
 		player py 20 + player py!
 		29 for
-			GP @ room-width @ 40 * 1 + + GP !
-			actor-limit for 8 i sprite@ .sprite-y -@ next
+			room-width @ 40 * 1 + GP +@
+			-8 shift-sprites-y
 			sync
 		next
 	then
 	player py -8 < if
 		player py 32 - player py!
 		29 for
-			GP @ room-width @ 40 * 1 + - GP !
-			actor-limit for 8 i sprite@ .sprite-y +@ next
+			room-width @ 40 * 1 + GP -@
+			8 shift-sprites-y
 			sync
 		next
 	then
@@ -306,12 +320,8 @@
 	GP @ room-start @ -   # index into map
 	room-width @ 40 * 1 + # width of map in cells
 	/mod
-	40 / 320 *
-	actor-limit for dup i sprite@ .sprite-x -@ next
-	drop
-	30 / 240 *
-	actor-limit for dup i sprite@ .sprite-y -@ next
-	drop
+	40 / -320 * shift-sprites-x
+	30 / -240 * shift-sprites-y
 ;
 
 # Load a new map. Every map has an init routine
