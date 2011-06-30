@@ -119,6 +119,10 @@
 	r> c-sprite? or
 ;
 
+: prompt-cell! ( tile -- )
+	GS @ 41 + 28 * 38 + GP @ + !
+;
+
 : use-prompt ( -- )
 	false
 	actor-limit for
@@ -126,7 +130,7 @@
 		if drop true then
 	next
 	if 85 else -1 then
-	GP @ 1186 + !
+	prompt-cell!
 ;
 
 : indexof (value array -- address)
@@ -178,10 +182,10 @@
 # wait for key-a to be pressed
 # and then released before continuing.
 : wait ( -- )
-	85 GP @ 1186 + !
+	85 prompt-cell!
 	loop keys key-a and  if break then sync again
 	loop keys key-a and -if break then sync again
-	-1 GP @ 1186 + !
+	-1 prompt-cell!
 ;
 
 # What offset needs to be added to an
@@ -257,6 +261,8 @@
 	1 - 40 * GS !
 ;
 
+# When the player walks off the edge of the board,
+# animate a transition to the adjacent board.
 : scroll-room ( -- )
 	player px 312 > if
 		player px 16 + player px!
@@ -292,17 +298,20 @@
 	then
 ;
 
-# Update the scroll registers and
-# grid index to reflect the room the player
-# is in. Call this if the player teleports
+# Update the positions of sprites
+# to reflect the room the player is in.
+# Call this if the player teleports
 # into a room larger than a single board.
-: scroll-pos ( -- )
-	player px 320 /
-	actor-limit for dup 320 * i sprite@ .sprite-x -@ next
-	40 * GP +@
-	player py 240 /
-	actor-limit for dup 240 * i sprite@ .sprite-y -@ next
-	drop #40 * room-width @ * 1 + 30 * GP +@
+: fix-pos ( -- )
+	GP @ room-start @ -   # index into map
+	room-width @ 40 * 1 + # width of map in cells
+	/mod
+	40 / 320 *
+	actor-limit for dup i sprite@ .sprite-x -@ next
+	drop
+	30 / 240 *
+	actor-limit for dup i sprite@ .sprite-y -@ next
+	drop
 ;
 
 # Load a new map. Every map has an init routine
@@ -319,6 +328,7 @@
 	animate-blinds   # fade to black
 	player py >r     # store the player's position
 	player px >r
+	GP @ >r          # store the grid pointer
 	dup exec         # call the next map's init
 	animate-blinds   # fade in next map
 	swap exec        # call the next map's main
@@ -326,9 +336,10 @@
 	init-blinds
 	animate-blinds   # fade to black
 	dup exec         # call the original map's init
+	r> GP !          # restore the grid pointer
+	fix-pos          # reposition all the sprites
 	r> player px!    # restore player position
 	r> player py!
-	scroll-pos       # fix the map position
 	animate-blinds   # fade back to original map
 ;
 
@@ -381,8 +392,8 @@
 :include "BigRoom.fs"
 
 : main
-	' load-starting-room dup exec
-	main-starting-room
-	#' load-big-room dup exec
-	#main-big-room
+	#' load-starting-room dup exec
+	#main-starting-room
+	' load-big-room dup exec
+	main-big-room
 ;

@@ -26,7 +26,7 @@
 	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 15  5  5  1  1  1  1  7  7  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 15  5  5  1  1  1  1 15 15  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 15 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 15  5  5  1  1  1  1 15 15  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  7  7  7  7  1  1 15 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
@@ -48,6 +48,7 @@
 
 : door1         4 sprite-id + @ ;
 : door1-trigger 5 sprite-id + @ ;
+: exit-door     6 sprite-id + @ ;
 
 :data   helo 2
 :string $ "     Shouldn't you be, like,"
@@ -92,14 +93,16 @@
 	16x32 16 250  70 true  bill   >actor
 	16x32 20  60 130 false meg    >actor
 
-	16x32           29 240 24 false door1         >actor
-	48x16 invisible  0 216 56 false door1-trigger >actor
+	16x32           29 240  24 false door1         >actor
+	48x16 invisible  0 216  56 false door1-trigger >actor
+	32x8  invisible  0 232 160 false exit-door     >actor
 
 	200 flipcnt !
 	300 clipcnt !
 
 	' janet-trigger janet trigger!
 	' meg-trigger   meg   trigger!
+	' use-return    exit-door trigger!
 ;
 
 : main-starting-room
