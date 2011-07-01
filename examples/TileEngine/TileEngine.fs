@@ -119,9 +119,7 @@
 	r> c-sprite? or
 ;
 
-: prompt-cell! ( tile -- )
-	GS @ 41 + 28 * 38 + GP @ + !
-;
+: prompt-cell! 38 28 tile-grid@ ! ; ( tile -- )
 
 : use-prompt ( -- )
 	false
@@ -201,28 +199,30 @@
 # null-terminated strings.
 : show-text (msg* -- )
 
-	dup @ swap 1 + swap 1 -
+	dup @ 1 - swap 1 + swap
+	(string* count)
 	for
-		28 i - 41 * text-start-x + GP @ + >r
+		text-start-x 28 i - tile-grid@ >r
 		loop
 			dup @ dup
-			-if drop break then			
+			-if drop break then
 			text-offset + i !
 
 			# sync while the text is drawn
 			# to create a 'typewriter' effect:
 			sync
-			1 + r> 1 + >r
+			1 + inc-r
 		again
 		r> drop 1 +
 	next
 	drop
-	
-	wait
 
-	# clear the text area
-	163 for
-		-1 GP @ text-start-y 41 * + i + !
+	wait
+	
+	5 for
+		39 for
+			-1 i j text-start-y + tile-grid@ !
+		next
 	next
 ;
 

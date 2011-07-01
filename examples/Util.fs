@@ -13,8 +13,8 @@
 : inc@     dup @ 1 + swap !              ;
 : dec@     dup @ 1 - swap !              ;
 : neg@     dup @ -1 * swap !             ;
-: inc-r    r> 1 + >r                     ;
-: dec-r    r> 1 - >r                     ;
+: inc-r    r> r> 1 + >r >r               ;
+: dec-r    r> r> 1 - >r >r               ;
 : +@       swap over @ swap + swap !     ;
 : -@       swap over @ swap - swap !     ;
 : random   RN @ swap mod                 ;
