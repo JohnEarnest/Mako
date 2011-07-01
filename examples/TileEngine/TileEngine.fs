@@ -181,6 +181,7 @@
 # and then released before continuing.
 : wait ( -- )
 	85 prompt-cell!
+	loop keys key-a and -if break then sync again
 	loop keys key-a and  if break then sync again
 	loop keys key-a and -if break then sync again
 	-1 prompt-cell!
@@ -198,9 +199,7 @@
 # line count followed by a series of
 # null-terminated strings.
 : show-text (msg* -- )
-
 	dup @ 1 - swap 1 + swap
-	(string* count)
 	for
 		text-start-x 28 i - tile-grid@ >r
 		loop
@@ -261,14 +260,14 @@
 	1 - 40 * GS !
 ;
 
-: shift-sprites-x ( x -- )
+: +sprites-x ( x -- )
 	actor-limit for
 		dup i sprite@ .sprite-x +@
 	next
 	drop
 ;
 
-: shift-sprites-y ( y -- )
+: +sprites-y ( y -- )
 	actor-limit for
 		dup i sprite@ .sprite-y +@
 	next
@@ -282,7 +281,7 @@
 		player px 16 + player px!
 		39 for
 			GP inc@
-			-8 shift-sprites-x
+			-8 +sprites-x
 			sync
 		next
 	then
@@ -290,7 +289,7 @@
 		player px 28 - player px!
 		39 for
 			GP dec@
-			8 shift-sprites-x
+			8 +sprites-x
 			sync
 		next
 	then
@@ -298,7 +297,7 @@
 		player py 20 + player py!
 		29 for
 			room-width @ 40 * 1 + GP +@
-			-8 shift-sprites-y
+			-8 +sprites-y
 			sync
 		next
 	then
@@ -306,7 +305,7 @@
 		player py 32 - player py!
 		29 for
 			room-width @ 40 * 1 + GP -@
-			8 shift-sprites-y
+			8 +sprites-y
 			sync
 		next
 	then
@@ -320,8 +319,8 @@
 	GP @ room-start @ -   # index into map
 	room-width @ 40 * 1 + # width of map in cells
 	/mod
-	40 / -320 * shift-sprites-x
-	30 / -240 * shift-sprites-y
+	40 / -320 * +sprites-x
+	30 / -240 * +sprites-y
 ;
 
 # Load a new map. Every map has an init routine
@@ -388,9 +387,9 @@
 # doors that return to a source room.
 : use-return r> r> 2drop ;
 
-: >actor   swap over solid! >sprite ; (status tile x y solid? sprite-id -- )
-: actor>   dup >r sprite> r> solid? ; (sprite-id -- status tile x y solid? )
-: clear-actors   actor-limit for 0 0 0 0 0 i >actor 0 i trigger! next ;
+: >actor        swap over solid! >sprite ; (status tile x y solid? sprite-id -- )
+: actor>        dup >r sprite> r> solid? ; (sprite-id -- status tile x y solid? )
+: clear-actors  actor-limit for 0 0 0 0 0 i >actor 0 i trigger! next ;
 
 # Every map is defined in a separate file,
 # with two entrypoints- one 'load' routine and

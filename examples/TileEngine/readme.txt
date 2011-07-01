@@ -14,6 +14,9 @@ variables:
 sprite-id      # lookup table- actor-id to sprite index 
 sprite-solid   # lookup table- is a given actor 'solid'?
 sprite-trigger # lookup table- callback address or 0 for no trigger
+room-width     # width of the current room in screens
+room-height    # height of the current room in screens
+room-start     # address of the origin for the current room's grid data
 
 words:
 
@@ -29,11 +32,16 @@ c-py!          ( y sid -- )       # set a sprite's y position if doing so doesn'
 trigger?       ( sid -- addr )    # get the trigger address associated with a sprite
 trigger!       ( addr sid -- )    # set the trigger address associated with a sprite
 use-object     ( sid -- flag )    # is the player positioned to activate an npc?
+prompt-cell!   ( tile -- )        # set the tile of the bottom corner 'prompt'
 indexof        ( n array -- addr) # get the address of a value, starting in an array
 wait           ( -- )             # wait for key-a to be pressed and then released
 show-text      ( msg -- )         # display dialog. pointer to to line count, then strings
 init-blinds    ( -- )             # set up sprites for venetian blinds animation
 animate-blinds ( -- )             # scroll blinds to conceal screen. call again to clear.
+>room          ( w h grid -- )    # configure grid for a grid pointer and a width and height in screens.
++sprites-x     ( x -- )           # shift all sprites by adding an x-offset
++sprites-y     ( y -- )           # shift all sprites by adding a y-offset
+fix-pos        ( -- )             # update sprite positions for a player starting in a multi-screen room.
 load-map       ( 'a 'm 'i -- 'a ) # load map with main 'm and init 'i.
 face-player    ( sid -- )         # make a sprite turn to face the player.
 player-center  ( -- x y )         # get coords for the center of the player.
@@ -48,3 +56,4 @@ move-player  ( -- ) # main loop logic block for moving the player via keys
 use-prompt   ( -- ) # main loop logic block for showing the 'use action' icon
 sort-sprites ( -- ) # main loop logic block for y-sorting sprites
 use-logic    ( -- ) # main loop logic block for the context-sensitive use key
+scroll-room  ( -- ) # main loop logic block for scrolling around multi-screen rooms
