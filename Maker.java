@@ -67,25 +67,32 @@ public class Maker implements MakoConstants {
 	}
 
 	public static void main(String[] args) {
-		Maker compiler = new Maker();
-		int[] rom = compiler.compile(args[0]);
-		compiler.disassemble();
-		List<String> argList = Arrays.asList(args);
+		List<String> argList = new ArrayList<String>(Arrays.asList(args));
+		boolean run = false;
+		boolean standalone = false;
 		if (argList.contains("--run")) {
-			Mako.exec(rom);
+			run = true;
 			argList.remove("--run");
 		}
-		if (args.length > 1) {
+		if (argList.contains("--standalone")) {
+			standalone = true;
+			argList.remove("--standalone");
+		}
+		Maker compiler = new Maker();
+		int[] rom = compiler.compile(argList.get(0), standalone);
+		compiler.disassemble();
+		if (argList.size() > 1) {
 			try {
-				PrintWriter out = new PrintWriter(new File(args[1]));
+				PrintWriter out = new PrintWriter(new File(argList.get(1)));
 				for(int x : rom) { out.println(x); }
 				out.close();
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); }
 		}
+		if (run) { Mako.exec(rom); }
 	}
 
-	public int[] compile(String filename) {
+	public int[] compile(String filename, boolean standalone) {
 		dictionary.clear();
 		variables.clear();
 		rom.clear();
@@ -94,23 +101,26 @@ public class Maker implements MakoConstants {
 		branchStack.clear();
 		loopStack.clear();
 		breaks.clear();
-		buildRegion("registers", RESERVED_HEADER);
-		
-		variables.put("PC", PC);
-		variables.put("DP", DP);
-		variables.put("RP", RP);
-		variables.put("GP", GP);
-		variables.put("GT", GT);
-		variables.put("SP", SP);
-		variables.put("ST", ST);
-		variables.put("GS", GS);
-		variables.put("SX", SX);
-		variables.put("SY", SY);
-		variables.put("CL", CL);
-		variables.put("RN", RN);
-		variables.put("KY", KY);
 
-		variables.put("CO", CO); // character-out (debug)
+		if (!standalone) {
+			buildRegion("registers", RESERVED_HEADER);
+		}
+		
+		Map<String, Integer> dict = standalone ? constants : variables;
+		dict.put("PC", PC);
+		dict.put("DP", DP);
+		dict.put("RP", RP);
+		dict.put("GP", GP);
+		dict.put("GT", GT);
+		dict.put("SP", SP);
+		dict.put("ST", ST);
+		dict.put("GS", GS);
+		dict.put("SX", SX);
+		dict.put("SY", SY);
+		dict.put("CL", CL);
+		dict.put("RN", RN);
+		dict.put("KY", KY);
+		dict.put("CO", CO); // character-out (debug)
 
 		constants.put("key-up", KEY_UP);
 		constants.put("key-rt", KEY_RT);
@@ -146,7 +156,7 @@ public class Maker implements MakoConstants {
 		catch(FileNotFoundException e) {
 			throw new Error(e.getMessage());
 		}
-		if (!dictionary.containsKey("main")) {
+		if (!dictionary.containsKey("main") && !standalone) {
 			throw new Error("No entrypoint defined!");
 		}
 		if (prototypes.size() > 0) {
@@ -156,33 +166,35 @@ public class Maker implements MakoConstants {
 			throw new Error();
 		}
 
-		buildRegion("data-stack",     50);
-		buildRegion("return-stack",   50);
-		buildRegion("grid",         1271);
-		buildRegion("grid-tiles",     64);
-		buildRegion("sprites",      1024);
-		buildRegion("sprite-tiles",   64);
-		rom.set(PC, dictionary.get("main"));
-		rom.set(DP, variables.get("data-stack"));
-		rom.set(RP, variables.get("return-stack"));
-		rom.set(GP, variables.get("grid"));
-		if (variables.containsKey("grid-tiles")) {
-			rom.set(GT, variables.get("grid-tiles"));
+		if (!standalone) {
+			buildRegion("data-stack",     50);
+			buildRegion("return-stack",   50);
+			buildRegion("grid",         1271);
+			buildRegion("grid-tiles",     64);
+			buildRegion("sprites",      1024);
+			buildRegion("sprite-tiles",   64);
+			rom.set(PC, dictionary.get("main"));
+			rom.set(DP, variables.get("data-stack"));
+			rom.set(RP, variables.get("return-stack"));
+			rom.set(GP, variables.get("grid"));
+			if (variables.containsKey("grid-tiles")) {
+				rom.set(GT, variables.get("grid-tiles"));
+			}
+			else {
+				rom.set(GT, constants.get("grid-tiles"));
+			}
+			rom.set(SP, variables.get("sprites"));
+			if (variables.containsKey("sprite-tiles")) {
+				rom.set(ST, variables.get("sprite-tiles"));
+			}
+			else {
+				rom.set(ST, constants.get("sprite-tiles"));
+			}
+			rom.set(GS, constants.get("grid-skip"));
+			rom.set(SX, constants.get("scroll-x"));
+			rom.set(SY, constants.get("scroll-y"));
+			rom.set(CL, constants.get("clear-color"));
 		}
-		else {
-			rom.set(GT, constants.get("grid-tiles"));
-		}
-		rom.set(SP, variables.get("sprites"));
-		if (variables.containsKey("sprite-tiles")) {
-			rom.set(ST, variables.get("sprite-tiles"));
-		}
-		else {
-			rom.set(ST, constants.get("sprite-tiles"));
-		}
-		rom.set(GS, constants.get("grid-skip"));
-		rom.set(SX, constants.get("scroll-x"));
-		rom.set(SY, constants.get("scroll-y"));
-		rom.set(CL, constants.get("clear-color"));
 		int[] ret = new int[rom.size()];
 		for(int x = 0; x < rom.size(); x++) {
 			ret[x] = rom.get(x);
