@@ -170,40 +170,69 @@
 	2drop false
 ;
 
+: push
+	2dup c-tile? if 2drop exit true then
+	15 for
+		2dup i c-sprite? i type? block-type = and
+		if
+			
+		then
+	next
+	2drop false
+;
+
+:data anim-frame  1  0  1  0    2  3  2  3    5  6  5  4     5  6  5  4
+:data anim-flip   0  0 -1  0    0  0  0 -1    0  0  0  0    -1 -1 -1 -1
+:data anim-next   1  2  3  0    5  6  7  4    9 10 11  8    13 14 15 12
+:var  animation
+: animate-player
+	sync sync
+	4 mod exitif
+	animation @
+	dup anim-frame + @ player tile!
+	dup anim-flip  + @ if player face-right else player face-left then
+	anim-next + @ animation !
+;
+
 : move-player
 	keys key-lf and if
 		5 player tile! player face-left
 		player px 15 - player py 9 + c-objects? exitif
 		
+		9 animation !
 		15 for
 			player px 1 - player px!
-			sync
+			i animate-player			
 		next
 	then
 	keys key-rt and if
 		5 player tile! player face-right
 		player px 17 + player py 9 + c-objects? exitif
 		
+		13 animation !
 		15 for
 			player px 1 + player px!
-			sync
+			i animate-player
 		next
 	then
 	keys key-up and if
 		2 player tile!
 		player px 1 + player py c-objects? exitif
 
+		5 animation !
 		15 for
 			player py 1 - player py!
-			sync
+			i animate-player
 		next
 	then
 	keys key-dn and if
 		0 player tile!
 		player px 1 + player py 24 + c-objects? exitif
+
+		0 animation !
 		15 for
 			player py 1 + player py!
-			sync
+			i animate-player
 		next
 	then
 ;
