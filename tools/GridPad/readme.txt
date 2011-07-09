@@ -37,3 +37,5 @@ Keys:
 - '<' : reduce   the vertical size of the map by 30 tiles
 
 - '>' : increase the vertical size of the map by 30 tiles
+
+- 'p' : reload all tilesets.

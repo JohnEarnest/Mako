@@ -32,7 +32,7 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 		for(String filename : new File("tilesets/").list()) {
 			try {
 				if (!filename.toLowerCase().endsWith(".png")) { continue; }
-				Image tiles = Toolkit.getDefaultToolkit().getImage("tilesets/"+filename);
+				Image tiles = Toolkit.getDefaultToolkit().createImage("tilesets/"+filename);
 				while(tiles.getWidth(this) < 1) {
 					try { Thread.sleep(1); }
 					catch(InterruptedException ie) { }
@@ -126,10 +126,10 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 			setTiles(tilesets.get(tilesetIndex));
 		}
 		else if (e.getKeyChar() == 'p') {
-			System.out.print("Reloading tileset...");
+			//System.out.print("Reloading tileset...");
 			loadTiles();
 			setTiles(tilesets.get(tilesetIndex));
-			System.out.println(" Complete.");
+			//System.out.println(" Complete.");
 		}
 		else { return; }
 		pad.repaint();

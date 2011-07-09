@@ -10,7 +10,6 @@
 
 :image grid-tiles   "sokotiles.png"  8  8
 :image sprite-tiles "sokobot.png"   16 24
-:array sprites 1024 0
 
 :include "../Sprites.fs"
 :include "../Grid.fs"
