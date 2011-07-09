@@ -45,3 +45,14 @@
 	if grid-width @ GP -@ 255 for 8 i py@ +@ next 8 + then
 	SY !
 ;
+
+: c-tile? ( x y -- flag )
+	# By following the simple rule that tiles
+	# on the left side of the tile sheet are
+	# passable and the tiles on the right side
+	# are impassible, there's no need to
+	# store collision data separately or
+	# use a complex lookup table:
+
+	pixel-grid@ @ 16 mod 7 >
+;

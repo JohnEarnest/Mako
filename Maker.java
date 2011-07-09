@@ -465,6 +465,7 @@ public class Maker implements MakoConstants {
 		else if (token.equals(">="))    { romAdd(OP_SLT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
 		else if (token.equals("2dup"))  { romAdd(OP_OVER, TAG_CODE); romAdd(OP_OVER, TAG_CODE); }
 		else if (token.equals("2drop")) { romAdd(OP_DROP, TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
+		else if (token.equals("rdrop")) { romAdd(OP_RTS,  TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
 		else if (token.equals("keys")) {
 			romAdd(OP_CONST, TAG_CODE);
 			romAdd(KY,       TAG_CODE);

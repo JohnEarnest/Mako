@@ -29,7 +29,7 @@ public class MacroBench implements MakoConstants {
 	public static void runTest(String name, String filename, boolean suppress) {
 
 		Maker compiler = new Maker();
-		MakoVM vm = new MakoVM(compiler.compile(filename));
+		MakoVM vm = new MakoVM(compiler.compile(filename, false));
 
 		long totalRuns = 0;
 		long totalSteps = 0;

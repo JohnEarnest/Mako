@@ -29,17 +29,6 @@
 
 : player 0 sprite-id + @ ;
 
-: c-tile? ( x y -- flag )
-	# By following the simple rule that tiles
-	# on the left side of the tile sheet are
-	# passable and the tiles on the right side
-	# are impassible, there's no need to
-	# store collision data separately or
-	# use a complex lookup table:
-
-	pixel-grid@ @ 16 mod 7 >
-;
-
 : c-ground? ( sprite-id -- flag )
 	sprite@ dup .sprite-x @ swap .sprite-y @
 	swap  1 + swap 24 +
@@ -129,14 +118,6 @@
 	next
 	if 85 else -1 then
 	prompt-cell!
-;
-
-: indexof (value array -- address)
-	loop
-		2dup @ =
-		if swap drop exit then
-		1 +
-	again
 ;
 
 # sort sprite drawing orders by their
