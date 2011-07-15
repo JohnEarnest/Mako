@@ -10,7 +10,7 @@ import javax.swing.*;
 * tile palette as well as handling everything related to
 * selecting or manipulating tiles.
 **/
-public class Palette extends JPanel implements MouseListener, KeyListener {
+public class Palette extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 
 	private static final List<Image> tilesets = new ArrayList<Image>();
 
@@ -23,6 +23,7 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 	public Palette(GridPad pad) {
 		this.pad = pad;
 		addMouseListener(this);
+		addMouseMotionListener(this);
 		loadTiles();
 		setTiles(tilesets.get(tilesetIndex));
 	}
@@ -79,7 +80,6 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 			tiles.getHeight(this),
 			this
 		);
-		//g.setColor(Color.RED);
 		g.setXORMode(Color.RED);
 		g.drawRect(
 			x * GridPad.TILE_WIDTH * GridPad.SCALE,
@@ -91,6 +91,10 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 	}
 
 	// update cursor position:
+	public void mouseDragged(MouseEvent e) {
+		mouseClicked(e);
+	}
+
 	public void mouseClicked(MouseEvent e) {
 		x = e.getX() / (GridPad.TILE_WIDTH * GridPad.SCALE);
 		y = e.getY() / (GridPad.TILE_HEIGHT * GridPad.SCALE);
@@ -141,5 +145,6 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
+	public void mouseMoved(MouseEvent e) {}
 	public void keyReleased(KeyEvent e) {}
 }
