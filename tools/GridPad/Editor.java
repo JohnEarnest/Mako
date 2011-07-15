@@ -186,7 +186,8 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	public void keyPressed(KeyEvent e) {}
 
 	public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_ALT) {
+		if (e.getKeyCode() == KeyEvent.VK_ALT ||
+			e.getKeyCode() == KeyEvent.VK_SPACE) {
 			draw = !draw;
 			w = 1;
 			h = 1;

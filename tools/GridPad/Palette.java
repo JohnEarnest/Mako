@@ -79,13 +79,15 @@ public class Palette extends JPanel implements MouseListener, KeyListener {
 			tiles.getHeight(this),
 			this
 		);
-		g.setColor(Color.RED);
+		//g.setColor(Color.RED);
+		g.setXORMode(Color.RED);
 		g.drawRect(
 			x * GridPad.TILE_WIDTH * GridPad.SCALE,
 			y * GridPad.TILE_HEIGHT * GridPad.SCALE,
 			GridPad.TILE_WIDTH * GridPad.SCALE,
 			GridPad.TILE_HEIGHT * GridPad.SCALE
 		);
+		g.setPaintMode();
 	}
 
 	// update cursor position:
