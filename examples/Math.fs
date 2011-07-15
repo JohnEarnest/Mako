@@ -8,6 +8,17 @@
 ##
 ######################################################
 
+: max  2dup < if swap then drop ;
+: min  2dup > if swap then drop ;
+
+: factorial ( n -- n! )
+	1 loop
+		over *
+		swap 1 - swap
+		over 1 >
+	while
+;
+
 # Calculate a fast, fixed-point approximation
 # of the square root of a number. Input numbers
 # should be multiplied by the squared fixed-base.

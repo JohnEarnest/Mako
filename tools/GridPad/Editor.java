@@ -101,11 +101,13 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		}
 		if (drawCursor) {
 			g.setColor(Color.BLUE);
+			final int x1 = (w < 0) ? x + w : x;
+			final int y1 = (h < 0) ? y + h : y;
 			g.drawRect(
-				x * GridPad.TILE_WIDTH  * GridPad.SCALE,
-				y * GridPad.TILE_HEIGHT * GridPad.SCALE,
-				w * GridPad.TILE_WIDTH  * GridPad.SCALE,
-				h * GridPad.TILE_HEIGHT * GridPad.SCALE
+				x1 * GridPad.TILE_WIDTH  * GridPad.SCALE,
+				y1 * GridPad.TILE_HEIGHT * GridPad.SCALE,
+				Math.abs(w) * GridPad.TILE_WIDTH  * GridPad.SCALE,
+				Math.abs(h) * GridPad.TILE_HEIGHT * GridPad.SCALE
 			);
 		}
 	}
@@ -134,8 +136,10 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			ny = Math.min(grid.length-1,    Math.max(0, ny));
 
 			if (dragButton == MouseEvent.BUTTON1) {
-				w = Math.max(1, nx - x + 1);
-				h = Math.max(1, ny - y + 1);
+				//w = Math.max(1, nx - x + 1);
+				//h = Math.max(1, ny - y + 1);
+				w = (nx - x) + 1;
+				h = (ny - y) + 1;
 			}
 			else {
 				x = nx;
@@ -204,11 +208,16 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	}
 
 	public void keyTyped(KeyEvent e) {
+		final int x1 = (w < 0) ? x + w : x;
+		final int y1 = (h < 0) ? y + h : y;
+		final int aw = Math.abs(w);
+		final int ah = Math.abs(h);
+
 		if (e.getKeyChar() == CONTROL_C) {
-			clipBoard = new int[h][w];
-			for(int a = 0; a < h; a++) {
-				for(int b = 0; b < w; b++) {
-					clipBoard[a][b] = grid[y+a][x+b];
+			clipBoard = new int[ah][aw];
+			for(int a = 0; a < ah; a++) {
+				for(int b = 0; b < aw; b++) {
+					clipBoard[a][b] = grid[y1+a][x1+b];
 				}
 			}
 		}
@@ -226,13 +235,13 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			undo.push(change);
 		}
 		else if (e.getKeyChar() == CONTROL_F) {
-			int[][] delta = new int[h][w];
-			for(int a = 0; a < h; a++) {
-				for(int b = 0; b < w; b++) {
+			int[][] delta = new int[ah][aw];
+			for(int a = 0; a < ah; a++) {
+				for(int b = 0; b < aw; b++) {
 					delta[a][b] = palette.getSelected();
 				}
 			}
-			Edit change = new Edit(x, y, grid, delta);
+			Edit change = new Edit(x1, y1, grid, delta);
 			change.apply();
 			redo.clear();
 			undo.push(change);

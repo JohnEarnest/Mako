@@ -11,6 +11,8 @@
 :image grid-tiles   "sokotiles.png"  8  8
 :image sprite-tiles "sokobot.png"   16 24
 
+#:const clear-color 0xFFB0D8C5
+
 :include "../Sprites.fs"
 :include "../Grid.fs"
 :include "../Util.fs"
@@ -352,6 +354,10 @@
 			0 1 1 16 push
 			i animate-player
 		next
+	then
+	keys key-a and if
+		level-number dec@
+		level!
 	then
 ;
 
