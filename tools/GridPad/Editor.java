@@ -99,7 +99,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			}
 		}
 		if (drawCursor) {
-			g.setColor(Color.BLUE);
+			g.setXORMode(Color.BLACK);
 			final int x1 = (w < 0) ? x + w : x;
 			final int y1 = (h < 0) ? y + h : y;
 			g.drawRect(
@@ -108,6 +108,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 				Math.abs(w) * GridPad.TILE_WIDTH  * GridPad.SCALE,
 				Math.abs(h) * GridPad.TILE_HEIGHT * GridPad.SCALE
 			);
+			g.setPaintMode();
 		}
 	}
 
@@ -149,15 +150,16 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	}
 
 	private void draw() {
-		int tile = palette.getSelected();
-		if (dragButton != MouseEvent.BUTTON1) {
-			tile = -1;
+		int[][] tile = palette.getSelected();
+		boolean same = true;
+		for(int a = 0; a < tile.length; a++) {
+			for(int b = 0; b < tile[0].length; b++) {
+				if (dragButton != MouseEvent.BUTTON1) { tile[a][b] = -1; }
+				if (grid[y+a][x+b] != tile[a][b])     { same = false; }
+			}
 		}
-		if (grid[y][x] == tile) { return; }
-		Edit change = new Edit(
-			x, y, grid,
-			new int[][] {{tile}}
-		);
+		if (same) { return; }
+		Edit change = new Edit(x, y, grid, tile);
 		change.apply();
 		redo.clear();
 		undo.push(change);
@@ -237,10 +239,11 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			undo.push(change);
 		}
 		else if (e.getKeyChar() == CONTROL_F) {
+			int[][] selected = palette.getSelected();
 			int[][] delta = new int[ah][aw];
 			for(int a = 0; a < ah; a++) {
 				for(int b = 0; b < aw; b++) {
-					delta[a][b] = palette.getSelected();
+					delta[a][b] = selected[a % selected.length][b % selected[0].length];
 				}
 			}
 			Edit change = new Edit(x1, y1, grid, delta);
@@ -318,8 +321,10 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	}
 
 	private void updateStatus() {
+		int[][] selected = palette.getSelected();
+		if (selected == null || selected.length < 1 || selected[0].length < 1) { return; }
 		status.setText(String.format("tile: %3d  %2dx%2d  %s",
-			palette.getSelected(),
+			selected[0][0],
 			x,
 			y,
 			draw ? "draw" : "select"

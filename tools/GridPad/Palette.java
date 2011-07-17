@@ -19,6 +19,8 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 	private int tilesetIndex = 0;
 	private int x = 0;
 	private int y = 0;
+	private int w = 1;
+	private int h = 1;
 
 	public Palette(GridPad pad) {
 		this.pad = pad;
@@ -58,8 +60,18 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		return tiles;
 	}
 
-	public int getSelected() {
-		return x + ((tiles.getWidth(this) / GridPad.TILE_WIDTH) * y);
+	private int getTile(int a, int b) {
+		return a + ((tiles.getWidth(this) / GridPad.TILE_WIDTH) * b);
+	}
+
+	public int[][] getSelected() {
+		int[][] ret = new int[h][w];
+		for(int a = 0; a < h; a++) {
+			for(int b = 0; b < w; b++) {
+				ret[a][b] = getTile(x + b, y + a);
+			}
+		}
+		return ret;
 	}
 
 	public void paint(Graphics g) {
@@ -82,22 +94,27 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		);
 		g.setXORMode(Color.RED);
 		g.drawRect(
-			x * GridPad.TILE_WIDTH * GridPad.SCALE,
+			x * GridPad.TILE_WIDTH  * GridPad.SCALE,
 			y * GridPad.TILE_HEIGHT * GridPad.SCALE,
-			GridPad.TILE_WIDTH * GridPad.SCALE,
-			GridPad.TILE_HEIGHT * GridPad.SCALE
+			w * GridPad.TILE_WIDTH  * GridPad.SCALE,
+			h * GridPad.TILE_HEIGHT * GridPad.SCALE
 		);
 		g.setPaintMode();
 	}
 
-	// update cursor position:
 	public void mouseDragged(MouseEvent e) {
-		mouseClicked(e);
+		int nx = e.getX() / (GridPad.TILE_WIDTH  * GridPad.SCALE);
+		int ny = e.getY() / (GridPad.TILE_HEIGHT * GridPad.SCALE);
+		w = (nx - x) + 1;
+		h = (ny - y) + 1;
+		repaint();
 	}
 
 	public void mouseClicked(MouseEvent e) {
-		x = e.getX() / (GridPad.TILE_WIDTH * GridPad.SCALE);
+		x = e.getX() / (GridPad.TILE_WIDTH  * GridPad.SCALE);
 		y = e.getY() / (GridPad.TILE_HEIGHT * GridPad.SCALE);
+		w = 1;
+		h = 1;
 		repaint();
 	}
 
