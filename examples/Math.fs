@@ -38,7 +38,6 @@
 	2drop r>
 ;
 
-(
 # sqrt usage examples
 :include "Print.fs"
 : test   65536 * fast-sqrt 256 / . cr ;
@@ -56,5 +55,6 @@
 
 	 96 test10 # should be  979
 	200 test10 # should be 1414
+
+	halt
 ;
-)

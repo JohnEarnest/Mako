@@ -27,7 +27,10 @@ public class MakoVM implements MakoConstants {
 	private int mod(int a, int b) { a %= b; return a < 0 ? a+b : a; }
 
 	public void run() {
-		while(m[m[PC]] != OP_SYNC) { tick(); }
+		while(m[m[PC]] != OP_SYNC) {
+			tick();
+			if (m[PC] == -1) { System.exit(0); }
+		}
 		sync();
 		m[PC]++;
 	}
