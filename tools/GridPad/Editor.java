@@ -5,6 +5,7 @@ import javax.swing.*;
 
 public class Editor extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 
+	private final int CONTROL_A =  1;
 	private final int CONTROL_C =  3;
 	private final int CONTROL_F =  6;
 	private final int CONTROL_L = 12;
@@ -214,7 +215,13 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		final int y1 = (h < 0) ? y + h : y;
 		final int aw = Math.abs(w);
 		final int ah = Math.abs(h);
-
+		if (e.getKeyChar() == CONTROL_A) {
+			x = 0;
+			y = 0;
+			w = grid[0].length;
+			h = grid.length;
+			draw = false;
+		}
 		if (e.getKeyChar() == CONTROL_C) {
 			int[][] clipBoard = new int[ah][aw];
 			for(int a = 0; a < ah; a++) {

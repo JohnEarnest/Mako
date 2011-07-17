@@ -4,7 +4,7 @@ Gridpad is an extremely simple map editor intended for use with Mako. You can dr
 
 The Palette:
 
-On the right of the application window is the tile palette. Clicking changes the selected tile. You can also switch tiles using ASWD or the cursor keys. The bracket keys ('[' and ']') cycle through available tilesets. Tilesets are loaded from the 'tilesets' directory and should be 128-pixel (16 tile) wide .PNGs for best results. The two shades of green in the background allow you to easily distinguish the first 8 columns of a tileset from the second 8 columns- the former are often walkable while the latter are often solid, for purposes of sprite collision.
+On the right of the application window is the tile palette. Clicking changes the selected tile. You can also switch tiles using ASWD or the cursor keys. The bracket keys ('[' and ']') cycle through available tilesets. Tilesets are loaded from the 'tilesets' directory and should be 128-pixel (16 tile) wide .PNGs for best results. The two shades of green in the background allow you to easily distinguish the first 8 columns of a tileset from the second 8 columns- the former are often walkable while the latter are often solid, for purposes of sprite collision. Dragging on the palette can select a rectangular 'brush' of tiles to paint with.
 
 The Editor:
 
@@ -25,6 +25,8 @@ Keys:
 - Control + C : Copy. Copies the selected region to the Gridpad clipboard.
 
 - Control + V : Paste. Draws the Gridpad clipboard, starting with the top-left corner at the mouse cursor's current position.
+
+- Control + A : Switch to selection mode and select the entire grid.
 
 - Control + F : Fill. Fill the selected region with the current tile.
 
