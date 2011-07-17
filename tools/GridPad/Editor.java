@@ -18,7 +18,6 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private final JLabel  status;
 
 	private int[][] grid;
-	private int[][] clipBoard;
 	private int x;
 	private int y;
 	private int w = 1;
@@ -215,14 +214,16 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		final int ah = Math.abs(h);
 
 		if (e.getKeyChar() == CONTROL_C) {
-			clipBoard = new int[ah][aw];
+			int[][] clipBoard = new int[ah][aw];
 			for(int a = 0; a < ah; a++) {
 				for(int b = 0; b < aw; b++) {
 					clipBoard[a][b] = grid[y1+a][x1+b];
 				}
 			}
+			GridPad.save(clipBoard);
 		}
 		else if (e.getKeyChar() == CONTROL_V) {
+			int[][] clipBoard = GridPad.load();
 			if (clipBoard == null) { return; }
 			int[][] delta = new int[clipBoard.length][clipBoard[0].length];
 			for(int a = 0; a < clipBoard.length; a++) {
