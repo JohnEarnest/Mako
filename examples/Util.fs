@@ -23,6 +23,9 @@
 : abs      dup 0 < if -1 * then          ;
 : later    r> r> swap >r >r              ;
 : exitif   if rdrop exit then            ;
+: tuck     swap over                     ;
+: nip      swap drop                     ;
+: ?dup     dup if dup then               ;
 
 : indexof (value array -- address)
 	loop
