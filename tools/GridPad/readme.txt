@@ -30,6 +30,8 @@ Keys:
 
 - Control + F : Fill. Fill the selected region with the current tile.
 
+- Control + G : Randomized Fill. Selects tiles from the selected palette block randomly.
+
 - Delete: Erase the selected region, replacing tiles with transparency.
 
 - ',' : reduce   the horizontal size of the map by 40 tiles
