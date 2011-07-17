@@ -12,7 +12,7 @@ public class GridPad extends JFrame {
 
 	private final JLabel  status  = new JLabel("ready.");
 	private final Palette palette = new Palette(this);
-	private final Editor  editor  = new Editor(this, palette, status);
+	private final Editor  editor  = new Editor(this, palette);
 
 	public static void main(String[] args) {
 		new GridPad();
@@ -64,6 +64,18 @@ public class GridPad extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
 		setVisible(true);
+	}
+
+	public void updateStatus() {
+		int[][] selected = palette.getSelected();
+		if (selected == null || selected.length < 1 || selected[0].length < 1) { return; }
+		status.setText(String.format("tile: %3d   %02dx%02d   %s",
+			selected[0][0],
+			editor.x,
+			editor.y,
+			editor.draw ? "draw" : "select"
+		));
+		status.repaint();
 	}
 
 	// load from the clipboard, splitting rows apart

@@ -15,26 +15,25 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private final int CONTROL_V = 22;
 	private final int CONTROL_Z = 26;
 
-	private final JFrame  host;
+	private final GridPad host;
 	private final Palette palette;
-	private final JLabel  status;
 
 	private int[][] grid;
-	private int x;
-	private int y;
 	private int w = 1;
 	private int h = 1;
-	private boolean draw       = true;
 	private boolean drawCursor = false;
 	private int dragButton = MouseEvent.NOBUTTON;
 
 	private Stack<Edit> undo = new Stack<Edit>();
 	private Stack<Edit> redo = new Stack<Edit>();
 
-	public Editor(JFrame host, Palette palette, JLabel status) {
+	public boolean draw = true;
+	public int x;
+	public int y;
+
+	public Editor(GridPad host, Palette palette) {
 		this.host    = host;
 		this.palette = palette;
-		this.status  = status;
 		addMouseListener(this);
 		addMouseMotionListener(this);
 	}
@@ -177,7 +176,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		if ((nx != x || ny != y)&&(w == 1)&&(h == 1)) {
 			x = nx;
 			y = ny;
-			updateStatus();
+			host.updateStatus();
 			repaint();
 		}
 	}
@@ -207,7 +206,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			redo.clear();
 			undo.push(change);
 		}
-		updateStatus();
+		host.updateStatus();
 		repaint();
 	}
 
@@ -288,19 +287,12 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		}
 		else if (e.getKeyChar() == CONTROL_O) {
 			GridPad.save(grid);
-			status.setText("Saved to clipboard.");
-			status.repaint();
 		}
 		else if (e.getKeyChar() == CONTROL_L) {
 			int[][] newGrid = GridPad.load();
-			if (newGrid == null) {
-				status.setText("Failed to load from clipboard.");
-			}
-			else {
-				status.setText("Loaded from clipboard.");
+			if (newGrid != null) {
 				setGrid(newGrid);
 			}
-			status.repaint();
 		}
 		else if (e.getKeyChar() == ',') { // shrink horizontally
 			if (grid[0].length < 81) { return; }
@@ -341,17 +333,5 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			setGrid(newgrid);
 		}
 		repaint();
-	}
-
-	private void updateStatus() {
-		int[][] selected = palette.getSelected();
-		if (selected == null || selected.length < 1 || selected[0].length < 1) { return; }
-		status.setText(String.format("tile: %3d  %2dx%2d  %s",
-			selected[0][0],
-			x,
-			y,
-			draw ? "draw" : "select"
-		));
-		status.repaint();
 	}
 }

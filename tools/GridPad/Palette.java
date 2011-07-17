@@ -14,7 +14,7 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 
 	private static final List<Image> tilesets = new ArrayList<Image>();
 
-	private final GridPad pad;
+	private final GridPad host;
 	private Image tiles;
 	private int tilesetIndex = 0;
 	private int x = 0;
@@ -22,8 +22,8 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 	private int w = 1;
 	private int h = 1;
 
-	public Palette(GridPad pad) {
-		this.pad = pad;
+	public Palette(GridPad host) {
+		this.host = host;
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		loadTiles();
@@ -115,6 +115,7 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		y = e.getY() / (GridPad.TILE_HEIGHT * GridPad.SCALE);
 		w = 1;
 		h = 1;
+		host.updateStatus();
 		repaint();
 	}
 
@@ -155,7 +156,7 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 			//System.out.println(" Complete.");
 		}
 		else { return; }
-		pad.repaint();
+		host.repaint();
 	}
 
 	public void mousePressed(MouseEvent e) {}
