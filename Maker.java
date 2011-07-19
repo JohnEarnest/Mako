@@ -80,7 +80,16 @@ public class Maker implements MakoConstants {
 		}
 		Maker compiler = new Maker();
 		int[] rom = compiler.compile(argList.get(0), standalone);
-		compiler.disassemble();
+		if (argList.contains("--word")) {
+			int index = argList.indexOf("--word");
+			String word = argList.get(index + 1);
+			compiler.disassemble(word);
+			argList.remove("--word");
+			argList.remove(word);
+		}
+		else {
+			compiler.disassemble(0, rom.length-1);
+		}
 		if (argList.size() > 1) {
 			try {
 				PrintWriter out = new PrintWriter(new File(argList.get(1)));
@@ -533,8 +542,18 @@ public class Maker implements MakoConstants {
 		}
 	}
 
-	public void disassemble() {
-		for(int index = 0; index < rom.size(); index++) {
+	public void disassemble(String word) {
+		if (!dictionary.containsKey(word)) {
+			throw new Error("Unknown word '"+word+"'");
+		}
+		int first = dictionary.get(word);
+		int last = first + 1;
+		while(last < rom.size() && "".equals(getLabel(last))) { last++; }
+		disassemble(first, last-1);
+	}
+
+	public void disassemble(int first, int last) {
+		for(int index = first; index <= last; index++) {
 			int t = tag.get(index);
 			System.out.format("%05d: %-16s", index, getLabel(index));
 			if (t == TAG_ARRAY) {
