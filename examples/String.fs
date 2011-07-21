@@ -12,6 +12,15 @@
 : fill   >r 1 - for j over i + ! next r> 2drop ; (addr len n  --)
 : >move  1 - for over i + @ over i + ! next    ; (src dst len --) # copies high to low
 
+: <move (src dst len --) # copies low to high
+	>r swap dup r> + >r
+	loop
+		dup i >= if r> 2drop drop exit then
+		dup >r @ over ! r>
+		1 + swap 1 + swap		
+	again
+;
+
 : size (addr x -- len)
 	>r 0
 	loop
@@ -69,6 +78,8 @@
 	0 swap 1 + ! r> 2drop
 ;
 
+(
+# usage examples:
 :include "Print.fs"
 
 :string str1 "---hello---"
@@ -84,11 +95,11 @@
 :string n4 "2"
 
 : main
-
-	str1 typeln
+	str1 typeln                # should be '---hello---'
 	str1 3 + str1 6 + 5 >move
-	str1 typeln  # should be '---helhello'
-	cr
+	str1 typeln                # should be '---helhello'
+	str1 6 + str1     5 <move
+	str1 typeln                # should be 'hellolhello'
 
 	str2 0 size . # should be 11
 	cr
@@ -105,8 +116,6 @@
 	n4 number .
 	cr
 
-	65 word pad type cr
-	10 word pad type cr
-
 	halt
 ;
+)
