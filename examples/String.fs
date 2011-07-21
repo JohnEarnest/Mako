@@ -54,8 +54,8 @@
 :const pad-size 255
 :array pad      256 0
 
-# read in n chars or until return and
-# store them to the pad, null-terminated.
+# read in n chars or until return,
+# storing them in the pad, null-terminated.
 : expect (n -- )
 	pad + 1 - >r pad 1 -
 	loop
@@ -67,15 +67,17 @@
 ;
 
 # read in chars until we hit a delimiter,
-# storing a null-terminated string in the pad.
+# storing them in the pad, null-terminated.
+# input will not exceed the size of the pad.
 : word (c -- )
 	>r pad 1 -
 	loop
 		1 + key
-		dup i xor -if drop 1 - break then
+		dup i xor             -if break then
+		over pad pad-size + >= if break then
 		over !
 	again
-	0 swap 1 + ! r> 2drop
+	2drop 0 swap ! r> drop
 ;
 
 (
@@ -98,8 +100,8 @@
 	str1 typeln                # should be '---hello---'
 	str1 3 + str1 6 + 5 >move
 	str1 typeln                # should be '---helhello'
-	str1 6 + str1     5 <move
-	str1 typeln                # should be 'hellolhello'
+	str1 6 + str1 3 + 5 <move
+	str1 typeln                # should be '---hellollo'
 
 	str2 0 size . # should be 11
 	cr
