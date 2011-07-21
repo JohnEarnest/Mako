@@ -72,6 +72,10 @@ public class MakoVM implements MakoConstants {
 	private int load(int addr) {
 		if (addr == RN) { return rand.nextInt(); }
 		if (addr == KY) { return keys; }
+		if (addr == CO) {
+			try { return System.in.read(); }
+			catch(java.io.IOException e) { e.printStackTrace(); }
+		}
 		return m[addr];
 	}
 

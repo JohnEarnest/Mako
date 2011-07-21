@@ -34,10 +34,12 @@ public class Mako {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setResizable(false);
 		window.pack();
-		window.setVisible(true);
 
 		while(true) {
 			view.vm.run();
+			// if sync is never called, we'll assume it's meant
+			// as a 'headless' application or test fixture.
+			if (!window.isVisible()) { window.setVisible(true); }
 			view.vm.keys = view.keys;
 			view.repaint();
 			try { Thread.sleep(10); }
