@@ -286,16 +286,16 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":string")) {
 			variables.put(tokens.remove().toString(), rom.size());
-			for(char c : tokens.remove().toString().toCharArray()) {
+			for(char c : unquote(tokens.remove().toString()).toCharArray()) {
 				romAdd((int)c, TAG_STRING);
 			}
 			romAdd(0, TAG_STRING);
 		}
-		else if (token.equals("string")) {
+		else if (token.startsWith("\"")) {
 			romAdd(OP_JUMP, TAG_CODE);
 			romAdd(-1,      TAG_CODE);
 			int start = rom.size();
-			for(char c : tokens.remove().toString().toCharArray()) {
+			for(char c : unquote(token).toCharArray()) {
 				romAdd((int)c, TAG_STRING);
 			}
 			romAdd(0, TAG_STRING);
@@ -321,7 +321,7 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":image")) {
 			String imageName = tokens.remove().toString();
-			String fileName = tokens.remove().toString();
+			String fileName = unquote(tokens.remove().toString());
 			if (path != null) { fileName = path + File.separator + fileName; }
 			variables.put(imageName, rom.size());
 			int tileWidth  = (Integer)tokens.remove();
@@ -358,7 +358,7 @@ public class Maker implements MakoConstants {
 			}
 		}
 		else if (token.equals(":include")) {
-			String fileName = tokens.remove().toString();
+			String fileName = unquote(tokens.remove().toString());
 			if (path != null) { fileName = path + File.separator + fileName; }
 			compileFile(fileName);
 		}
@@ -623,6 +623,13 @@ public class Maker implements MakoConstants {
 		return "";
 	}
 
+	private static String unquote(String s) {
+		if (s.startsWith("\"")) {
+			return s.substring(1, s.length() - 1);
+		}
+		return s;
+	}
+
 	private static Queue<Object> tokens(String text) {
 		int index = 0;
 		Queue<Object> ret = new LinkedList<Object>();
@@ -655,6 +662,7 @@ public class Maker implements MakoConstants {
 					index++;
 				}
 				index++;
+				token = '"' + token + '"';
 			}
 			// whitespace-delimited words
 			else {

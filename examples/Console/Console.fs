@@ -61,10 +61,10 @@
 
 	init-console
 
-	string "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" typeln
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" typeln
 	0
 	loop
-		string "Hello, World!" type space
+		"Hello, World!" type space
 		dup . cr
 		1 +
 		sync
