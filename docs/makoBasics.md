@@ -14,7 +14,7 @@ Let's begin with a simple "Hello, World" program:
 		halt
 	;
 
-Forth programs are made out of whitespace delimited tokens called _words_. Tokens can contain any combination of characters. Strings are a special exception, and include any text enclosed within single quotes. When a word's name is encountered, it is executed. Some special words are carried out at compilation time, while most are carried out at runtime.
+Forth programs are made out of whitespace delimited tokens called _words_. Tokens can contain any combination of characters. Strings are a special exception, and include any text enclosed within double quotes. When a word's name is encountered, it is executed. Some special words are carried out at compilation time, while most are carried out at runtime.
 
 The first word in this program is `:include`. By convention, words beginning with a colon are related to the compiler and have compile-time semantics. `:include` instructs the compiler to load the source file specified by the following string, in this case `Print.fs`, a library for console output.
 
@@ -216,8 +216,49 @@ Finally, `exit` can be used to return immediately from the current definition. I
 A Few Definitions
 -----------------
 
-(defining words. :const :var :array :data :string :image)
-(@ !)
+Defining words are words that create other words, much like `:`. Some Forth implementations allow you to create your own defining words, which can be a very powerful metaprogramming facility. Maker does not provide this functionality, but it does come packed with a rich set of built-in defining words.
+
+`:const` is used to declare constants. It requires a name and a numerical value, which can be based on other constants, variables or word definitions. When the name of a constant is refrenced, the value of the constant will be inlined.
+
+	:const byte-size 255
+	:const hexconst  0xDEADBEEF
+
+`:var` declares a single-cell (one 32-bit word) variable. It requires only a name, and will be initialized to a value of zero. When the name of a var is refrenced, the _address_ at which this variable is stored will be inlined. The word `@` can be used to fetch the value stored at an address, while the word `!` can be used to store a value to an address. `@` and `!` form the basis of all memory operations in Forth.
+
+	:var storage
+	: toggle ( -- )
+		storage @	# load the value in storage
+		not			# negate the value from storage
+		storage !	# store the negated value to the var again
+	;
+
+`:array` is much like `:var`, except it is used to allocate a group of several cells at once. It requires a name, a number of cells and a value with which to initialize the array.
+
+	:array buffer 256  0  # a 256-element array filled with 0
+	:array tile    64 -1  # a 64-element array filled with -1
+
+`:data` is the most freeform approach to describing data. It requires only a name. When numbers or word names (including code or constants) are encountered outside a word definition, it is simply appended literally into the MakoVM ROM.
+
+	# initializing an array
+	:data data-array  0 1 2 45 23 12 11
+
+	# building a lookup table of function pointers
+	: func1 + ;
+	: func2 - ;
+	: func3 * ;
+	:data ftable
+		43 func1
+		45 func2
+		42 func3
+
+`:string` defines a named string. This is an alternative to the inline form described earlier which and be referenced from several places instead of only once. String definitions require a name and a quoted string, which will be stored with a null-terminator.
+
+	:string hello "Hello, World!"
+
+`:image` is used for including image data from external files. It requires a name, a quoted filename and a horizontal and vertical size (in pixels) of the tiles of the image. The pixels of the image will be stored one 32-bit color pixel to a cell in, one tile after another. Images will be discussed in more detail later on.
+
+	# load a sheet of 16 pixel wide by 32 pixel tall tiles
+	:image sprite-tiles "Scrubby.png"  16 32
 
 Talking to the Hardware
 -----------------------
