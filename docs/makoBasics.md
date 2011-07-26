@@ -14,9 +14,9 @@ Let's begin with a simple "Hello, World" program:
 		halt
 	;
 
-Forth programs are made out of whitespace delimited tokens called _words_. Tokens can contain any combination of characters. Strings are a special exception, and include any text enclosed within single quotes.
+Forth programs are made out of whitespace delimited tokens called _words_. Tokens can contain any combination of characters. Strings are a special exception, and include any text enclosed within single quotes. When a word's name is encountered, it is executed. Some special words are carried out at compilation time, while most are carried out at runtime.
 
-The first word in this program is `:include`. By convention, words beginning with a colon are related to the compiler. `:include` instructs the compiler to load the source file specified by the following string, in this case `Print.fs`, a library for console output.
+The first word in this program is `:include`. By convention, words beginning with a colon are related to the compiler and have compile-time semantics. `:include` instructs the compiler to load the source file specified by the following string, in this case `Print.fs`, a library for console output.
 
 We then reach the word `:`, which defines a word. The next token is used as a name. The name `main` is special, and will always be used as the entrypoint to a program. `:` should always be paired with a `;`, which terminates a definition.
 
@@ -137,7 +137,81 @@ If we use a pipe (`|`) to separate a view of the data stack from the return stac
 Flow Control
 ------------
 
-(if -if else then loop while until again break for i j next exit)
+Pure functions and combinators are all well and good, but to do much of interest we're going to need some flow control structures.
+
+__if...else...then__
+
+This is your basic bread and butter _if_ statement. The word `if` consumes a value from the stack and carries out some operations until a matching `then` statement if this value is not zero. An `else` is optional.
+
+	: double-if-two ( a -- b )
+		dup 2 = if dup + then
+	;
+
+	: odd? ( n -- flag )
+		2 mod if true else false then
+	;
+
+Sometimes it's convenient to be able to check if something _is_ zero- Maker also provides a negated if statement called `-if` which can be used identically with `else` and `then`:
+
+	: = ( a b -- flag )
+		xor -if true else false then
+	;
+
+(Incidentally this is the most common idiom for confirming that two values are equal in Maker. The `=` definition is a handy utility routine.)
+
+__loop...while/until/again__
+
+The `loop` words are the Forth equivalent of C's `do { ... } while();` construct. `loop` is always paired with `while`, `until` or `again`. `while` and `until` consume a value from the stack and cause execution to jump back to the matching `loop` if this value is zero or nonzero, respectively. `again` is used for infinite loops and jumps back to the matching `loop` unconditionally.
+
+	: palindrome? ( n -- flag )
+		dup >r 0
+		loop
+			base * over base mod + swap
+			base / swap
+			over
+		while
+		swap drop r>
+		xor -if true else false then
+	;
+
+	: stack-overflow ( -- )
+		loop
+			42
+		again
+	;
+
+If you want to exit a loop early, the `break` word is what you're looking for- it will jump past the current loop's matching `while`, `until` or `again`.
+
+	: count-to-five ( -- 0 1 2 3 4 5 )
+		0 loop
+			dup 1 +
+			dup 4 > if break then
+		again
+	;
+
+__for...next__
+
+The Forth `for` loop is an easy way to repeat an operation several times. `for` reads a value from the stack, storing it as an index counter on the return stack. Every time `next` is encountered, this counter is examined. If the counter is greater than or equal to zero, execution resumes after the matching `for`.
+
+	: five-copies ( a -- a a a a a )
+		3 for
+			dup
+		next
+	;
+
+If you need to access the loop index, `r>` and `>r` can do the trick, but Maker also provides the words `i` and `j`, which will push a copy the top or second elements of the return stack to the parameter stack. You can thus easily nest two `for` loops while still accessing loop indices.
+
+	: multiplication-table ( -- )
+		10 for
+			10 for
+				i j *
+				.      # a word from Print.fs for printing a number to stdout
+			next
+			cr         # another routine for printing a carriage return
+		next
+	;
+
+Finally, `exit` can be used to return immediately from the current definition. If you use `exit` in the middle of a `for` loop be sure you first remove the loop index from the return stack!
 
 A Few Definitions
 -----------------
