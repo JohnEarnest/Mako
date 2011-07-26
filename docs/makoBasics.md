@@ -53,10 +53,10 @@ We see a whole bunch of output- a disassembly of our compiled program followed b
 
 Even though "Hello, World!" programs are a common starting point for teaching programming languages, this one has a fair amount of subtlety to it. Let's start over with the basics.
 
-Actual First Steps
-------------------
+Numbers and Expressions
+-----------------------
 
-Mako is a stack-oriented architecture. Instead of storing intermediate values in registers, we push values onto a stack and operators consume operands from the top of the stack. Consider the following expression:
+Mako is a stack-oriented architecture. Instead of storing intermediate values in registers, we push values onto a stack. Operators consume operands from the top of the stack and leave their results behind. Consider the following expression:
 
 	2 3 +
 
@@ -106,8 +106,33 @@ Finally, note that in the above example we've used `#` to delimit single-line co
 Stack Effects
 -------------
 
-(drop dup over swap 2dup 2drop)
-(>r r> rdrop)
+Simple expressions are not always sufficient for programming- sometimes we need multiple copies of an operand, or we need to discard 'junk'. Fortunately, Forth has a number of operators for manipulating the top of the stack.
+
+`drop` and `dup` discard or duplicate the topmost element of the stack, respectively. `swap` exchanges the top two stack elements. `over` is similar to `dup` but instead pushes a copy of the second element of the stack. `2drop` discards the top two elements of the stack, and 2dup makes a copy of the top two elements of the stack. (Equivalent to the sequence `over over`.) All of these except `2dup` and `2drop` are primitives.
+
+In addition to the main "parameter stack", Mako has a second "return stack". The return stack is primarily used to store the return addresses of subroutine calls, but it can be freely manipulated. `>r` (to-r) and `r>` (r-to) move a value from the parameter stack to the return stack and vice versa. These operators are represented with the assembly opcodes `STR` and `RTS`, respectively. These words are commonly used to provide an intermediate storage location during a complex set of stack manipulations, but if used skillfully they can also provide very flexible new flow-control capabilities. For convinience, Maker also provides the mnemonic `rdrop`, which is equivalent to the sequence `r> drop`.
+
+Forth programmers commonly use _stack effect diagrams_ to illustrate the signature of their words. They consist of a block comment with a list of "before" and "after" stack elements separated by a `--`. The rightmost element of these lists is meant to be read as the topmost element of the stack.
+
+	: sum-cubed ( a b -- c )
+		+ dup dup * *
+	;
+
+The stack diagram for this example shows at a glance that the word takes two arguments and yields a single result. For complex word definitions it may be helpful to place stack comments throughout your code to remind yourself of what is on the stack.
+
+Here's a summary of the stack manipulation operations we've learned and their stack effect diagrams:
+
+- `dup`   `( a -- a a )`
+- `drop`  `( a -- )`
+- `swap`  `( a b -- b a )`
+- `2drop` `( a b -- )`
+- `2dup`  `( a b -- a b a b )`
+
+If we use a pipe (`|`) to separate a view of the data stack from the return stack, we can illustrate the return stack words as well:
+
+- `>r`    `( a | -- | a )`
+- `r>`    `( | a -- a | )`
+- `rdrop` `( | a -- | )`
 
 Flow Control
 ------------
@@ -120,11 +145,6 @@ A Few Definitions
 (defining words. :const :var :array :data :string :image)
 (@ !)
 
-Indirection
------------
-
-(' exec :vector :proto)
-
 Talking to the Hardware
 -----------------------
 
@@ -136,3 +156,8 @@ The Grid
 
 Sprites
 -------
+
+Indirection
+-----------
+
+(' exec :vector :proto)
