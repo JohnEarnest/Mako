@@ -51,6 +51,18 @@ We see a whole bunch of output- a disassembly of our compiled program followed b
 	2663 words, 10.402 kb.
 	Hello, World!
 
+The only definintion here we're really interested in is that of our `main` word. We can instruct Maker to only print a disassembly of a specific word by using the `--word` flag and specifying the word we're interested in seeing:
+
+	java Maker examples/Hello.fs --word main
+	00117: (main)           JUMP 133
+	00119:                 "Hello, World!"
+	00133:                 CONST 119
+	00135:                  CALL 112 (typeln)
+	00137:                  JUMP -1
+	00139:                   RET
+
+	2671 words, 10.434 kb.
+
 Even though "Hello, World!" programs are a common starting point for teaching programming languages, this one has a fair amount of subtlety to it. Let's start over with the basics.
 
 Numbers and Expressions
@@ -234,8 +246,8 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 
 `:array` is much like `:var`, except it is used to allocate a group of several cells at once. It requires a name, a number of cells and a value with which to initialize the array.
 
-	:array buffer 256  0  # a 256-element array filled with 0
-	:array tile    64 -1  # a 64-element array filled with -1
+	:array buffer 256  0  # 256-element array filled with 0
+	:array tile    64 -1  #  64-element array filled with -1
 
 `:data` is the most freeform approach to describing data. It requires only a name. When numbers or word names (including code or constants) are encountered outside a word definition, it is simply appended literally into the MakoVM ROM.
 
@@ -263,11 +275,34 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 Talking to the Hardware
 -----------------------
 
-( basic registers, sync keys )
+Mako uses a single, contiguous addressing space for memory. The first dozen or so memory locations contain _registers_ which control I/O devices and dictate the layout of important memory regions. Maker exposes constants which allow you to treat registers as Forth variables. In this section we will deal with the most basic of these registers, and later we will discuss the specialized graphics registers controlling the Grid and Sprites.
 
+`PC` contains Mako's program counter. Maker initializes this register to point to the first byte of a word called `main`, our entrypoint.
+
+`DP` contains the address of the top element of the parameter stack, and `RP` does likewise for the return stack. Both stacks grow downwards- that is, the stack pointers are incremented as elements are pushed onto the stack. Maker allocates 50 cells for each by default, but this behavior can be overridden if you create your own array definitions with the names `data-stack` or `return-stack`.
+
+	: pick ( index -- element )
+		DP @ 2 - swap - @
+	;
+
+`RN` is a memory-mapped random number generator. Loading from this register will return a random 32-bit integer. Storing to this register will have no effect.
+
+	: random ( max -- n )
+		RN @ swap mod
+	;
+
+`KY` is similar to `RN`- a memory-mapped peripheral. Loading from this register will return a bit-vector representing the state of Mako's keypad. Maker provides the following masking constants for extracting individual keys: `key-up`, `key-dn`, `key-lf`, `key-rt`, `key-a` and `key-b`. The keys associated with these bits may vary from implementation to implementation, but the first four should generally be some sort of directional pad. Maker also offers the convenient word `keys` which is equivalent to `KY @`.
+
+	: left-key-pressed?
+		KY @ key-lf and if true else false then
+	;
+
+`CO` is a (possibly) bidirectional debug port. Writing a value to this address should print the corresponding ASCII character to stdout. Some implementations may also support reading from this register to grab input from stdin. The `Print.fs` and `String.fs` standard library files contain useful definitions for printing values and reading values from the debug port, respectively. When it doesn't make sense, or for simplicity, MakoVM implementations may choose to do nothing when this register is manipulated- as the name would suggest, it's mainly for debugging.
 
 The Grid
 --------
+
+( sync )
 
 Sprites
 -------
@@ -276,3 +311,16 @@ Indirection
 -----------
 
 (' exec :vector :proto)
+
+Forth Philosophy
+----------------
+
+Forth is as much an engineering approach as it is a programming language. When you're writing Forth programs, keep these ideas in mind:
+
+1) __Factor.__ Avoid long word definitions. Break complex words down into simple words which can be reused. Subroutine calls are cheap in Forth- use them freely.
+
+2) __Keep the stack shallow.__ If a word takes more than 3 arguments, consider breaking it down into smaller definitions. If you're having trouble remembering what's on the stack, it may be another sign you're doing too much in one place. You may be able to replace some arguments with constants by writing a less general word or simplify flow by introducing global variables.
+
+3) __Solve only the problem at hand.__ Don't overgeneralize your solutions or leave hooks for future expansion. If you don't need it now, there's a good chance you don't need it at all. Focused solutions lead to simpler code.
+
+4) __Change the problem.__ Sometimes the key to simplicity is realizing a problem doesn't need to be solved at all. Examine your underlying assumptions. Are there details of your model that can be left out? Features that are unnecessary? Can you use a different data structure or algorithm to accomplish a similar goal?
