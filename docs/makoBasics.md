@@ -302,7 +302,25 @@ Mako uses a single, contiguous addressing space for memory. The first dozen or s
 The Grid
 --------
 
-( sync )
+Mako has a 320x240 pixel display. Every time the `sync` instruction is executed, the VM pauses execution and the display is refreshed. First, the screen buffer is cleared with the background color, then the grid is drawn, then sprites are drawn and the completed image is made visible. It's worth noting that _the bit vector provided by querying `KY` is only updated when `sync` is called._
+
+The clear color is stored in the `CL` register, and by default is 0xFF000000. Like all Mako color values, the clear color is stored as an ARGB packed integer, with 8 bits per color channel. If the alpha channel has a value other than 0xFF, a pixel is considered transparent.
+
+The Grid itself consists of a matrix of 8x8 pixel tiles. Given a 320x240 display, this means 40x30 tiles are visible on-screen at once. The `GP` register points to a block of memory containing a sequential list of tile indices, counting from left to right and top to bottom. These indices indicate an offset added to the contents of the `GT` register, which should point to a set of sequential 64 word blocks, each representing the pixels of a tile. Tile indices count from zero, and tiles with a negative index are not drawn. Tiles can also contain transparent pixels.
+
+The Grid can also be scrolled. The `SX` and `SY` registers contain offsets added to the screen coordinates of tiles before they are drawn. Mako actually renders a 41x31-tile area based on the position of `GP`. By shifting `GP` every time the screen is scrolled 8 pixels with the scroll registers it is possible to produce a free-scrolling grid of arbitrary size- take a look at the `OpenWorld.fs` example to see how this technique works.
+
+The `GS` register is also key for scrolling displays. When the grid is rendered, 41 cells making up a row of the display are fetched at a time, and then 41 plus the value of the `GS` register is added to a counter. If the horizontal rows of a tilemap in memory are wider than a single display, `GS` can be used to compensate for this so that the next row of tile data is read from the correct position.
+	
+	# look up a tile in the current grid
+	# by its x and y coordinates.
+	: tile-grid@ ( x y -- tile-address )
+		GS @ 41 + * swap + GP @ +
+	;
+
+Much like the return stack and data stack, if a grid and grid tileset are not defined explicitly, Maker will automatically allocate space for them. You can define your own grid and choose the initial configuration of the scroll and skip registers by defining arrays and constants with the names 'grid', 'grid-tiles', 'grid-skip', 'scroll-x', 'scroll-y' or 'clear-color'.
+
+The standard library file `Grid.fs` contains a number of useful words for manipulating the grid.
 
 Sprites
 -------
@@ -314,11 +332,17 @@ Maker has a few more spiffy capabilities that deserve brief mention.
 
 `'` (pronounced "tick"), followed by a word name will, instead of compiling a `CALL` to the word definition, push the address of the first byte of the word definition. You can then call a dynamic address with `exec`. These instructions are useful for function pointer style tricks and supplying words with predicates.
 
+	: print-A 65 CO ! ;
+	: deferred-print ( -- )
+		print-A          # the normal approach
+		' print-A exec   # again with indirection
+	;
+
 Maker is a single-pass compiler, so everything must be defined before it can be used. In general, this just means your source files should be arranged in a logical reading order, but for mutually-recursive functions this is a problem. The `:proto` word defines a _prototype_ for a word that will be defined later. It only makes sense to do this for code definitions, and in all cases `:proto` should be used sparingly for purposes of readability. Maker will complain if you use `:proto` but fail to supply an implementation for the prototype.
 
 	:proto defined-later
-	: defined-first defined-later 2 - ;
-	: defined-later 42 78 +           ;
+	: defined-first   defined-later 2 - ;
+	: defined-later   42 78 +           ;
 
 Finally, `:vector` is identical to `:` but starts a word definition with a preamble that makes it possible to _revector_ the word later, dynamically changing the behavior of calls to the word. See the standard library file `Vector.fs` for support code, examples and a more detailed explanation.
 
