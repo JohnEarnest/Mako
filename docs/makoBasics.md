@@ -297,7 +297,7 @@ Mako uses a single, contiguous addressing space for memory. The first dozen or s
 		KY @ key-lf and if true else false then
 	;
 
-`CO` is a (possibly) bidirectional debug port. Writing a value to this address should print the corresponding ASCII character to stdout. Some implementations may also support reading from this register to grab input from stdin. The `Print.fs` and `String.fs` standard library files contain useful definitions for printing values and reading values from the debug port, respectively. When it doesn't make sense, or for simplicity, MakoVM implementations may choose to do nothing when this register is manipulated- as the name would suggest, it's mainly for debugging.
+`CO` is a (possibly) bidirectional debug port. Writing a value to this address should print the corresponding ASCII character to stdout. Some implementations may also support reading from this register to grab input from stdin. The `Print.fs` and `String.fs` standard library files contain useful definitions for printing values and reading values with the debug port, respectively. When it doesn't make sense, or for simplicity, MakoVM implementations may choose to do nothing when this register is manipulated- as the name would suggest, it's mainly for debugging.
 
 The Grid
 --------
@@ -307,10 +307,20 @@ The Grid
 Sprites
 -------
 
-Indirection
------------
+Special Tricks
+--------------
 
-(' exec :vector :proto)
+Maker has a few more spiffy capabilities that deserve brief mention.
+
+`'` (pronounced "tick"), followed by a word name will, instead of compiling a `CALL` to the word definition, push the address of the first byte of the word definition. You can then call a dynamic address with `exec`. These instructions are useful for function pointer style tricks and supplying words with predicates.
+
+Maker is a single-pass compiler, so everything must be defined before it can be used. In general, this just means your source files should be arranged in a logical reading order, but for mutually-recursive functions this is a problem. The `:proto` word defines a _prototype_ for a word that will be defined later. It only makes sense to do this for code definitions, and in all cases `:proto` should be used sparingly for purposes of readability. Maker will complain if you use `:proto` but fail to supply an implementation for the prototype.
+
+	:proto defined-later
+	: defined-first defined-later 2 - ;
+	: defined-later 42 78 +           ;
+
+Finally, `:vector` is identical to `:` but starts a word definition with a preamble that makes it possible to _revector_ the word later, dynamically changing the behavior of calls to the word. See the standard library file `Vector.fs` for support code, examples and a more detailed explanation.
 
 Forth Philosophy
 ----------------
