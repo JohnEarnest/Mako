@@ -374,7 +374,7 @@
 		then
 	next
 	-if
-		string "level completed..." type cr
+		"level completed..." type cr
 		50 for sync next
 		level!
 	then
