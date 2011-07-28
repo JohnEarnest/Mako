@@ -1,7 +1,7 @@
 An Introduction to MakoVM
 =========================
 
-MakoVM is an extremely simple stack-based virtual machine intended for the creation of video games. This tutorial will explain the workings of Mako, and at the same time introduce Maker, a Forth-inspired compiled language targeting Mako. While it is entirely possible to compile existing languages to MakoVM bytecodes, Maker code has a very tight relationship with Mako and makes it easy to explain the "hardware" on a low level.
+MakoVM is an extremely simple stack-based virtual machine intended for the creation of video games. This tutorial will explain the workings of Mako, and at the same time introduce Maker, a Forth-inspired compiled language targeting Mako. While it is entirely possible to compile existing languages to MakoVM instructions, Maker code has a very tight relationship with Mako and makes it easy to explain the "hardware" on a low level.
 
 First Steps
 -----------
@@ -74,7 +74,7 @@ Mako is a stack-oriented architecture. Instead of storing intermediate values in
 
 The first two tokens are numbers, so they push their values onto the stack. The word `+` consumes the top two elements of the stack, adds them, and leaves the result on the stack. If you've ever used an RPN calculator, this kind of postfix math will seem pretty familiar.
 
-Maker provides the following words without the use of any library, and all but the last two map directly to a single MakoVM bytecode:
+Maker provides the following words without the use of any library, and all but the last two map directly to a single MakoVM instruction:
 
 - `+` (addition)
 - `-` (subtraction)
@@ -103,9 +103,9 @@ The resulting disassembly might look like this:
 	00132:                   NOT
 	00133:                   RET
 
-`CONST` is a single bytecode that is followed by a parameter whose value will be pushed onto the stack. `MUL`, `ADD` and `NOT` are the assembly mnemonics corresponding to `*`, `+` and `not`, respectively. `RET` returns from a subroutine call, and will be discussed in more detail later.
+`CONST` is a single instruction that is followed by a parameter whose value will be pushed onto the stack. `MUL`, `ADD` and `NOT` are the assembly mnemonics corresponding to `*`, `+` and `not`, respectively. `RET` returns from a subroutine call.
 
-Each element of the stack is a 32-bit two's complement signed integer. The comparison operations (greater-than, less-than and so on) result in 0 (all bits 0) for false, and -1 (all bits 1) for true, making it possible to perform a variety of useful bitwise operations on the results. These _boolean flags_ are used by convention to represent logical true and false, and the words `true` and `false` can be used in place of the numeric constants.
+Each element of the stack (a _cell_) is a 32-bit two's complement signed integer. The comparison operations (greater-than, less-than and so on) result in 0 (all bits 0) for false, and -1 (all bits 1) for true, making it possible to perform a variety of useful bitwise operations on the results. These _boolean flags_ are used by convention to represent logical true and false, and the words `true` and `false` can be used in place of the numeric constants.
 
 Numeric constants can be given as signed decimal integers (as above) or as hexadecimal or binary values. Hexadecimal values are prefixed with `0x`, and binary values are prefixed with `0b`:
 
@@ -235,7 +235,7 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 	:const byte-size 255
 	:const hexconst  0xDEADBEEF
 
-`:var` declares a single-cell (one 32-bit word) variable. It requires only a name, and will be initialized to a value of zero. When the name of a var is refrenced, the _address_ at which this variable is stored will be inlined. The word `@` can be used to fetch the value stored at an address, while the word `!` can be used to store a value to an address. `@` and `!` form the basis of all memory operations in Forth.
+`:var` declares a single-cell (one 32-bit int) variable. It requires only a name, and will be initialized to a value of zero. When the name of a var is refrenced, the _address_ at which this variable is stored will be inlined. The word `@` can be used to fetch the value stored at an address, while the word `!` can be used to store a value to an address. `@` and `!` form the basis of all memory operations in Forth.
 
 	:var storage
 	: toggle ( -- )
@@ -249,7 +249,7 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 	:array buffer 256  0  # 256-element array filled with 0
 	:array tile    64 -1  #  64-element array filled with -1
 
-`:data` is the most freeform approach to describing data. It requires only a name. When numbers or word names (including code or constants) are encountered outside a word definition, it is simply appended literally into the MakoVM ROM.
+`:data` is the most freeform approach to describing data. It requires only a name. When numbers or word names (including code or constants) are encountered outside a word definition, it is simply appended literally into the MakoVM memory image.
 
 	# initializing an array
 	:data data-array  0 1 2 45 23 12 11
@@ -277,7 +277,7 @@ Talking to the Hardware
 
 Mako uses a single, contiguous addressing space for memory. The first dozen or so memory locations contain _registers_ which control I/O devices and dictate the layout of important memory regions. Maker exposes constants which allow you to treat registers as Forth variables. In this section we will deal with the most basic of these registers, and later we will discuss the specialized graphics registers controlling the Grid and Sprites.
 
-`PC` contains Mako's program counter. Maker initializes this register to point to the first byte of a word called `main`, our entrypoint.
+`PC` contains Mako's program counter. Maker initializes this register to point to the first cell of a word called `main`, our entrypoint.
 
 `DP` contains the address of the top element of the parameter stack, and `RP` does likewise for the return stack. Both stacks grow downwards- that is, the stack pointers are incremented as elements are pushed onto the stack. Maker allocates 50 cells for each by default, but this behavior can be overridden if you create your own array definitions with the names `data-stack` or `return-stack`.
 
@@ -325,20 +325,20 @@ The standard library file `Grid.fs` contains a number of useful words for manipu
 Sprites
 -------
 
-In addition to the Grid, Mako has 256 sprites. Sprites are drawn in the order of their indices, from back to front. Also like the grid, sprite data is stored in a special block of memory- here indicated by the `SP` register. The sprite table consists of 256 entries which are 4 cells long, for a total of 1024 cells. The meaning of the fields of an entry are as follows:
+In addition to the Grid, Mako can have 256 sprites on the screen at once. Sprites are drawn in the order of their indices, from back to front. Also like the grid, sprite data is stored in a special block of memory- here indicated by the `SP` register. The sprite table consists of 256 entries which are 4 cells long, for a total of 1024 cells. The meaning of the fields of an entry are as follows:
 
-0) Status flags. If the least significant bit is 0, the sprite is not drawn. Bits 15-12 and 10-8 indicate the height and width of the sprite, respectively, in increments of 8 pixels, with a minimum size of 8 on either axis. This means the maximum size of a sprite is 64x64 pixels. Maker provides constants for sprite sizes of the form "NxM" for every valid combination of sizes- for example `8x8`, `16x32` and `48x64`. Bits 16 and 17 indicate that a sprite should be mirrored horizontally and/or vertically, respectively. Maker provides bitmasks for these fields called `sprite-mirror-horiz` and `sprite-mirror-vert`.
+0) __Status flags.__ If the least significant bit is 0, the sprite is not drawn. Bits 15-12 and 10-8 indicate the height and width of the sprite, respectively, in increments of 8 pixels, with a minimum size of 8 on either axis. This means the maximum size of a sprite is 64x64 pixels. Maker provides constants for sprite sizes of the form "NxM" for every valid combination of sizes- for example `8x8`, `16x32` and `48x64`. Bits 16 and 17 indicate that a sprite should be mirrored horizontally and/or vertically, respectively. Maker provides bitmasks for these fields called `sprite-mirror-horiz` and `sprite-mirror-vert`.
 
 	# given the status field, compute
 	# the width and height of a sprite in pixels:
 	: sprite-w  0x0F00 and  256 / 1 + 8 * ;
 	: sprite-h  0xF000 and 4096 / 1 + 8 * ;
 
-1) Tile index. An offset from the Sprite Tile register, `ST`. Tiles are zero-indexed and indexed based on the size of the current sprite, so tile 2 for an 8x8 sprite begins at SP+128, while tile 2 for an 8x16 sprite begins at SP+256.
+1) __Tile index.__ An offset from the Sprite Tile register, `ST`. Tiles are zero-indexed and indexed based on the size of the current sprite, so tile 2 for an 8x8 sprite begins at SP+128, while tile 2 for an 8x16 sprite begins at SP+256.
 
-2) X position. The value of `SX` and `SY` are subtracted from the X and Y position of a sprite to determine the final screen coordinates of a sprite.
+2) __X position.__ The value of `SX` and `SY` are subtracted from the X and Y position of a sprite to determine the final screen coordinates of a sprite.
 
-3) Y position.
+3) __Y position.__ See above.
 
 	# configure sprite 9 as a 24x32 sprite,
 	# flipped horizontally and showing tile 37
@@ -360,7 +360,7 @@ Special Tricks
 
 Maker has a few more spiffy capabilities that deserve brief mention.
 
-`'` (pronounced "tick"), followed by a word name will, instead of compiling a `CALL` to the word definition, push the address of the first byte of the word definition. You can then call a dynamic address with `exec`. These instructions are useful for function pointer style tricks and supplying words with predicates.
+`'` (pronounced "tick"), followed by a word name will, instead of compiling a `CALL` to the word definition, push the address of the first cell of the word definition. You can then call a dynamic address with `exec`. These instructions are useful for function pointer style tricks and supplying words with predicates.
 
 	: print-A 65 CO ! ;
 	: deferred-print ( -- )
@@ -388,3 +388,5 @@ Forth is as much an engineering approach as it is a programming language. When y
 3) __Solve only the problem at hand.__ Don't overgeneralize your solutions or leave hooks for future expansion. If you don't need it now, there's a good chance you don't need it at all. Focused solutions lead to simpler code.
 
 4) __Change the problem.__ Sometimes the key to simplicity is realizing a problem doesn't need to be solved at all. Examine your underlying assumptions. Are there details of your model that can be left out? Features that are unnecessary? Can you use a different data structure or algorithm to accomplish a similar goal?
+
+Now go out there and write some code!
