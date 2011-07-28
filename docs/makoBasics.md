@@ -51,7 +51,7 @@ We see a whole bunch of output- a disassembly of our compiled program followed b
 	2663 words, 10.402 kb.
 	Hello, World!
 
-The only definintion here we're really interested in is that of our `main` word. We can instruct Maker to only print a disassembly of a specific word by using the `--word` flag and specifying the word we're interested in seeing:
+The only definintion here we're really interested in is that of our `main` word. We can instruct Maker to only print a disassembly of a specific word by using the `--word` flag and specifying the word we want to see:
 
 	java Maker examples/Hello.fs --word main
 	00117: (main)           JUMP 133
