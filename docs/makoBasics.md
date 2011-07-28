@@ -325,6 +325,36 @@ The standard library file `Grid.fs` contains a number of useful words for manipu
 Sprites
 -------
 
+In addition to the Grid, Mako has 256 sprites. Sprites are drawn in the order of their indices, from back to front. Also like the grid, sprite data is stored in a special block of memory- here indicated by the `SP` register. The sprite table consists of 256 entries which are 4 cells long, for a total of 1024 cells. The meaning of the fields of an entry are as follows:
+
+0) Status flags. If the least significant bit is 0, the sprite is not drawn. Bits 15-12 and 10-8 indicate the height and width of the sprite, respectively, in increments of 8 pixels, with a minimum size of 8 on either axis. This means the maximum size of a sprite is 64x64 pixels. Maker provides constants for sprite sizes of the form "NxM" for every valid combination of sizes- for example `8x8`, `16x32` and `48x64`. Bits 16 and 17 indicate that a sprite should be mirrored horizontally and/or vertically, respectively. Maker provides bitmasks for these fields called `sprite-mirror-horiz` and `sprite-mirror-vert`.
+
+	# given the status field, compute
+	# the width and height of a sprite in pixels:
+	: sprite-w  0x0F00 and  256 / 1 + 8 * ;
+	: sprite-h  0xF000 and 4096 / 1 + 8 * ;
+
+1) Tile index. An offset from the Sprite Tile register, `ST`. Tiles are zero-indexed and indexed based on the size of the current sprite, so tile 2 for an 8x8 sprite begins at SP+128, while tile 2 for an 8x16 sprite begins at SP+256.
+
+2) X position. The value of `SX` and `SY` are subtracted from the X and Y position of a sprite to determine the final screen coordinates of a sprite.
+
+3) Y position.
+
+	# configure sprite 9 as a 24x32 sprite,
+	# flipped horizontally and showing tile 37
+	# in the bottom right corner of the screen.
+	: showNine ( -- )
+		9 4 * SP @ +
+		24x32 sprite-mirror-horiz or over !
+		37  over 1 + !
+		296 over 2 + !
+		208 swap 3 + !
+	;
+
+Also like the stacks and grid, Maker allocates memory for the sprite table if it is not explicitly allocated by the programmer. If you want to do it manually, use the names `sprites` and `sprite-tiles` for the sprite table and sprite tileset.
+
+The standard library file `Sprite.fs` contains many useful words for manipulating sprites, including collision detection facilities.
+
 Special Tricks
 --------------
 
