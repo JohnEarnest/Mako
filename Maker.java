@@ -494,12 +494,23 @@ public class Maker implements MakoConstants {
 			//romAdd(OP_LOAD,  TAG_CODE);
 		}
 		else if (token.equals("j")) {
-			romAdd(OP_RTS, TAG_CODE);
-			romAdd(OP_RTS, TAG_CODE);
-			romAdd(OP_DUP, TAG_CODE);
-			romAdd(OP_STR, TAG_CODE);
+			romAdd(OP_RTS,  TAG_CODE);
+			romAdd(OP_RTS,  TAG_CODE);
+			romAdd(OP_DUP,  TAG_CODE);
+			romAdd(OP_STR,  TAG_CODE);
 			romAdd(OP_SWAP, TAG_CODE);
-			romAdd(OP_STR, TAG_CODE);
+			romAdd(OP_STR,  TAG_CODE);
+		}
+		else if (token.equals("k")) {
+			romAdd(OP_RTS,  TAG_CODE);
+			romAdd(OP_RTS,  TAG_CODE);
+			romAdd(OP_RTS,  TAG_CODE);
+			romAdd(OP_DUP,  TAG_CODE);
+			romAdd(OP_STR,  TAG_CODE);
+			romAdd(OP_SWAP, TAG_CODE);
+			romAdd(OP_STR,  TAG_CODE);
+			romAdd(OP_SWAP, TAG_CODE);
+			romAdd(OP_STR,  TAG_CODE);
 		}
 		else if (token.equals("'")) {
 			romAdd(OP_CONST, TAG_CODE);
