@@ -12,12 +12,14 @@
 :array solid-tiles 512 0xFF000000
 :image sprite-tiles "Scrubby.png"  16 32
 :image grid-tiles   "LabTiles.png"  8  8
+:image basic-font   "text.png"      8  8
 :array sprites 1024 0
 
 :include "../Grid.fs"
 :include "../Sprites.fs"
 :include "../Util.fs"
 :include "../Print.fs"
+:include "../String.fs"
 
 # How many actors do we need to deal with
 # on the screen at once? (counts from zero)
@@ -171,15 +173,25 @@
 # What offset needs to be added to an
 # ASCII character to get the appropriate
 # grid tile index?
-:const text-offset  48
-:const text-start-x  3
-:const text-start-y 25
+:const text-offset  224
+:const text-start-x   3
+:const text-start-y  25
+:array text-buffer  240 6
 
 # Draw a series of strings to the display.
 # The address provided should point to a
 # line count followed by a series of
 # null-terminated strings.
 : show-text (msg* -- )
+
+	5 for
+		39 for
+			i j text-start-y + tile-grid@ @
+			i j 40 * + text-buffer + !
+			-1 i j text-start-y + tile-grid@ !
+		next
+	next
+
 	dup @ 1 - swap 1 + swap
 	for
 		text-start-x 28 i - tile-grid@ >r
@@ -196,12 +208,12 @@
 		r> drop 1 +
 	next
 	drop
-
 	wait
 	
 	5 for
 		39 for
-			-1 i j text-start-y + tile-grid@ !
+			i j 40 * + text-buffer + @
+			i j text-start-y + tile-grid@ !
 		next
 	next
 ;
