@@ -206,23 +206,23 @@
 	next
 ;
 
-# Using the highest 120 sprites, create
+# Using the highest 150 sprites, create
 # a venetian blinds-like transition effect.
 # The solid-color sprites are produced
 # by padding memory before the sprite sheet.
 : init-blinds
-	119 for
+	149 for
 		64x8 -1
 		i 2 / 5 mod 64 * i 2 mod if -320 else 320 then + # x-position 
 		i 2 / 5 / 16 * i 2 mod if 8 + then               # y-position
-		i 136 + >sprite
+		i 106 + >sprite
 	next
 ;
 
 : animate-blinds
 	80 for
-		119 for
-			i 136 + sprite@ .sprite-x
+		149 for
+			i 106 + sprite@ .sprite-x
 			dup @ 4 i 2 mod if + else - then swap !
 		next
 		sync

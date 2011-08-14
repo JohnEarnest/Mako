@@ -126,7 +126,7 @@
 
 	16x32  0 152 104 true player >actor
 	16x32 24 480 592 true dude   >actor
-	16x32 29 720 320 true door   >actor
+	16x32 32 720 320 true door   >actor
 
 	' go-start door trigger!
 	' yo       dude trigger!

@@ -72,7 +72,9 @@
 
 : meg-trigger
 	meg face-player
+	22 meg tile!
 	fluffles show-text
+	21 meg tile!
 ;
 
 : go-closet
@@ -91,9 +93,9 @@
 	16x32  0 160 120 true  player >actor
 	16x32  8 120  60 true  janet  >actor
 	16x32 16 250  70 true  bill   >actor
-	16x32 20  60 130 false meg    >actor
+	16x32 21  60 130 false meg    >actor
 
-	16x32           29 240  24 false door1         >actor
+	16x32           32 240  24 false door1         >actor
 	48x16 invisible  0 216  56 false door1-trigger >actor
 	32x8  invisible  0 232 160 false exit-door     >actor
 
@@ -137,20 +139,20 @@
 		doorcnt @ 0 > if doorcnt dec@ then
 		player-center door1-trigger c-sprite?
 		if
-			door1 tile 30 = doorcnt @ 0 = and if
-				31 door1 tile!
+			door1 tile 33 = doorcnt @ 0 = and if
+				34 door1 tile!
 				' go-closet door1-trigger trigger!
 			then
-			door1 tile 29 = if
-				30 door1 tile!
+			door1 tile 32 = if
+				33 door1 tile!
 				10 doorcnt !
 			then
 		else
-			door1 tile 30 = doorcnt @ 0 = and if
-				29 door1 tile!
+			door1 tile 33 = doorcnt @ 0 = and if
+				32 door1 tile!
 			then
-			door1 tile 31 = if
-				30 door1 tile!
+			door1 tile 34 = if
+				33 door1 tile!
 				0 door1-trigger trigger!
 				10 doorcnt !
 			then
