@@ -121,6 +121,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		else {
 			w = 1;
 			h = 1;
+			mouseMoved(e);
 			repaint();
 		}
 	}

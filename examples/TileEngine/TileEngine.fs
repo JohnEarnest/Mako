@@ -110,7 +110,9 @@
 	r> c-sprite? or
 ;
 
+: prompt-cell? 38 28 tile-grid@ @ ; ( -- tile )
 : prompt-cell! 38 28 tile-grid@ ! ; ( tile -- )
+:var prompt-buffer
 
 : use-prompt ( -- )
 	false
@@ -118,8 +120,15 @@
 		i use-object i trigger? and
 		if drop true then
 	next
-	if 85 else -1 then
-	prompt-cell!
+
+	if
+		prompt-cell?
+		dup 85 xor -if drop else prompt-buffer ! then
+		85 prompt-cell!
+	else
+		prompt-cell?
+		85 xor -if prompt-buffer @ prompt-cell! then
+	then
 ;
 
 # sort sprite drawing orders by their
@@ -163,11 +172,12 @@
 # wait for key-a to be pressed
 # and then released before continuing.
 : wait ( -- )
+	prompt-cell?
 	85 prompt-cell!
 	loop keys key-a and -if break then sync again
 	loop keys key-a and  if break then sync again
 	loop keys key-a and -if break then sync again
-	-1 prompt-cell!
+	prompt-cell!
 ;
 
 # What offset needs to be added to an
@@ -394,8 +404,8 @@
 :include "BigRoom.fs"
 
 : main
-	#' load-starting-room dup exec
-	#main-starting-room
-	' load-big-room dup exec
-	main-big-room
+	' load-starting-room dup exec
+	main-starting-room
+	#' load-big-room dup exec
+	#main-big-room
 ;
