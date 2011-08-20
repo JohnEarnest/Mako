@@ -69,10 +69,12 @@ public class GridPad extends JFrame {
 	public void updateStatus() {
 		int[][] selected = palette.getSelected();
 		if (selected == null || selected.length < 1 || selected[0].length < 1) { return; }
-		status.setText(String.format("tile: %3d   %02dx%02d   %s",
+		status.setText(String.format("tile: %3d   %02dx%02d (%02dx%02d) %s",
 			selected[0][0],
 			editor.x,
 			editor.y,
+			editor.x * TILE_WIDTH,
+			editor.y * TILE_HEIGHT,
 			editor.draw ? "draw" : "select"
 		));
 		status.repaint();

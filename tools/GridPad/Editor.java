@@ -24,6 +24,11 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private boolean drawCursor = false;
 	private int dragButton = MouseEvent.NOBUTTON;
 
+	private final Stroke selectStroke = new BasicStroke(
+		1.0f, BasicStroke.CAP_SQUARE , BasicStroke.JOIN_BEVEL, 1.0f,
+		new float[] { 3.0f, 3.0f }, 0.0f 
+	);
+
 	private Stack<Edit> undo = new Stack<Edit>();
 	private Stack<Edit> redo = new Stack<Edit>();
 
@@ -77,10 +82,10 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			}
 		}
 
-		final int xtiles = palette.getTiles().getWidth(this) / GridPad.TILE_WIDTH;
 		for(int a = 0; a < grid.length; a++) {
 			for(int b = 0; b < grid[0].length; b++) {
-
+				drawTile(grid[a][b], a, b, g);
+				/*
 				int gx = b * GridPad.TILE_WIDTH  * GridPad.SCALE;
 				int gy = a * GridPad.TILE_HEIGHT * GridPad.SCALE;
 				int tx = (grid[a][b] % xtiles) * GridPad.TILE_WIDTH;
@@ -97,20 +102,53 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 					ty + GridPad.TILE_HEIGHT,
 					this
 				);
+				*/
 			}
 		}
 		if (drawCursor) {
-			g.setXORMode(Color.BLACK);
 			final int x1 = (w < 0) ? x + w : x;
 			final int y1 = (h < 0) ? y + h : y;
-			g.drawRect(
-				x1 * GridPad.TILE_WIDTH  * GridPad.SCALE,
-				y1 * GridPad.TILE_HEIGHT * GridPad.SCALE,
-				Math.abs(w) * GridPad.TILE_WIDTH  * GridPad.SCALE,
-				Math.abs(h) * GridPad.TILE_HEIGHT * GridPad.SCALE
-			);
-			g.setPaintMode();
+
+			if (draw) {
+				int[][] tile = palette.getSelected();
+				for(int a = 0; a < tile.length; a++) {
+					for(int b = 0; b < tile[0].length; b++) {
+						drawTile(tile[a][b], a + y, b + x, g);
+					}
+				}
+			}
+			else {
+				Graphics2D g2 = (Graphics2D)g.create();
+				g2.setXORMode(Color.BLACK);
+				g2.setStroke(selectStroke);
+				g2.drawRect(
+					x1 * GridPad.TILE_WIDTH  * GridPad.SCALE,
+					y1 * GridPad.TILE_HEIGHT * GridPad.SCALE,
+					Math.abs(w) * GridPad.TILE_WIDTH  * GridPad.SCALE,
+					Math.abs(h) * GridPad.TILE_HEIGHT * GridPad.SCALE
+				);
+			}
 		}
+	}
+
+	private void drawTile(int tile, int a, int b, Graphics g) {
+		final int xtiles = palette.getTiles().getWidth(this) / GridPad.TILE_WIDTH;
+		final int gx = b * GridPad.TILE_WIDTH  * GridPad.SCALE;
+		final int gy = a * GridPad.TILE_HEIGHT * GridPad.SCALE;
+		final int tx = (tile % xtiles) * GridPad.TILE_WIDTH;
+		final int ty = (tile / xtiles) * GridPad.TILE_HEIGHT;
+		g.drawImage(
+			palette.getTiles(),
+			gx,
+			gy,
+			gx + GridPad.TILE_WIDTH  * GridPad.SCALE,
+			gy + GridPad.TILE_HEIGHT * GridPad.SCALE,
+			tx,
+			ty,
+			tx + GridPad.TILE_WIDTH,
+			ty + GridPad.TILE_HEIGHT,
+			this
+		);
 	}
 
 	public void mouseClicked(MouseEvent e) {

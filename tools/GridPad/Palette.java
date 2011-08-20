@@ -159,7 +159,8 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		host.repaint();
 	}
 
-	public void mousePressed(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) { mouseClicked(e); }
+
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
