@@ -1,24 +1,13 @@
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.image.MemoryImageSource;
 import java.util.Random;
 
 public class MakoVM implements MakoConstants {
 
+	private final Random rand = new Random();
 	public final int[] m;                      // main memory
 	public final int[] p = new int[320 * 240]; // pixel buffer
-	public final Image buffer;
 	public int keys = 0;
 
-	private final Random rand = new Random();
-	private final MemoryImageSource mis;
-
-	public MakoVM(int[] m) {
-		this.m = m;
-		mis = new MemoryImageSource(320, 240, p, 0, 320);
-		buffer = Toolkit.getDefaultToolkit().createImage(mis);
-		mis.setAnimated(true);
-	}
+	public MakoVM(int[] m) { this.m = m; }
 
 	private void push(int v)      { m[m[DP]++] = v; }
 	private void rpush(int v)     { m[m[RP]++] = v; }
@@ -134,6 +123,5 @@ public class MakoVM implements MakoConstants {
 			final int py     = m[m[SP] + sprite + 3];
 			drawSprite(tile, status, px - scrollx, py - scrolly);
 		}
-		mis.newPixels();
 	}
 }

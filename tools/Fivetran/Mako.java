@@ -3,6 +3,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.io.*;
+import java.awt.image.MemoryImageSource;
 
 public class Mako {
 
@@ -37,6 +38,7 @@ public class Mako {
 
 		while(true) {
 			view.vm.run();
+			view.mis.newPixels();
 			// if sync is never called, we'll assume it's meant
 			// as a 'headless' application or test fixture.
 			if (!window.isVisible()) { window.setVisible(true); }
@@ -69,12 +71,17 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 
 	private final int w = 960;
 	private final int h = 720;
+	private final Image buffer;
+	public final MemoryImageSource mis;
 	public final MakoVM vm;
 	public int keys = 0;
 	
 	public MakoPanel(int[] rom) {
 		vm = new MakoVM(rom);
 		setPreferredSize(new Dimension(w, h));
+		mis = new MemoryImageSource(320, 240, vm.p, 0, 320);
+		buffer = Toolkit.getDefaultToolkit().createImage(mis);
+		mis.setAnimated(true);
 	}
 
 	public void paint(Graphics g) {
@@ -82,8 +89,8 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint( RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 		g2.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		g2.drawImage(vm.buffer, 0, 0,   w,   h,
-		                        0, 0, 320, 240, this);
+		g2.drawImage(buffer, 0, 0,   w,   h,
+		                     0, 0, 320, 240, this);
 	}
 
 	public void keyPressed(KeyEvent k)  {
