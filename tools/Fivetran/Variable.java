@@ -42,6 +42,7 @@ class Variable implements MakoConstants {
 	}
 
 	public void emitStorage(MakoRom rom) {
+		if (address != null) { return; }
 		address = rom.size();
 		rom.label(name, address);
 		if (value instanceof Integer) {
@@ -75,6 +76,7 @@ class Variable implements MakoConstants {
 		// reference points to the canonical instance.
 		if (variables.get(name) != this) {
 			address = variables.get(name).address;
+			value   = variables.get(name).value;
 		}
 
 		if (value instanceof Integer) {

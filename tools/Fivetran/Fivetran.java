@@ -3,8 +3,11 @@ import java.io.*;
 
 public class Fivetran implements MakoConstants {
 	
-	public static final int PRINT_SUBROUTINE = 41;
-	public static final int INPUT_SUBROUTINE = 77;
+	public static final int REGISTERS        =    0;
+	public static final int PRINT_SUBROUTINE =   41;
+	public static final int INPUT_SUBROUTINE =   77;
+	public static final int GRID             = 6361;
+	public static final int SPRITES          = 7632;
 
 	List<Formula>         program   = new ArrayList<Formula>();
 	Map<Integer, Formula> formulas  = new HashMap<Integer, Formula>();
@@ -20,6 +23,14 @@ public class Fivetran implements MakoConstants {
 	}
 
 	private void parseFile(String filename) {
+		// set up variables to shadow Mako registers:
+		new DimensionFormula("mr(14)");
+		new DimensionFormula("mg(31, 41)");
+		new DimensionFormula("ms(256, 4)");
+		variables.get("mr").address = REGISTERS;
+		variables.get("mg").address = GRID;
+		variables.get("ms").address = SPRITES;
+
 		try {
 			Scanner in = new Scanner(new File(filename));
 			while(in.hasNextLine()) {
@@ -62,6 +73,7 @@ public class Fivetran implements MakoConstants {
 		if (line.startsWith("if"))        { return new IfFormula(       line.substring(2).trim()); }
 		if (line.startsWith("go to"))     { return new GoToFormula(     line.substring(5).trim()); }
 		if (line.startsWith("stop"))      { return new StopFormula(     line.substring(4).trim()); }
+		if (line.startsWith("sync"))      { return new SyncFormula(     line.substring(4).trim()); }
 		if (line.startsWith("read"))      { return new ReadFormula(     line.substring(4).trim()); }
 		if (line.startsWith("print"))     { return new PrintFormula(    line.substring(5).trim()); }
 		if (line.startsWith("dimension")) { return new DimensionFormula(line.substring(9).trim()); }
@@ -263,6 +275,17 @@ public class Fivetran implements MakoConstants {
 		}
 	}
 
+	class SyncFormula extends Formula {
+		SyncFormula(String line) {
+			// sync
+			if (line.length() > 0) { fail(); }
+		}
+
+		void emit(MakoRom rom) {
+			rom.add(OP_SYNC, MakoRom.Type.Code);
+		}
+	}
+
 	class ReadFormula extends Formula {
 		List<Variable> args = new ArrayList<Variable>();
 
@@ -288,13 +311,13 @@ public class Fivetran implements MakoConstants {
 	}
 	
 	class PrintFormula extends Formula {
-		List<Variable> args = new ArrayList<Variable>();
+		List<Expression> args = new ArrayList<Expression>();
 
 		PrintFormula(String line) {
-			// print varname [, and, more, ...]
+			// print expression [, and, more, ...]
 			Cursor cursor = new Cursor(line);
 			while(true) {
-				args.add(new Variable(cursor.parseVar(), variables));
+				args.add(new Expression(cursor.parseExpression(), variables));
 				if (cursor.done())   { break; }
 				if (!cursor.at(',')) { break; }
 				cursor.expect(',');
@@ -302,9 +325,8 @@ public class Fivetran implements MakoConstants {
 		}
 	
 		void emit(MakoRom rom) {
-			for(Variable v : args) {
+			for(Expression v : args) {
 				v.emit(rom);
-				rom.add(OP_LOAD, MakoRom.Type.Code);
 				rom.add(OP_CALL, MakoRom.Type.Code);
 				rom.add(PRINT_SUBROUTINE, MakoRom.Type.Code);
 			}

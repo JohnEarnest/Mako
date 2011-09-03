@@ -326,6 +326,14 @@
 	30 / -240 * +sprites-y
 ;
 
+# Move the GP to a specific sub-board of a room.
+: room-board (x y -- )
+	30 * room-width @ 40 * 1 + *
+	swap 40 * +
+	room-start @ + GP !
+	fix-pos
+;
+
 # Load a new map. Every map has an init routine
 # that sets up any sprites and local state before
 # the map can be 'run' and a main loop. The map
@@ -402,10 +410,13 @@
 :include "StorageCloset.fs"
 :include "StartingRoom.fs"
 :include "BigRoom.fs"
+:include "Lair.fs"
 
 : main
-	' load-starting-room dup exec
-	main-starting-room
-	#' load-big-room dup exec
-	#main-big-room
+	#' load-starting-room dup exec
+	#main-starting-room
+	' load-big-room dup exec
+	main-big-room
+	#' load-lair dup exec
+	#main-lair
 ;

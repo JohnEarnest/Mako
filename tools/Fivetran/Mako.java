@@ -39,13 +39,13 @@ public class Mako {
 		while(true) {
 			view.vm.run();
 			view.mis.newPixels();
+			try { Thread.sleep(10); }
+			catch(InterruptedException ie) {}
 			// if sync is never called, we'll assume it's meant
 			// as a 'headless' application or test fixture.
 			if (!window.isVisible()) { window.setVisible(true); }
 			view.vm.keys = view.keys;
 			view.repaint();
-			try { Thread.sleep(10); }
-			catch(InterruptedException ie) {}
 		}
 	}
 }

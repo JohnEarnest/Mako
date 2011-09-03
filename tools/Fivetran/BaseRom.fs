@@ -34,6 +34,9 @@
 	again
 ;
 
+:data sprite-tiles
+:image grid-tiles "text.png" 8 8
+
 # Stub necessary to compile with Maker-
 # FIVETRAN will build a new entrypoint.
 : main halt ;
