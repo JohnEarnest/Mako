@@ -132,6 +132,7 @@ public class Expression implements MakoConstants {
 		}
 
 		TreeNode simplify() {
+			a = a.simplify();
 			if (a instanceof Constant && op == '-') {
 				Constant child = (Constant)a;
 				return new Constant(child.value * -1);
@@ -150,11 +151,13 @@ public class Expression implements MakoConstants {
 	class BinaryOp extends TreeNode {
 		TreeNode a;
 		TreeNode b;
+		char op;
 		int[] opcodes;
 
 		BinaryOp(TreeNode a, TreeNode b, char op) {
 			this.a = a;
 			this.b = b;
+			this.op = op;
 			if      (op == '+') { opcodes = new int[] { OP_ADD }; }
 			else if (op == '-') { opcodes = new int[] { OP_SUB }; }
 			else if (op == 'x') { opcodes = new int[] { OP_MUL }; }
@@ -166,6 +169,18 @@ public class Expression implements MakoConstants {
 		TreeNode simplify() {
 			a = a.simplify();
 			b = b.simplify();
+			if (a instanceof Constant && b instanceof Constant) {
+				int av = ((Constant)a).value;
+				int bv = ((Constant)b).value;
+				if (op == '+') { return new Constant(av + bv); }
+				if (op == '-') { return new Constant(av - bv); }
+				if (op == 'x') { return new Constant(av * bv); }
+				if (op == '/') { return new Constant(av / bv); }
+				if (op == '%') {
+					av %= bv;
+					return new Constant(av < 0 ? av+bv : av);
+				}
+			}
 			return this;
 		}
 
