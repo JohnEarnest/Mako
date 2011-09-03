@@ -116,11 +116,18 @@ public class GridPad extends JFrame {
 	
 	// save to the clipboard:
 	public static void save(int[][] grid) {
+		int n = 2;
+		for(int[] row : grid) {
+			for(int cell : row) {
+				if (cell > 99) { n = 3; break; }
+			}
+		}
+		String format = "%"+n+"d ";
 		String s = "";
 		for(int a = 0; a < grid.length; a++) {
 			s += '\t';
 			for(int b = 0; b < grid[0].length; b++) {
-				s += String.format("%2d ", grid[a][b]);
+				s += String.format(format, grid[a][b]);
 			}
 			s += '\n';
 		}

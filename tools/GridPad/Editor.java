@@ -85,24 +85,6 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 		for(int a = 0; a < grid.length; a++) {
 			for(int b = 0; b < grid[0].length; b++) {
 				drawTile(grid[a][b], a, b, g);
-				/*
-				int gx = b * GridPad.TILE_WIDTH  * GridPad.SCALE;
-				int gy = a * GridPad.TILE_HEIGHT * GridPad.SCALE;
-				int tx = (grid[a][b] % xtiles) * GridPad.TILE_WIDTH;
-				int ty = (grid[a][b] / xtiles) * GridPad.TILE_HEIGHT;
-				g.drawImage(
-					palette.getTiles(),
-					gx,
-					gy,
-					gx + GridPad.TILE_WIDTH  * GridPad.SCALE,
-					gy + GridPad.TILE_HEIGHT * GridPad.SCALE,
-					tx,
-					ty,
-					tx + GridPad.TILE_WIDTH,
-					ty + GridPad.TILE_HEIGHT,
-					this
-				);
-				*/
 			}
 		}
 		if (drawCursor) {
@@ -176,8 +158,6 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			ny = Math.min(grid.length-1,    Math.max(0, ny));
 
 			if (dragButton == MouseEvent.BUTTON1) {
-				//w = Math.max(1, nx - x + 1);
-				//h = Math.max(1, ny - y + 1);
 				w = (nx - x) + 1;
 				h = (ny - y) + 1;
 			}

@@ -107,6 +107,8 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		int ny = e.getY() / (GridPad.TILE_HEIGHT * GridPad.SCALE);
 		w = (nx - x) + 1;
 		h = (ny - y) + 1;
+		w = Math.max(w, 1);
+		h = Math.max(h, 1);
 		repaint();
 	}
 
@@ -150,10 +152,8 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 			setTiles(tilesets.get(tilesetIndex));
 		}
 		else if (e.getKeyChar() == 'p') {
-			//System.out.print("Reloading tileset...");
 			loadTiles();
 			setTiles(tilesets.get(tilesetIndex));
-			//System.out.println(" Complete.");
 		}
 		else { return; }
 		host.repaint();
