@@ -44,6 +44,27 @@
 	2drop r>
 ;
 
+:const +infinity  2147483647
+:const -infinity -2147483647
+
+# saturating addition
+: +s ( a b -- a+b ) 
+	over 0 > over 0 > >r >r
+	+
+	dup 0 < i j and and     if drop +infinity then
+	dup 0 > i j and not and if drop -infinity then
+	rdrop rdrop
+;
+
+# saturating subtraction
+: -s ( a b -- a-b )
+	over 0 > over 0 > >r >r
+	-
+	dup 0 < i j not and and if drop +infinity then
+	dup 0 > i not j and and if drop -infinity then
+	rdrop rdrop
+;
+
 (
 :include "Print.fs"
 : test   65536 * fast-sqrt 256 / . cr ;
