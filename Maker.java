@@ -70,6 +70,7 @@ public class Maker implements MakoConstants {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
 		boolean run = false;
 		boolean standalone = false;
+		boolean packed = false;
 		if (argList.contains("--run")) {
 			run = true;
 			argList.remove("--run");
@@ -77,6 +78,10 @@ public class Maker implements MakoConstants {
 		if (argList.contains("--standalone")) {
 			standalone = true;
 			argList.remove("--standalone");
+		}
+		if (argList.contains("--packed")) {
+			packed = true;
+			argList.remove("--packed");
 		}
 		Maker compiler = new Maker();
 		int[] rom = compiler.compile(argList.get(0), standalone);
@@ -92,9 +97,16 @@ public class Maker implements MakoConstants {
 		}
 		if (argList.size() > 1) {
 			try {
-				PrintWriter out = new PrintWriter(new File(argList.get(1)));
-				for(int x : rom) { out.println(x); }
-				out.close();
+				if (packed) {
+					DataOutputStream out = new DataOutputStream(new FileOutputStream(argList.get(1)));
+					for(int x : rom) { out.writeInt(x); }
+					out.close();
+				}
+				else {
+					PrintWriter out = new PrintWriter(new File(argList.get(1)));
+					for(int x : rom) { out.println(x); }
+					out.close();
+				}
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); }
 		}
