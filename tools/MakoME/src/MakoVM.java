@@ -1,10 +1,10 @@
+import javax.microedition.lcdui.Graphics;
 import java.util.Random;
 
 public class MakoVM implements MakoConstants {
 
 	private final Random rand = new Random();
-	public final int[] m;                      // main memory
-	public final int[] p = new int[320 * 240]; // pixel buffer
+	public final int[] m;                 // main memory
 	public int keys = 0;
 
 	public MakoVM(int[] m) { this.m = m; }
@@ -67,23 +67,14 @@ public class MakoVM implements MakoConstants {
 		m[addr] = value;
 	}
 
-	private void drawPixel(int x, int y, int c) {
-		if ((c & 0xFF000000) != 0xFF000000)         { return; }
-		if (x < 0 || x >= 320 || y < 0 || y >= 240) { return; }
-		p[x + (y * 320)] = c;
-	}
-
-	private void drawTile(int tile, int px, int py) {
+	private void drawTile(int tile, int px, int py, Graphics g) {
 		if (tile < 0) { return; }
 		int i = m[GT] + (tile * 8 * 8);
-		for(int y = 0; y < 8; y++) {
-			for(int x = 0; x < 8; x++) {
-				drawPixel(x+px, y+py, m[i++]);
-			}
-		}
+                g.drawRGB(m, i, 8, px, py, 8, 8, true);
 	}
 
-	private void drawSprite(int tile, int status, int px, int py) {
+        private final int[] s = new int[4096]; // sprite buffer
+	private void drawSprite(int tile, int status, int px, int py, Graphics g) {
 		if (status % 2 == 0) { return; }
 		final int w = (((status & 0x0F00) >>  8) + 1) << 3;
 		final int h = (((status & 0xF000) >> 12) + 1) << 3;
@@ -92,32 +83,40 @@ public class MakoVM implements MakoConstants {
 		if ((status & H_MIRROR_MASK) != 0) { xd = -1; x0 = w - 1; x1 = -1; }
 		if ((status & V_MIRROR_MASK) != 0) { yd = -1; y0 = h - 1; y1 = -1; }
 		int i = m[ST] + (tile * w * h);
+
 		for(int y = y0; y != y1; y += yd) {
 			for(int x = x0; x != x1; x += xd) {
-				drawPixel(x+px, y+py, m[i++]);
+                                int t =  m[i++];
+				s[x + (y * 64)] = t;
 			}
 		}
+                g.drawRGB(s, 0, 64, px, py, w, h, true);
 	}
 
-	public void sync() {
+	public void sync(Graphics g) {
 		final int scrollx = m[SX];
 		final int scrolly = m[SY];
-                for(int z = 0; z < p.length; z++) {
-                    p[z] = m[CL];
-                }
+
+                // clear screen
+                g.setColor(m[CL]);
+                g.fillRect(0, 0, 320, 240);
+
+                // draw grid
 		int i = m[GP];
 		for(int y = 0; y < 31; y++) {
 			for(int x = 0; x < 41; x++) {
-				drawTile(m[i++], x*8 - scrollx, y*8 - scrolly);
+				drawTile(m[i++], x*8 - scrollx, y*8 - scrolly, g);
 			}
 			i += m[GS];
 		}
+
+                // draw sprites
 		for(int sprite = 0; sprite < 1024; sprite += 4) {
 			final int status = m[m[SP] + sprite    ];
 			final int tile   = m[m[SP] + sprite + 1];
 			final int px     = m[m[SP] + sprite + 2];
 			final int py     = m[m[SP] + sprite + 3];
-			drawSprite(tile, status, px - scrollx, py - scrolly);
+			drawSprite(tile, status, px - scrollx, py - scrolly, g);
 		}
 	}
 }
