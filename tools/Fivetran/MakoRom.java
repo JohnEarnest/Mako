@@ -63,6 +63,41 @@ public class MakoRom implements MakoConstants {
 		return ret;
 	}
 
+	private int paramOp(int a, int b) {
+		add(a, Type.Code);
+		add(b, Type.Code);
+		return size() - 1;
+	}
+
+	public int addConst(int value)  { return paramOp(OP_CONST,  value); }
+	public int addCall(int value)   { return paramOp(OP_CALL,   value); }
+	public int addJump(int value)   { return paramOp(OP_JUMP,   value); }
+	public int addJumpZ(int value)  { return paramOp(OP_JUMPZ,  value); }
+	public int addJumpIf(int value) { return paramOp(OP_JUMPIF, value); }
+	public int addNext(int value)   { return paramOp(OP_NEXT,   value); }
+
+	public void addReturn() { add(OP_RETURN, Type.Code); }
+	public void addLoad() { add(OP_LOAD, Type.Code); }
+	public void addStor() { add(OP_STOR, Type.Code); }
+	public void addDrop() { add(OP_DROP, Type.Code); }
+	public void addSwap() { add(OP_SWAP, Type.Code); }
+	public void addDup()  { add(OP_DUP,  Type.Code); }
+	public void addOver() { add(OP_OVER, Type.Code); }
+	public void addSTR()  { add(OP_STR,  Type.Code); }
+	public void addRTS()  { add(OP_RTS,  Type.Code); }
+	public void addAdd()  { add(OP_ADD,  Type.Code); }
+	public void addSub()  { add(OP_SUB,  Type.Code); }
+	public void addMul()  { add(OP_MUL,  Type.Code); }
+	public void addDiv()  { add(OP_DIV,  Type.Code); }
+	public void addMod()  { add(OP_MOD,  Type.Code); }
+	public void addAnd()  { add(OP_AND,  Type.Code); }
+	public void addOr()   { add(OP_OR,   Type.Code); }
+	public void addXor()  { add(OP_XOR,  Type.Code); }
+	public void addNot()  { add(OP_NOT,  Type.Code); }
+	public void addSgt()  { add(OP_SGT,  Type.Code); }
+	public void addSlt()  { add(OP_SLT,  Type.Code); }
+	public void addSync() { add(OP_SYNC, Type.Code); }
+
 	private static final Map<Integer, String> mnemonics = new HashMap<Integer, String>();
 	{
 		mnemonics.put(OP_CONST,  "CONST");
@@ -109,6 +144,7 @@ public class MakoRom implements MakoConstants {
 	}
 
 	public void disassemble(int first, int last, PrintStream out) {
+		int prevOp = -1;
 		for(int index = first; index <= last; index++) {
 			Type t = types.get(index);
 			out.format("%05d: %-16s", index, getLabel(index));
@@ -138,29 +174,38 @@ public class MakoRom implements MakoConstants {
 				out.format("\"%s\"%n", s);
 			}
 			else if (t == Type.Code) {
-				if (paramOps.contains(data.get(index))) {
-					if (data.get(index) == OP_CALL) {
+				int op = data.get(index);
+				if (paramOps.contains(op)) {
+					if (op == OP_CALL) {
 						out.format("%5s %d %s%n",
-							mnemonics.get(data.get(index)),
+							mnemonics.get(op),
 							data.get(index+1),
 							getLabel(data.get(index+1))
 						);
 					}
 					else {
 						out.format("%5s %d%n",
-							mnemonics.get(data.get(index)),
+							mnemonics.get(op),
 							data.get(index+1)
 						);
 					}
 					index++;
 				}
-				else {
-					out.format("%5s%n", mnemonics.get(data.get(index)) );
+				else if ((op == OP_LOAD || op == OP_STOR) && prevOp == OP_CONST) {
+					out.format("%5s %s%n",
+						mnemonics.get(op),
+						getLabel(data.get(index-1))
+					);
 				}
+				else {
+					out.format("%5s%n", mnemonics.get(op) );
+				}
+				prevOp = op;
 			}
 			else {
 				out.format("%d%n", data.get(index));
 			}
+			if (t != Type.Code) { prevOp = -1; }
 		}
 		out.format("%n%d words, %.3f kb.%n",
 			size(),

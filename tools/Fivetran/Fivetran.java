@@ -101,8 +101,7 @@ public class Fivetran implements MakoConstants {
 			f.address = romcopy.size();
 			f.emit(romcopy);
 			if (f.gotoAfter != null) {
-				romcopy.add(OP_JUMP, MakoRom.Type.Code);
-				romcopy.add(f.gotoAfter, MakoRom.Type.Code);
+				romcopy.addJump(f.gotoAfter);
 			}
 		}
 
@@ -112,8 +111,7 @@ public class Fivetran implements MakoConstants {
 			if (f.number != null) { rom.label("line "+f.number, rom.size()); }
 			f.emit(rom);
 			if (f.gotoAfter != null) {
-				rom.add(OP_JUMP, MakoRom.Type.Code);
-				rom.add(f.gotoAfter, MakoRom.Type.Code);
+				rom.addJump(f.gotoAfter);
 			}
 		}
 
@@ -136,7 +134,7 @@ public class Fivetran implements MakoConstants {
 		void emit(MakoRom rom) {
 			a.emit(rom);
 			v.emit(rom);
-			rom.add(OP_STOR, MakoRom.Type.Code);
+			rom.addStor();
 		}
 	}
 	
@@ -169,33 +167,31 @@ public class Fivetran implements MakoConstants {
 			// i = first
 			first.emit(rom);
 			var.emit(rom);
-			rom.add(OP_STOR, MakoRom.Type.Code);
+			rom.addStor();
 
 			// skip initial increment:
-			rom.add(OP_JUMP, MakoRom.Type.Code);
-			int a = rom.size();
-			rom.add(-1, MakoRom.Type.Code);
+			int a = rom.addJump(-1);
 			formulas.get(lastLine).gotoAfter = rom.size();
 
 			// i += step
 			var.emit(rom);
-			rom.add(OP_LOAD, MakoRom.Type.Code);
+			rom.addLoad();
 			step.emit(rom);
-			rom.add(OP_ADD,  MakoRom.Type.Code);
+			rom.addAdd();
 			var.emit(rom);
-			rom.add(OP_STOR, MakoRom.Type.Code);
+			rom.addStor();
 			rom.set(a, rom.size(), MakoRom.Type.Code);
 
 			// if (i <= last) goto loop start
 			var.emit(rom);
-			rom.add(OP_LOAD,   MakoRom.Type.Code);
+			rom.addLoad();
 			last.emit(rom);
-			rom.add(OP_SGT,    MakoRom.Type.Code);
+			rom.addSgt();
 
 			// jump to resume address
-			rom.add(OP_JUMPIF,  MakoRom.Type.Code);
-			int index = program.indexOf(formulas.get(lastLine));
-			rom.add(program.get(index + 1).address, MakoRom.Type.Code);
+			rom.addJumpIf(
+				program.get(program.indexOf(formulas.get(lastLine)) + 1).address
+			);
 		}
 	}
 	
@@ -228,23 +224,20 @@ public class Fivetran implements MakoConstants {
 			b.emit(rom);
 			if (comparison == 0) {
 				// greater-than
-				rom.add(OP_SGT,    MakoRom.Type.Code);
-				rom.add(OP_JUMPIF, MakoRom.Type.Code);
+				rom.addSgt();
+				rom.addJumpIf(formulas.get(trueBranch).address);
 			}
 			else if (comparison == 1) {
 				// greater-than-or-equal-to
-				rom.add(OP_SLT,    MakoRom.Type.Code);
-				rom.add(OP_JUMPZ,  MakoRom.Type.Code);
+				rom.addSlt();
+				rom.addJumpZ(formulas.get(trueBranch).address);
 			}
 			else if (comparison == 2) {
 				// equal-to
-				rom.add(OP_XOR,    MakoRom.Type.Code);
-				rom.add(OP_JUMPZ,  MakoRom.Type.Code);
+				rom.addXor();
+				rom.addJumpZ(formulas.get(trueBranch).address);
 			}
-
-			rom.add(formulas.get(trueBranch).address, MakoRom.Type.Code);
-			rom.add(OP_JUMP, MakoRom.Type.Code);
-			rom.add(formulas.get(falseBranch).address, MakoRom.Type.Code);
+			rom.addJump(formulas.get(falseBranch).address);
 		}
 	}
 
@@ -258,8 +251,7 @@ public class Fivetran implements MakoConstants {
 		}
 	
 		void emit(MakoRom rom) {
-			rom.add(OP_JUMP, MakoRom.Type.Code);
-			rom.add(formulas.get(target).address, MakoRom.Type.Code);
+			rom.addJump(formulas.get(target).address);
 		}
 	}
 	
@@ -270,8 +262,7 @@ public class Fivetran implements MakoConstants {
 		}
 	
 		void emit(MakoRom rom) {
-			rom.add(OP_JUMP, MakoRom.Type.Code);
-			rom.add(-1, MakoRom.Type.Code);
+			rom.addJump(-1);
 		}
 	}
 
@@ -282,7 +273,7 @@ public class Fivetran implements MakoConstants {
 		}
 
 		void emit(MakoRom rom) {
-			rom.add(OP_SYNC, MakoRom.Type.Code);
+			rom.addSync();
 		}
 	}
 
@@ -302,10 +293,9 @@ public class Fivetran implements MakoConstants {
 	
 		void emit(MakoRom rom) {
 			for(Variable v : args) {
-				rom.add(OP_CALL, MakoRom.Type.Code);
-				rom.add(INPUT_SUBROUTINE, MakoRom.Type.Code);
+				rom.addCall(INPUT_SUBROUTINE);
 				v.emit(rom);
-				rom.add(OP_STOR, MakoRom.Type.Code);
+				rom.addStor();
 			}
 		}
 	}
@@ -327,14 +317,11 @@ public class Fivetran implements MakoConstants {
 		void emit(MakoRom rom) {
 			for(Expression v : args) {
 				v.emit(rom);
-				rom.add(OP_CALL, MakoRom.Type.Code);
-				rom.add(PRINT_SUBROUTINE, MakoRom.Type.Code);
+				rom.addCall(PRINT_SUBROUTINE);
 			}
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(10,       MakoRom.Type.Code);
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(CO,       MakoRom.Type.Code);
-			rom.add(OP_STOR,  MakoRom.Type.Code);
+			rom.addConst(10);
+			rom.addConst(CO);
+			rom.addStor();
 		}
 	}
 

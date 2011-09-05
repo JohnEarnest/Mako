@@ -86,8 +86,7 @@ public class MakoVM implements MakoConstants {
 
 		for(int y = y0; y != y1; y += yd) {
 			for(int x = x0; x != x1; x += xd) {
-                                int t =  m[i++];
-				s[x + (y * 64)] = t;
+				s[x + (y * 64)] = m[i++];
 			}
 		}
                 g.drawRGB(s, 0, 64, px, py, w, h, true);

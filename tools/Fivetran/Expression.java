@@ -34,7 +34,7 @@ public class Expression implements MakoConstants {
 				// were normal parentheses:
 				String var = new Cursor(expression.substring(index)).parseVar();
 				ret.append(var);
-				index += var.length();
+				index += var.length()-1;
 			}
 			else if (c == '(') { ret.append("((((");  }
 			else if (c == ')') { ret.append("))))");  }
@@ -100,8 +100,7 @@ public class Expression implements MakoConstants {
 		}
 
 		void emit(MakoRom rom) {
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(value, MakoRom.Type.Code);
+			rom.addConst(value);
 		}
 	}
 
@@ -114,7 +113,7 @@ public class Expression implements MakoConstants {
 
 		void emit(MakoRom rom) {
 			v.emit(rom);
-			rom.add(OP_LOAD, MakoRom.Type.Code);
+			rom.addLoad();
 		}
 	}
 

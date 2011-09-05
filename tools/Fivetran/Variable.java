@@ -80,48 +80,42 @@ class Variable implements MakoConstants {
 		}
 
 		if (value instanceof Integer) {
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(address,  MakoRom.Type.Code);
+			rom.addConst(address);
 		}
 		else if (value instanceof int[][][]) {
 			int[][][] v3 = (int[][][])value;
 			args.get(0).emit(rom);
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(v3[0].length * v3[0][0].length, MakoRom.Type.Code);
-			rom.add(OP_MUL, MakoRom.Type.Code);
+
+			rom.addConst(v3[0].length * v3[0][0].length);
+			rom.addMul();
 			
 			args.get(1).emit(rom);
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(v3[0][0].length, MakoRom.Type.Code);
-			rom.add(OP_MUL, MakoRom.Type.Code);
-			rom.add(OP_ADD, MakoRom.Type.Code);
+			rom.addConst(v3[0][0].length);
+			rom.addMul();
+			rom.addAdd();
 
 			args.get(2).emit(rom);
-			rom.add(OP_ADD, MakoRom.Type.Code);
+			rom.addAdd();
 			
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(address,  MakoRom.Type.Code);
-			rom.add(OP_ADD,   MakoRom.Type.Code);
+			rom.addConst(address);
+			rom.addAdd();
 		}
 		else if (value instanceof int[][]) {
 			int[][] v2 = (int[][])value;
 			args.get(0).emit(rom);
-			rom.add(OP_CONST,     MakoRom.Type.Code);
-			rom.add(v2[0].length, MakoRom.Type.Code);
-			rom.add(OP_MUL,       MakoRom.Type.Code);
+			rom.addConst(v2[0].length);
+			rom.addMul();
 
 			args.get(1).emit(rom);
-			rom.add(OP_ADD,   MakoRom.Type.Code);
+			rom.addAdd();
 
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(address,  MakoRom.Type.Code);
-			rom.add(OP_ADD,   MakoRom.Type.Code);
+			rom.addConst(address);
+			rom.addAdd();
 		}
 		else if (value instanceof int[]) {
 			args.get(0).emit(rom);
-			rom.add(OP_CONST, MakoRom.Type.Code);
-			rom.add(address,  MakoRom.Type.Code);
-			rom.add(OP_ADD,   MakoRom.Type.Code);
+			rom.addConst(address);
+			rom.addAdd();
 		}
 	}
 }
