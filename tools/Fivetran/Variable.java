@@ -1,6 +1,6 @@
 import java.util.*;
 
-class Variable implements MakoConstants {
+class Variable {
 	String  name;
 	Integer address; // compiled storage address
 	Object  value;   // initialized value

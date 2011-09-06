@@ -1,8 +1,5 @@
 import java.util.*;
 import java.io.*;
-import java.awt.Toolkit;
-import java.awt.Image;
-import java.awt.image.*;
 
 public class Maker implements MakoConstants {
 
@@ -11,60 +8,13 @@ public class Maker implements MakoConstants {
 	private Map<String, Integer> constants = new TreeMap<String, Integer>();
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
 	private Set<String> imported = new HashSet<String>();
-	private List<Integer> rom = new ArrayList<Integer>();
-	private List<Integer> tag = new ArrayList<Integer>();
+	private MakoRom rom = new MakoRom();
 	private boolean compiling = false;
 	private Stack<Integer> branchStack = new Stack<Integer>();
 	private Stack<Integer> loopStack   = new Stack<Integer>();
 	private Queue<Integer> breaks      = new LinkedList<Integer>();
 
 	private String path;
-
-	private static final int TAG_CODE   = 1;
-	private static final int TAG_DATA   = 2;
-	private static final int TAG_ARRAY  = 3;
-	private static final int TAG_STRING = 4;
-
-	private static final Map<Integer, String> mnemonics = new HashMap<Integer, String>();
-	{
-		mnemonics.put(OP_CONST,  "CONST");
-		mnemonics.put(OP_CALL,   "CALL");
-		mnemonics.put(OP_JUMP,   "JUMP");
-		mnemonics.put(OP_JUMPZ,  "JUMPZ");
-		mnemonics.put(OP_JUMPIF, "JUMPN");
-		mnemonics.put(OP_LOAD,   "LOAD");
-		mnemonics.put(OP_STOR,   "STOR");
-		mnemonics.put(OP_RETURN, "RET");
-		mnemonics.put(OP_DROP,   "DROP");
-		mnemonics.put(OP_SWAP,   "SWAP");
-		mnemonics.put(OP_DUP,    "DUP");
-		mnemonics.put(OP_OVER,   "OVER");
-		mnemonics.put(OP_STR,    "STR");
-		mnemonics.put(OP_RTS,    "RTS");
-		mnemonics.put(OP_ADD,    "ADD");
-		mnemonics.put(OP_SUB,    "SUB");
-		mnemonics.put(OP_MUL,    "MUL");
-		mnemonics.put(OP_DIV,    "DIV");
-		mnemonics.put(OP_MOD,    "MOD");
-		mnemonics.put(OP_AND,    "AND");
-		mnemonics.put(OP_OR,     "OR");
-		mnemonics.put(OP_XOR,    "XOR");
-		mnemonics.put(OP_NOT,    "NOT");
-		mnemonics.put(OP_SGT,    "SGT");
-		mnemonics.put(OP_SLT,    "SLT");
-		mnemonics.put(OP_SYNC,   "SYNC");
-		mnemonics.put(OP_NEXT,   "NEXT");
-	}
-
-	private static final Set<Integer> paramOps = new HashSet<Integer>();
-	{
-		paramOps.add(OP_CONST);
-		paramOps.add(OP_CALL);
-		paramOps.add(OP_JUMP);
-		paramOps.add(OP_JUMPZ);
-		paramOps.add(OP_JUMPIF);
-		paramOps.add(OP_NEXT);
-	}
 
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
@@ -83,8 +33,10 @@ public class Maker implements MakoConstants {
 			packed = true;
 			argList.remove("--packed");
 		}
+
 		Maker compiler = new Maker();
-		int[] rom = compiler.compile(argList.get(0), standalone);
+		compiler.compile(argList.get(0), standalone);
+
 		if (argList.contains("--word")) {
 			int index = argList.indexOf("--word");
 			String word = argList.get(index + 1);
@@ -93,40 +45,30 @@ public class Maker implements MakoConstants {
 			argList.remove(word);
 		}
 		else {
-			compiler.disassemble(0, rom.length-1);
+			compiler.rom.disassemble(System.out);
 		}
 		if (argList.size() > 1) {
 			try {
 				if (packed) {
 					DataOutputStream out = new DataOutputStream(new FileOutputStream(argList.get(1)));
-					for(int x : rom) { out.writeInt(x); }
+					for(int x : compiler.rom.toArray()) { out.writeInt(x); }
 					out.close();
 				}
 				else {
 					PrintWriter out = new PrintWriter(new File(argList.get(1)));
-					for(int x : rom) { out.println(x); }
+					for(int x : compiler.rom.toArray()) { out.println(x); }
 					out.close();
 				}
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); }
 		}
-		if (run) { Mako.exec(rom); }
+		if (run) { Mako.exec(compiler.rom.toArray()); }
 	}
 
-	public int[] compile(String filename, boolean standalone) {
-		dictionary.clear();
-		variables.clear();
-		rom.clear();
-		tag.clear();
-		compiling = false;
-		branchStack.clear();
-		loopStack.clear();
-		breaks.clear();
-
+	public MakoRom compile(String filename, boolean standalone) {
 		if (!standalone) {
 			buildRegion("registers", RESERVED_HEADER);
 		}
-		
 		Map<String, Integer> dict = standalone ? constants : variables;
 		dict.put("PC", PC);
 		dict.put("DP", DP);
@@ -216,23 +158,23 @@ public class Maker implements MakoConstants {
 			rom.set(SY, constants.get("scroll-y"));
 			rom.set(CL, constants.get("clear-color"));
 		}
-		int[] ret = new int[rom.size()];
-		for(int x = 0; x < rom.size(); x++) {
-			ret[x] = rom.get(x);
+
+		// export debug symbols:
+		for(Map.Entry<String, Integer> entry : variables.entrySet()) {
+			rom.label(entry.getKey(), entry.getValue());
 		}
-		return ret;
+		for(Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+			rom.label(entry.getKey(), entry.getValue());
+		}
+
+		return rom;
 	}
 
 	private void buildRegion(String name, int size) {
 		if (!variables.containsKey(name) && !constants.containsKey(name)) {
 			variables.put(name, rom.size());
-			for(int x = 0; x < size; x++) { romAdd(0, TAG_ARRAY); }
+			for(int x = 0; x < size; x++) { rom.add(0, MakoRom.Type.Array); }
 		}
-	}
-
-	private void romAdd(int v, int t) {
-		rom.add(v);
-		tag.add(t);
 	}
 
 	private void compileFile(String filename) throws FileNotFoundException {
@@ -245,8 +187,8 @@ public class Maker implements MakoConstants {
 		while(tokens.size() > 0) {
 			Object token = tokens.remove();
 			if (token instanceof Integer) {
-				if (compiling) { romAdd(OP_CONST, TAG_CODE); }
-				romAdd((Integer)token, TAG_ARRAY);
+				if (compiling) { rom.add(OP_CONST, MakoRom.Type.Code); }
+				rom.add((Integer)token, MakoRom.Type.Array);
 			}
 			else {
 				compileToken((String)token, tokens);
@@ -275,45 +217,35 @@ public class Maker implements MakoConstants {
 					rom.set(a, rom.size());
 				}
 			}
-			romAdd(OP_JUMP,      TAG_CODE);
-			romAdd(rom.size()+1, TAG_CODE);
+			rom.addJump(rom.size()+2);
 		}
 		else if (token.equals(";")) {
 			compiling = false;
-			romAdd(OP_RETURN, TAG_CODE);
+			rom.addReturn();
 		}
 		else if (token.equals(":var")) {
 			variables.put(tokens.remove().toString(), rom.size());
-			romAdd(0, TAG_DATA);
+			rom.add(0, MakoRom.Type.Data);
 		}
 		else if (token.equals(":array")) {
 			String name = tokens.remove().toString();
 			int count = (Integer)tokens.remove();
 			int value = (Integer)tokens.remove();
 			variables.put(name, rom.size());
-			for(int x = 0; x < count; x++) { romAdd(value, TAG_ARRAY); }
+			for(int x = 0; x < count; x++) { rom.add(value, MakoRom.Type.Array); }
 		}
 		else if (token.equals(":data")) {
 			variables.put(tokens.remove().toString(), rom.size());
 		}
 		else if (token.equals(":string")) {
 			variables.put(tokens.remove().toString(), rom.size());
-			for(char c : unquote(tokens.remove().toString()).toCharArray()) {
-				romAdd((int)c, TAG_STRING);
-			}
-			romAdd(0, TAG_STRING);
+			rom.addString(unquote(tokens.remove().toString()));
 		}
 		else if (token.startsWith("\"")) {
-			romAdd(OP_JUMP, TAG_CODE);
-			romAdd(-1,      TAG_CODE);
-			int start = rom.size();
-			for(char c : unquote(token).toCharArray()) {
-				romAdd((int)c, TAG_STRING);
-			}
-			romAdd(0, TAG_STRING);
-			rom.set(start-1, rom.size());
-			romAdd(OP_CONST, TAG_CODE);
-			romAdd(start,    TAG_CODE);
+			int start = rom.addJump(-1);
+			rom.addString(unquote(token));
+			rom.set(start, rom.size());
+			rom.addConst(start + 1);
 		}
 		else if (token.equals(":const")) {
 			String constName = tokens.remove().toString();
@@ -338,36 +270,7 @@ public class Maker implements MakoConstants {
 			variables.put(imageName, rom.size());
 			int tileWidth  = (Integer)tokens.remove();
 			int tileHeight = (Integer)tokens.remove();
-
-			// load the image
-			Toolkit toolkit = Toolkit.getDefaultToolkit();
-			ClassLoader loader = Maker.class.getClassLoader();
-			Image tiles = toolkit.getImage(loader.getResource(fileName));
-			while (tiles.getWidth(null) < 0) {
-				try {Thread.sleep(10);}
-				catch(InterruptedException ie) { ie.printStackTrace(); }
-			}
-
-			// unpack the pixels of the image
-			final int w = tiles.getWidth(null);
-			final int h = tiles.getHeight(null);
-			final int a[] = new int[w * h];
-			final PixelGrabber pg = new PixelGrabber(tiles,0,0,w,h,a,0,w);
-			try { pg.grabPixels(); }
-			catch(InterruptedException ie) { ie.printStackTrace(); }
-			
-			// repack pixels as tiles
-			for(int ty = 0; ty < h/tileHeight; ty++) {
-				for(int tx = 0; tx < w/tileWidth; tx++) {
-
-					for(int y = 0; y < tileHeight; y++) {
-						for(int x = 0; x < tileWidth; x++) {
-							romAdd(a[((tx*tileWidth) + x) + ((ty*tileHeight) + y)*w], TAG_ARRAY); 
-						}
-					}
-
-				}
-			}
+			rom.addImage(fileName, tileWidth, tileHeight);
 		}
 		else if (token.equals(":include")) {
 			String fileName = unquote(tokens.remove().toString());
@@ -381,19 +284,13 @@ public class Maker implements MakoConstants {
 
 		// branching constructs
 		else if (token.equals("if")) {
-			romAdd(OP_JUMPZ, TAG_CODE);
-			branchStack.push(rom.size());
-			romAdd(-1, TAG_CODE);
+			branchStack.push(rom.addJumpZ(-2));
 		}
 		else if (token.equals("-if")) {
-			romAdd(OP_JUMPIF, TAG_CODE);
-			branchStack.push(rom.size());
-			romAdd(-1, TAG_CODE);
+			branchStack.push(rom.addJumpIf(-2));
 		}
 		else if (token.equals("else")) {
-			romAdd(OP_JUMP, TAG_CODE);
-			int over = rom.size();
-			romAdd(-1, TAG_CODE);
+			int over = rom.addJump(-2);
 			rom.set(branchStack.pop(), rom.size());
 			branchStack.push(over);
 		}
@@ -406,159 +303,133 @@ public class Maker implements MakoConstants {
 			loopStack.push(rom.size());
 		}
 		else if (token.equals("while")) {
-			romAdd(OP_JUMPIF, TAG_CODE);
-			romAdd(loopStack.pop(), TAG_CODE);
+			rom.addJumpIf(loopStack.pop());
 			while(breaks.size() > 0) {
 				rom.set(breaks.remove(), rom.size());
 			}
 		}
 		else if (token.equals("until")) {
-			romAdd(OP_JUMPZ, TAG_CODE);
-			romAdd(loopStack.pop(), TAG_CODE);
+			rom.addJumpZ(loopStack.pop());
 			while(breaks.size() > 0) {
 				rom.set(breaks.remove(), rom.size());
 			}
 		}
 		else if (token.equals("again")) {
-			romAdd(OP_JUMP, TAG_CODE);
-			romAdd(loopStack.pop(), TAG_CODE);
+			rom.addJump(loopStack.pop());
 			while(breaks.size() > 0) {
 				rom.set(breaks.remove(), rom.size());
 			}
 		}
 		else if (token.equals("break")) {
-			romAdd(OP_JUMP, TAG_CODE);
-			breaks.add(rom.size());
-			romAdd(-2, TAG_CODE);
+			breaks.add(rom.addJump(-3));
 		}
 
 		// bounded loops
 		else if (token.equals("for")) {
-			romAdd(OP_STR, TAG_CODE);
+			rom.addStr();
 			loopStack.push(rom.size());
 		}
 		else if (token.equals("next")) {
-			/*
-			romAdd(OP_RTS,          TAG_CODE);
-			romAdd(OP_CONST,        TAG_CODE);
-			romAdd(1,               TAG_CODE);
-			romAdd(OP_SUB,          TAG_CODE);
-			romAdd(OP_DUP,          TAG_CODE);
-			romAdd(OP_STR,          TAG_CODE);
-
-			romAdd(OP_CONST,        TAG_CODE); // loop while i >= 0
-			romAdd(0,               TAG_CODE);
-			romAdd(OP_SLT,          TAG_CODE);
-			romAdd(OP_JUMPZ,        TAG_CODE);
-			*/
-			romAdd(OP_NEXT,         TAG_CODE);
-
-			romAdd(loopStack.pop(), TAG_CODE);
-			romAdd(OP_RTS,          TAG_CODE);
-			romAdd(OP_DROP,         TAG_CODE);
+			rom.addNext(loopStack.pop());
+			rom.addRts();
+			rom.addDrop();
 		}
 
 		// basic ops
-		else if (token.equals("exit")) { romAdd(OP_RETURN, TAG_CODE); }
-		else if (token.equals("@"))    { romAdd(OP_LOAD,   TAG_CODE); }
-		else if (token.equals("!"))    { romAdd(OP_STOR,   TAG_CODE); }
-		else if (token.equals("drop")) { romAdd(OP_DROP,   TAG_CODE); }
-		else if (token.equals("dup"))  { romAdd(OP_DUP,    TAG_CODE); }
-		else if (token.equals("over")) { romAdd(OP_OVER,   TAG_CODE); }
-		else if (token.equals("swap")) { romAdd(OP_SWAP,   TAG_CODE); }
-		else if (token.equals(">r"))   { romAdd(OP_STR,    TAG_CODE); }
-		else if (token.equals("r>"))   { romAdd(OP_RTS,    TAG_CODE); }
-		else if (token.equals("+"))    { romAdd(OP_ADD,    TAG_CODE); }
-		else if (token.equals("-"))    { romAdd(OP_SUB,    TAG_CODE); }
-		else if (token.equals("*"))    { romAdd(OP_MUL,    TAG_CODE); }
-		else if (token.equals("/"))    { romAdd(OP_DIV,    TAG_CODE); }
-		else if (token.equals("mod"))  { romAdd(OP_MOD,    TAG_CODE); }
-		else if (token.equals("and"))  { romAdd(OP_AND,    TAG_CODE); }
-		else if (token.equals("or"))   { romAdd(OP_OR,     TAG_CODE); }
-		else if (token.equals("xor"))  { romAdd(OP_XOR,    TAG_CODE); }
-		else if (token.equals("not"))  { romAdd(OP_NOT,    TAG_CODE); }
-		else if (token.equals(">"))    { romAdd(OP_SGT,    TAG_CODE); }
-		else if (token.equals("<"))    { romAdd(OP_SLT,    TAG_CODE); }
-		else if (token.equals("sync")) { romAdd(OP_SYNC,   TAG_CODE); }
+		else if (token.equals("exit")) { rom.addReturn(); }
+		else if (token.equals("@"))    { rom.addLoad();   }
+		else if (token.equals("!"))    { rom.addStor();   }
+		else if (token.equals("drop")) { rom.addDrop();   }
+		else if (token.equals("dup"))  { rom.addDup();    }
+		else if (token.equals("over")) { rom.addOver();   }
+		else if (token.equals("swap")) { rom.addSwap();   }
+		else if (token.equals(">r"))   { rom.addStr();    }
+		else if (token.equals("r>"))   { rom.addRts();    }
+		else if (token.equals("+"))    { rom.addAdd();    }
+		else if (token.equals("-"))    { rom.addSub();    }
+		else if (token.equals("*"))    { rom.addMul();    }
+		else if (token.equals("/"))    { rom.addDiv();    }
+		else if (token.equals("mod"))  { rom.addMod();    }
+		else if (token.equals("and"))  { rom.addAnd();    }
+		else if (token.equals("or"))   { rom.addOr();     }
+		else if (token.equals("xor"))  { rom.addXor();    }
+		else if (token.equals("not"))  { rom.addNot();    }
+		else if (token.equals(">"))    { rom.addSgt();    }
+		else if (token.equals("<"))    { rom.addSlt();    }
+		else if (token.equals("sync")) { rom.addSync();   }
 		
 		// pseudo-ops
-		else if (token.equals("<="))    { romAdd(OP_SGT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
-		else if (token.equals(">="))    { romAdd(OP_SLT, TAG_CODE); romAdd(OP_NOT, TAG_CODE); }
-		else if (token.equals("2dup"))  { romAdd(OP_OVER, TAG_CODE); romAdd(OP_OVER, TAG_CODE); }
-		else if (token.equals("2drop")) { romAdd(OP_DROP, TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
-		else if (token.equals("rdrop")) { romAdd(OP_RTS,  TAG_CODE); romAdd(OP_DROP, TAG_CODE); }
-		else if (token.equals("halt"))  { romAdd(OP_JUMP, TAG_CODE); romAdd(-1, TAG_CODE); }
+		else if (token.equals("<="))    { rom.addSgt();  rom.addNot();  }
+		else if (token.equals(">="))    { rom.addSlt();  rom.addNot();  }
+		else if (token.equals("2dup"))  { rom.addOver(); rom.addOver(); }
+		else if (token.equals("2drop")) { rom.addDrop(); rom.addDrop(); }
+		else if (token.equals("rdrop")) { rom.addRts();  rom.addDrop(); }
+		else if (token.equals("halt"))  { rom.addJump(-1); }
 		else if (token.equals("keys")) {
-			romAdd(OP_CONST, TAG_CODE);
-			romAdd(KY,       TAG_CODE);
-			romAdd(OP_LOAD,  TAG_CODE); 
+			rom.addConst(KY);
+			rom.addLoad();
 		}
 		else if (token.equals("i")) {
-			romAdd(OP_RTS, TAG_CODE);
-			romAdd(OP_DUP, TAG_CODE);
-			romAdd(OP_STR, TAG_CODE);
-			//romAdd(OP_CONST, TAG_CODE);
-			//romAdd(RP,       TAG_CODE);
-			//romAdd(OP_LOAD,  TAG_CODE);
-			//romAdd(OP_CONST, TAG_CODE);
-			//romAdd(1,        TAG_CODE);
-			//romAdd(OP_SUB,   TAG_CODE);
-			//romAdd(OP_LOAD,  TAG_CODE);
+			rom.addRts();
+			rom.addDup();
+			rom.addStr();
 		}
 		else if (token.equals("j")) {
-			romAdd(OP_RTS,  TAG_CODE);
-			romAdd(OP_RTS,  TAG_CODE);
-			romAdd(OP_DUP,  TAG_CODE);
-			romAdd(OP_STR,  TAG_CODE);
-			romAdd(OP_SWAP, TAG_CODE);
-			romAdd(OP_STR,  TAG_CODE);
+			rom.addRts();
+			rom.addRts();
+			rom.addDup();
+			rom.addStr();
+			rom.addSwap();
+			rom.addStr();
 		}
 		else if (token.equals("k")) {
-			romAdd(OP_RTS,  TAG_CODE);
-			romAdd(OP_RTS,  TAG_CODE);
-			romAdd(OP_RTS,  TAG_CODE);
-			romAdd(OP_DUP,  TAG_CODE);
-			romAdd(OP_STR,  TAG_CODE);
-			romAdd(OP_SWAP, TAG_CODE);
-			romAdd(OP_STR,  TAG_CODE);
-			romAdd(OP_SWAP, TAG_CODE);
-			romAdd(OP_STR,  TAG_CODE);
+			rom.addRts();
+			rom.addRts();
+			rom.addRts();
+			rom.addDup();
+			rom.addStr();
+			rom.addSwap();
+			rom.addStr();
+			rom.addSwap();
+			rom.addStr();
 		}
 		else if (token.equals("'")) {
-			romAdd(OP_CONST, TAG_CODE);
 			String methodName = tokens.remove().toString();
 			if (prototypes.containsKey(methodName)) {
 				prototypes.get(methodName).add(rom.size());
-				romAdd(-5, TAG_CODE);
+				rom.addConst(-5);
 			}
 			else {
-				romAdd(dictionary.get(methodName), TAG_CODE);
+				rom.addConst(dictionary.get(methodName));
 			}
 		}
 		else if (token.equals("exec")) {
-			romAdd(OP_CONST,       TAG_CODE);
-			romAdd(rom.size() + 3, TAG_CODE); // hooray for self-modifying code!
-			romAdd(OP_STOR,        TAG_CODE);
-			romAdd(OP_CALL,        TAG_CODE);
-			romAdd(-3,             TAG_CODE);
+			rom.addConst(rom.size() + 4);
+			rom.addStor();   // hooray for self-modifying code!
+			rom.addCall(-4);
+
 		}
 
 		else if (prototypes.containsKey(token)) {
-			if (compiling) { romAdd(OP_CALL, TAG_CODE); }
-			prototypes.get(token).add(rom.size());
-			romAdd(-5, compiling ? TAG_CODE : TAG_ARRAY);
+			int address = rom.size();
+			if (compiling) { address = rom.addCall(-5); }
+			else { rom.add(-5, MakoRom.Type.Array); }
+			prototypes.get(token).add(address);
 		}
 		else if (constants.containsKey(token)) {
-			if (compiling) { romAdd(OP_CONST, TAG_CODE); }
-			romAdd(constants.get(token), compiling ? TAG_CODE : TAG_ARRAY);
+			int address = constants.get(token);
+			if (compiling) { rom.addConst(address); }
+			else { rom.add(address, MakoRom.Type.Array); }
 		}
 		else if (variables.containsKey(token)) {
-			if (compiling) { romAdd(OP_CONST, TAG_CODE); }
-			romAdd(variables.get(token), compiling ? TAG_CODE : TAG_ARRAY);
+			int address = variables.get(token);
+			if (compiling) { rom.addConst(address); }
+			else { rom.add(address, MakoRom.Type.Array); }
 		}
 		else if (dictionary.containsKey(token)) {
-			if (compiling) { romAdd(OP_CALL, TAG_CODE); }
-			romAdd(dictionary.get(token), compiling ? TAG_CODE : TAG_ARRAY);
+			int address = dictionary.get(token);
+			if (compiling) { rom.addCall(address); }
+			else { rom.add(address, MakoRom.Type.Array); }
 		}
 		else {
 			throw new Error("Unknown word '"+token+"'");
@@ -571,79 +442,8 @@ public class Maker implements MakoConstants {
 		}
 		int first = dictionary.get(word);
 		int last = first + 1;
-		while(last < rom.size() && "".equals(getLabel(last))) { last++; }
-		disassemble(first, last-1);
-	}
-
-	public void disassemble(int first, int last) {
-		for(int index = first; index <= last; index++) {
-			int t = tag.get(index);
-			System.out.format("%05d: %-16s", index, getLabel(index));
-			if (t == TAG_ARRAY) {
-				int start = index;
-				while(index < rom.size() && tag.get(index) == TAG_ARRAY) {
-					if (index != start && !getLabel(index).equals("")) {
-						break;
-					}
-					index++;
-				}
-				if (index - start == 1) {
-					System.out.format("%d%n", rom.get(start));
-				}
-				else {
-					System.out.format("<<< %d words >>>%n", (index - start));
-				}
-				index--;
-			}
-			else if (t == TAG_STRING) {
-				String s = "";
-				while(rom.get(index) != 0) {
-					s += (char)rom.get(index).intValue();
-					index++;
-				}
-				s = s.replace("\n", "\\n");
-				s = s.replace("\r", "\\r");
-				s = s.replace("\t", "\\t");
-				System.out.format("\"%s\"%n", s);
-			}
-			else if (t == TAG_CODE) {
-				if (paramOps.contains(rom.get(index))) {
-					if (rom.get(index) == OP_CALL) {
-						System.out.format("%5s %d %s%n",
-							mnemonics.get(rom.get(index)),
-							rom.get(index+1),
-							getLabel(rom.get(index+1))
-						);
-					}
-					else {
-						System.out.format("%5s %d%n",
-							mnemonics.get(rom.get(index)),
-							rom.get(index+1)
-						);
-					}
-					index++;
-				}
-				else {
-					System.out.format("%5s%n",
-						mnemonics.get(rom.get(index))
-					);
-				}
-			}
-			else {
-				System.out.format("%d%n", rom.get(index));
-			}
-		}
-		System.out.format("%n%d words, %.3f kb.%n", rom.size(), ((double)rom.size())/256);
-	}
-
-	private String getLabel(int address) {
-		for(Map.Entry entry : dictionary.entrySet()) {
-			if (entry.getValue().equals(address)) { return String.format("(%s)", entry.getKey()); }
-		}
-		for(Map.Entry entry : variables.entrySet()) {
-			if (entry.getValue().equals(address)) { return String.format("(%s)", entry.getKey()); }
-		}
-		return "";
+		while(last < rom.size() && "".equals(rom.getLabel(last))) { last++; }
+		rom.disassemble(first, last-1, System.out);
 	}
 
 	private static String unquote(String s) {
