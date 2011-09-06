@@ -183,6 +183,15 @@ public class MakoRom implements MakoConstants {
 		paramOps.add(OP_NEXT);
 	}
 
+	public String getLabel(int address) {
+		for(Map.Entry entry : labels.entrySet()) {
+			if (entry.getValue().equals(address)) {
+				return String.format("(%s)", entry.getKey());
+			}
+		}
+		return "";
+	}
+
 	public void disassemble(PrintStream out) {
 		disassemble(0, size()-1, out);
 	}
@@ -192,64 +201,14 @@ public class MakoRom implements MakoConstants {
 		for(int index = first; index <= last; index++) {
 			Type t = types.get(index);
 			out.format("%05d: %-16s", index, getLabel(index));
-			if (t == Type.Array) {
-				int start = index;
-				while(index < size() && types.get(index) == Type.Array) {
-					if (index != start && !getLabel(index).equals("")) { break; }
-					index++;
-				}
-				if (index - start == 1) {
-					out.format("%d%n", data.get(start));
-				}
-				else {
-					out.format("<<< %d words >>>%n", (index - start));
-				}
-				index--;
-			}
-			else if (t == Type.String) {
-				String s = "";
-				while(data.get(index) != 0) {
-					s += (char)data.get(index).intValue();
-					index++;
-				}
-				s = s.replace("\n", "\\n");
-				s = s.replace("\r", "\\r");
-				s = s.replace("\t", "\\t");
-				out.format("\"%s\"%n", s);
-			}
-			else if (t == Type.Code) {
-				int op = data.get(index);
-				if (paramOps.contains(op)) {
-					if (op == OP_CALL) {
-						out.format("%5s %d %s%n",
-							mnemonics.get(op),
-							data.get(index+1),
-							getLabel(data.get(index+1))
-						);
-					}
-					else {
-						out.format("%5s %d%n",
-							mnemonics.get(op),
-							data.get(index+1)
-						);
-					}
-					index++;
-				}
-				else if ((op == OP_LOAD || op == OP_STOR) && prevOp == OP_CONST) {
-					out.format("%5s %s%n",
-						mnemonics.get(op),
-						getLabel(data.get(index-1))
-					);
-				}
-				else {
-					out.format("%5s%n", mnemonics.get(op) );
-				}
-				prevOp = op;
-			}
+			int op = data.get(index);
+			if      (t == Type.Array)  { index = disassembleArray(index, out); }
+			else if (t == Type.String) { index = disassembleString(index, out); }
+			else if (t == Type.Code)   { index = disassembleCode(index, prevOp, out); }
 			else {
 				out.format("%d%n", data.get(index));
 			}
-			if (t != Type.Code) { prevOp = -1; }
+			prevOp = (t == Type.Code) ? op : -1;
 		}
 		out.format("%n%d words, %.3f kb.%n",
 			size(),
@@ -257,12 +216,60 @@ public class MakoRom implements MakoConstants {
 		);
 	}
 
-	public String getLabel(int address) {
-		for(Map.Entry entry : labels.entrySet()) {
-			if (entry.getValue().equals(address)) {
-				return String.format("(%s)", entry.getKey());
-			}
+	private int disassembleArray(int index, PrintStream out) {
+		int start = index;
+		while(index < size() && types.get(index) == Type.Array) {
+			if (index != start && !getLabel(index).equals("")) { break; }
+			index++;
 		}
-		return "";
+		if (index - start == 1) {
+			out.format("%d%n", data.get(start));
+		}
+		else {
+			out.format("<<< %d words >>>%n", (index - start));
+		}
+		return index - 1;
+	}
+
+	private int disassembleString(int index, PrintStream out) {
+		String s = "";
+		while(data.get(index) != 0) {
+			s += (char)data.get(index).intValue();
+			index++;
+		}
+		s = s.replace("\n", "\\n");
+		s = s.replace("\r", "\\r");
+		s = s.replace("\t", "\\t");
+		out.format("\"%s\"%n", s);
+		return index;
+	}
+
+	private int disassembleCode(int index, int prevOp, PrintStream out) {
+		int op = data.get(index);
+		if (op == OP_CALL) {
+			out.format("%5s %d %s%n",
+				mnemonics.get(op),
+				data.get(index+1),
+				getLabel(data.get(index+1))
+			);
+			index++;
+		}
+		else if (paramOps.contains(op)) {
+			out.format("%5s %d%n",
+				mnemonics.get(op),
+				data.get(index+1)
+			);
+			index++;
+		}
+		else if ((op == OP_LOAD || op == OP_STOR) && prevOp == OP_CONST) {
+			out.format("%5s %s%n",
+				mnemonics.get(op),
+				getLabel(data.get(index-1))
+			);
+		}
+		else {
+			out.format("%5s%n", mnemonics.get(op) );
+		}
+		return index;
 	}
 }
