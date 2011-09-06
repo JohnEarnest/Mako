@@ -2,10 +2,12 @@ import java.util.*;
 
 public class Expression implements MakoConstants {
 
+	final String line;
 	final Map<String, Variable> variables;
 	TreeNode root;
 
 	public Expression(String line, Map<String, Variable> variables) {
+		this.line = line;
 		this.variables = variables;
 		root = parse(new Cursor(fixPrecedence(line)));
 		root = root.simplify();
