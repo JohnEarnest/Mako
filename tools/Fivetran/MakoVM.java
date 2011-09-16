@@ -54,7 +54,7 @@ public class MakoVM implements MakoConstants {
 			case OP_NOT    : push(~pop());                            break;
 			case OP_SGT    : a = pop(); b = pop(); push(b>a ? -1:0);  break;
 			case OP_SLT    : a = pop(); b = pop(); push(b<a ? -1:0);  break;
-			case OP_NEXT   : if (--m[m[RP]-1] >= 0) m[PC] = m[m[PC]]; break;
+			case OP_NEXT   : m[PC] = --m[m[RP]-1]<0?m[PC]+1:m[m[PC]]; break;
 		}
 	}
 
