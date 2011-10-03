@@ -1,3 +1,4 @@
+import javax.sound.sampled.*;
 import java.util.Random;
 
 public class MakoVM implements MakoConstants {
@@ -7,7 +8,23 @@ public class MakoVM implements MakoConstants {
 	public final int[] p = new int[320 * 240]; // pixel buffer
 	public int keys = 0;
 
-	public MakoVM(int[] m) { this.m = m; }
+	private SourceDataLine soundLine = null;
+	private final byte[] abuffer = new byte[8];
+	private int apointer = 0;
+
+	public MakoVM(int[] m) {
+		this.m = m;
+		try {
+			AudioFormat format = new AudioFormat(8000f, 8, 1, false, false);
+			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+			soundLine = (SourceDataLine)AudioSystem.getLine(info);
+			soundLine.open(format, 32000);
+			soundLine.start();
+		}
+		catch(LineUnavailableException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private void push(int v)      { m[m[DP]++] = v; }
 	private void rpush(int v)     { m[m[RP]++] = v; }
@@ -70,6 +87,11 @@ public class MakoVM implements MakoConstants {
 
 	private void stor(int addr, int value) {
 		if (addr == CO) { System.out.print((char)value); return; }
+		if (addr == AU) {
+			abuffer[apointer++] = (byte)value;
+			apointer %= abuffer.length;
+			if (apointer == 0) { soundLine.write(abuffer, 0, abuffer.length); }
+		}
 		m[addr] = value;
 	}
 

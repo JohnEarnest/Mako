@@ -84,6 +84,7 @@ public class Maker implements MakoConstants {
 		dict.put("RN", RN);
 		dict.put("KY", KY);
 		dict.put("CO", CO); // character-out (debug)
+		dict.put("AU", AU);
 
 		constants.put("key-up", KEY_UP);
 		constants.put("key-rt", KEY_RT);
