@@ -25,7 +25,7 @@
 : main
 	0 t !
 	loop
-		s3 dup . cr AU !
+		s3 AU !
 		t @ 1 + t !
 		sync
 	again

@@ -15,7 +15,7 @@ public class MakoVM implements MakoConstants {
 	public MakoVM(int[] m) {
 		this.m = m;
 		try {
-			AudioFormat format = new AudioFormat(8000f, 8, 1, false, false);
+			AudioFormat format = new AudioFormat(2000f, 8, 1, false, false);
 			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 			soundLine = (SourceDataLine)AudioSystem.getLine(info);
 			soundLine.open(format, 32000);
@@ -90,7 +90,9 @@ public class MakoVM implements MakoConstants {
 		if (addr == AU) {
 			abuffer[apointer++] = (byte)value;
 			apointer %= abuffer.length;
-			if (apointer == 0) { soundLine.write(abuffer, 0, abuffer.length); }
+			if (apointer == 0) {
+				for(int z = 0; z < 64; z++) { soundLine.write(abuffer, 0, abuffer.length);}
+			}
 		}
 		m[addr] = value;
 	}
