@@ -6,7 +6,7 @@ class Variable {
 	Object  value;   // initialized value
 
 	Map<String, Variable> variables;
-	List<Expression> args = new ArrayList<Expression>();
+	List<String> args = new ArrayList<String>();
 
 	public Variable(String line, Map<String, Variable> variables) {
 		// name [(arg [, arg2, arg3 ... ] ) ]
@@ -17,7 +17,7 @@ class Variable {
 		if (cursor.at('(')) {
 			Cursor subcursor = cursor.parseParens();
 			while(true) {
-				args.add(new Expression(subcursor.parseExpression(), variables));
+				args.add(subcursor.parseExpression());
 				if (subcursor.done()) { break; }
 				subcursor.expect(',');
 			}
@@ -84,6 +84,19 @@ class Variable {
 		}
 		else if (value instanceof int[][][]) {
 			int[][][] v3 = (int[][][])value;
+			new Expression(
+				String.format("((%s) x %d) + ((%s) x %d) + (%s) + %s",
+					args.get(0),
+					v3[0].length * v3[0][0].length,
+					args.get(1),
+					v3[0][0].length,
+					args.get(2),
+					address
+				),
+				variables
+			).emit(rom);
+
+			/*
 			args.get(0).emit(rom);
 
 			rom.addConst(v3[0].length * v3[0][0].length);
@@ -99,9 +112,21 @@ class Variable {
 			
 			rom.addConst(address);
 			rom.addAdd();
+			*/
 		}
 		else if (value instanceof int[][]) {
 			int[][] v2 = (int[][])value;
+			new Expression(
+				String.format("((%s) x %s) + (%s) + %s",
+					args.get(0),
+					v2[0].length,
+					args.get(1),
+					address
+				),
+				variables
+			).emit(rom);
+
+			/*
 			args.get(0).emit(rom);
 			rom.addConst(v2[0].length);
 			rom.addMul();
@@ -111,11 +136,22 @@ class Variable {
 
 			rom.addConst(address);
 			rom.addAdd();
+			*/
 		}
 		else if (value instanceof int[]) {
+			new Expression(
+				String.format("(%s) + %s",
+					args.get(0),
+					address
+				),
+				variables
+			).emit(rom);
+			
+			/*
 			args.get(0).emit(rom);
 			rom.addConst(address);
 			rom.addAdd();
+			*/
 		}
 	}
 }
