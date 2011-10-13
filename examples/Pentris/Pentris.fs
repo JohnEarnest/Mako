@@ -269,6 +269,7 @@
 		px @ py @ pr @ currpiece @ draw-piece
 
 		KY @
+		dup key-up and if loop move-v py @ 2 - while then
 		dup key-a  and if rotate else false rflag ! then
 		dup key-lf and if -1 move-h  then
 		dup key-rt and if  1 move-h  then
