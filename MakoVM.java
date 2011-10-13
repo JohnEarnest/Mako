@@ -91,7 +91,7 @@ public class MakoVM implements MakoConstants {
 			abuffer[apointer++] = (byte)value;
 			apointer %= abuffer.length;
 			if (apointer == 0) {
-				for(int z = 0; z < 64; z++) { soundLine.write(abuffer, 0, abuffer.length);}
+				for(int z = 0; z < 32; z++) { soundLine.write(abuffer, 0, abuffer.length);}
 			}
 		}
 		m[addr] = value;
