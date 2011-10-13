@@ -87,9 +87,20 @@
 	 0  0  0 -1 -1 -1 -1 -1  0
 	-1 -1  0 -1 -1  0  0 -1  0
 	 0 -1 -1 -1 -1 -1  0  0  0
+
+	-1 -1 -1  0 -1  0  0 -1  0 # t
+	 0  0 -1 -1 -1 -1  0  0 -1
+	 0 -1  0  0 -1  0 -1 -1 -1
+	-1  0  0 -1 -1 -1 -1  0  0
+
+	-1 -1 -1  0  0 -1  0  0 -1 # L
+	 0  0 -1  0  0 -1 -1 -1 -1
+	-1  0  0 -1  0  0 -1 -1 -1
+	-1 -1 -1 -1  0  0 -1  0  0
+ 
 :const /piece 36
 :const /phase 9
-:const pieces 7
+:const pieces 9
 
 # game state:
 :var score
@@ -141,7 +152,7 @@
 	nextcolor @ currcolor !
 	0 draw-color !
 	33 21 0 nextpiece @ draw-piece
-	RN @ 7 mod     nextpiece !
+	RN @ pieces mod nextpiece !
 	RN @ 4 mod 4 + nextcolor !
 	nextcolor @ draw-color !
 	33 21 0 nextpiece @ draw-piece
@@ -208,22 +219,6 @@
 	next
 ;
 
-: gameover
-	
-;
-
-: move-v
-	py @ 1 + py !
-	colliding if
-		py @ 1 - py !
-		currcolor @ draw-color !
-		px @ py @ pr @ currpiece @ draw-piece
-		clear-rows
-		select
-		colliding if gameover then
-	then
-;
-
 : reset-game
 	0 score !
 	1 level !
@@ -241,6 +236,31 @@
 	next
 ;
 
+: gameover
+	8 for
+		"GAME OVER" i + @ 32 -
+		i 10 + 12 tile-grid@ !
+	next
+
+	loop keys key-a and -if break then sync again
+	loop keys key-a and  if break then sync again
+	loop keys key-a and -if break then sync again
+	reset-game
+;
+
+: move-v
+	py @ 1 + py !
+	colliding if
+		py @ 1 - py !
+		currcolor @ draw-color !
+		px @ py @ pr @ currpiece @ draw-piece
+		clear-rows
+		select
+		10 for sync next
+		colliding if gameover then
+	then
+;
+
 :var timer
 : main
 	reset-game
@@ -256,7 +276,7 @@
 
 		timer @ -if
 			move-v
-			10 timer !
+			8 timer !
 		else
 			timer @ 1 - timer !
 		then
@@ -264,6 +284,6 @@
 		currcolor @ draw-color !
 		px @ py @ pr @ currpiece @ draw-piece
 
-		4 for sync next
+		5 for sync next
 	again
 ;
