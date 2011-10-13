@@ -12,9 +12,7 @@
 ######################################################
 
 :include "../Grid.fs"
-#:include "../Math.fs"
 :include "../String.fs"
-:include "../Print.fs"
 :image grid-tiles "pentris.png" 8 8
 :data grid
 
@@ -269,7 +267,7 @@
 		px @ py @ pr @ currpiece @ draw-piece
 
 		KY @
-		dup key-up and if loop move-v py @ 2 - while then
+		dup key-up and if loop py @ 1 + py ! colliding until py @ 1 - py ! then
 		dup key-a  and if rotate else false rflag ! then
 		dup key-lf and if -1 move-h  then
 		dup key-rt and if  1 move-h  then
