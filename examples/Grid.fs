@@ -56,3 +56,29 @@
 
 	pixel-grid@ @ 16 mod 7 >
 ;
+
+# draw a right-aligned number to the grid
+# starting with the rightmost digit at the specified x/y.
+# does not clear space, so consider first using 'fill'.
+# assumes grid tiles start at ASCII 32.
+: draw-number (x y n -- )
+	>r
+	loop
+		2dup tile-grid@ i 10 mod 16 + swap ! # draw digit
+		swap 1 - swap                        # move cursor
+		r> 10 / >r i                         # cast out digits
+	while
+	2drop r> drop
+;
+
+# draw a null-terminated string to the grid.
+: grid-type (x y addr -- )
+	>r tile-grid@ r> swap
+	loop
+		(string grid)
+		over @ 32 - over !
+		swap 1 + swap 1 +
+		over @
+	while
+	2drop
+;

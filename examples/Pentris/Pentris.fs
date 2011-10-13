@@ -13,6 +13,7 @@
 
 :include "../Grid.fs"
 :include "../String.fs"
+:include "../Util.fs"
 :image grid-tiles "pentris.png" 8 8
 :data grid
 
@@ -112,16 +113,6 @@
 :var py
 :var pr
 
-: draw-number (x y n -- )
-	>r
-	loop
-		2dup tile-grid@ i 10 mod 16 + swap ! # draw digit
-		swap 1 - swap                        # move cursor
-		r> 10 / >r i                         # cast out digits
-	while
-	2drop r> drop
-;
-
 : draw-hud
 	37  5 score @ draw-number
 	36 11 level @ draw-number
@@ -145,6 +136,10 @@
 	2drop r> drop
 ;
 
+: draw-curr
+	px @ py @ pr @ currpiece @ draw-piece
+;
+
 : select
 	nextpiece @ currpiece !
 	nextcolor @ currcolor !
@@ -154,7 +149,7 @@
 	RN @ 4 mod 4 + nextcolor !
 	nextcolor @ draw-color !
 	33 21 0 nextpiece @ draw-piece
-	13 px !
+	14 px !
 	2  py !
 	0  pr !
 ;
@@ -213,7 +208,7 @@
 	draw-hud sync
 
 	25 for
-		i check-row if i shift-down then
+		i check-row if i shift-down inc-r then
 	next
 ;
 
@@ -226,20 +221,12 @@
 	select
 
 	25 for
-		25 for
-			i 2 +
-			j 2 + tile-grid@
-			0 swap !
-		next
+		2 i 2 + tile-grid@ 26 0 fill
 	next
 ;
 
 : gameover
-	8 for
-		"GAME OVER" i + @ 32 -
-		i 10 + 12 tile-grid@ !
-	next
-
+	11 12 "GAME OVER" grid-type
 	loop keys key-a and -if break then sync again
 	loop keys key-a and  if break then sync again
 	loop keys key-a and -if break then sync again
@@ -247,11 +234,11 @@
 ;
 
 : move-v
-	py @ 1 + py !
+	py inc@
 	colliding if
-		py @ 1 - py !
+		py dec@
 		currcolor @ draw-color !
-		px @ py @ pr @ currpiece @ draw-piece
+		draw-curr
 		clear-rows
 		select
 		10 for sync next
@@ -264,24 +251,19 @@
 	reset-game
 	loop
 		0 draw-color !
-		px @ py @ pr @ currpiece @ draw-piece
+		draw-curr
 
 		KY @
-		dup key-up and if loop py @ 1 + py ! colliding until py @ 1 - py ! then
+		dup key-up and if loop py inc@ colliding until py dec@ then
 		dup key-a  and if rotate else false rflag ! then
 		dup key-lf and if -1 move-h  then
 		dup key-rt and if  1 move-h  then
 		    key-dn and if  0 timer ! then
 
-		timer @ -if
-			move-v
-			8 timer !
-		else
-			timer @ 1 - timer !
-		then
+		timer @ -if move-v 8 timer ! else timer dec@ then
 
 		currcolor @ draw-color !
-		px @ py @ pr @ currpiece @ draw-piece
+		draw-curr
 
 		5 for sync next
 	again
