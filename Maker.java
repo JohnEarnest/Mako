@@ -19,12 +19,17 @@ public class Maker implements MakoConstants {
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
 		boolean run = false;
+		boolean fuzz = false;
 		boolean standalone = false;
 		boolean packed = false;
 		boolean symbols = false;
 		if (argList.contains("--run")) {
 			run = true;
 			argList.remove("--run");
+		}
+		if (argList.contains("--fuzz")) {
+			fuzz = true;
+			argList.remove("--fuzz");
 		}
 		if (argList.contains("--standalone")) {
 			standalone = true;
@@ -57,7 +62,7 @@ public class Maker implements MakoConstants {
 		if (run) {
 			int[] mem = compiler.rom.toArray();
 			try {
-				Mako.exec(mem);
+				Mako.exec(mem, fuzz);
 			}
 			catch(Throwable t) {
 				System.out.println("Runtime Error: " + t.getMessage());
@@ -68,7 +73,11 @@ public class Maker implements MakoConstants {
 					for(int x : mem) { out.println(x); }
 					out.close();
 					System.out.println("Wrote '"+argList.get(0) + ".coredump'.");
-	
+
+					// we want to be able to see any significant differences,
+					// so we should ungroup array data like the stacks:
+					compiler.rom.swapType(MakoRom.Type.Array, MakoRom.Type.Data);
+
 					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".before")));
 					System.out.println("Wrote '"+argList.get(0) + ".before'.");
 					

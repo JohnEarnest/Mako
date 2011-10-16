@@ -26,6 +26,10 @@ public class Mako {
 	}
 
 	public static void exec(int[] rom) {
+		exec(rom, false);
+	}
+
+	public static void exec(int[] rom, boolean fuzz) {
 		JFrame window   = new JFrame();
 		MakoPanel view  = new MakoPanel(rom);
 
@@ -42,7 +46,21 @@ public class Mako {
 			// if sync is never called, we'll assume it's meant
 			// as a 'headless' application or test fixture.
 			if (!window.isVisible()) { window.setVisible(true); }
+			
 			view.vm.keys = view.keys;
+
+			// 'fuzz' will generate a totally random key vector
+			// every frame for the purposes of burn-in testing.
+			if (fuzz) {
+				int keys = view.vm.keys;
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_UP; }
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_DN; }
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_LF; }
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_RT; }
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_A; }
+				if (Math.random() < .25) { keys ^= MakoConstants.KEY_B; }
+				view.vm.keys = keys;
+			}
 			view.repaint();
 			try { Thread.sleep(10); }
 			catch(InterruptedException ie) {}

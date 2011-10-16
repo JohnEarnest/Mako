@@ -118,6 +118,12 @@ public class MakoRom implements MakoConstants {
 		types.set(index, type);
 	}
 
+	public void swapType(Type before, Type after) {
+		for(int z = 0; z < types.size(); z++) {
+			if (types.get(z) == before) { setType(z, after); }
+		}
+	}
+
 	public void add(int value, Type type) {
 		data.add(value);
 		types.add(type);
