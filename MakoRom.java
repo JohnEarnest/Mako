@@ -28,6 +28,67 @@ public class MakoRom implements MakoConstants {
 		}
 	}
 
+	public MakoRom(String filename, String symbols) {
+		try {
+			Scanner core = new Scanner(new File(filename));
+			while(core.hasNextInt()) { add(core.nextInt(), Type.Unknown); }
+
+			Scanner sym = new Scanner(new File(symbols));
+			while(sym.hasNextLine()) {
+				Scanner line = new Scanner(sym.nextLine());
+				int address = line.nextInt();
+				String type = line.next();
+				Type typeVal;
+				if      ("code".equals(type))    { typeVal = Type.Code; }
+				else if ("data".equals(type))    { typeVal = Type.Data; }
+				else if ("array".equals(type))   { typeVal = Type.Array; }
+				else if ("string".equals(type))  { typeVal = Type.String; }
+				else if ("image".equals(type))   { typeVal = Type.Image; }
+				else if ("unknown".equals(type)) { typeVal = Type.Unknown; }
+				else { throw new Error("unknown type '"+type+"'"); }
+				setType(address, typeVal);
+
+				if (line.hasNext()) {
+					String label = line.next();
+					label(label, address);
+				}
+			}
+		}
+		catch(IOException e) {
+			throw new Error("Unable to open core and symbol files.");
+		}
+	}
+
+	public void write(String filename, boolean packed, boolean symbols) {
+		try {
+			if (packed) {
+				DataOutputStream out = new DataOutputStream(new FileOutputStream(filename+".rom"));
+				for(int x : data) { out.writeInt(x); }
+				out.close();
+			}
+			else {
+				PrintWriter out = new PrintWriter(new File(filename+".rom"));
+				for(int x : data) { out.println(x); }
+				out.close();
+			}
+			if (symbols) {
+				PrintWriter out = new PrintWriter(new File(filename+".sym"));
+				for(int x = 0; x < types.size(); x++) {
+					String type = "";
+					if      (types.get(x) == Type.Code)    { type = "code"; }
+					else if (types.get(x) == Type.Data)    { type = "data"; }
+					else if (types.get(x) == Type.Array)   { type = "array"; }
+					else if (types.get(x) == Type.String)  { type = "string"; }
+					else if (types.get(x) == Type.Image)   { type = "image"; }
+					else if (types.get(x) == Type.Unknown) { type = "unknwon"; }
+					out.format("%d %s %s", x, type, getLabel(x));
+				}
+				out.close();
+			}
+		}
+		catch(IOException ioe) { ioe.printStackTrace(); }
+	}
+
 	public MakoRom copy() {
 		MakoRom ret = new MakoRom();
 		ret.data.addAll(data);
@@ -50,6 +111,10 @@ public class MakoRom implements MakoConstants {
 
 	public void set(int index, int value, Type type) {
 		data.set(index, value);
+		types.set(index, type);
+	}
+
+	public void setType(int index, Type type) {
 		types.set(index, type);
 	}
 

@@ -21,6 +21,7 @@ public class Maker implements MakoConstants {
 		boolean run = false;
 		boolean standalone = false;
 		boolean packed = false;
+		boolean symbols = false;
 		if (argList.contains("--run")) {
 			run = true;
 			argList.remove("--run");
@@ -33,7 +34,10 @@ public class Maker implements MakoConstants {
 			packed = true;
 			argList.remove("--packed");
 		}
-
+		if (argList.contains("--symbols")) {
+			symbols = true;
+			argList.remove("--symbols");
+		}
 		Maker compiler = new Maker();
 		compiler.compile(argList.get(0), standalone);
 
@@ -48,21 +52,37 @@ public class Maker implements MakoConstants {
 			compiler.rom.disassemble(System.out);
 		}
 		if (argList.size() > 1) {
+			compiler.rom.write(argList.get(1), packed, symbols);
+		}
+		if (run) {
+			int[] mem = compiler.rom.toArray();
 			try {
-				if (packed) {
-					DataOutputStream out = new DataOutputStream(new FileOutputStream(argList.get(1)));
-					for(int x : compiler.rom.toArray()) { out.writeInt(x); }
+				Mako.exec(mem);
+			}
+			catch(Throwable t) {
+				System.out.println("Runtime Error: " + t.getMessage());
+				System.out.println("Analyzing and dumping core...");
+
+				try {
+					PrintWriter out = new PrintWriter(new File(argList.get(0) + ".coredump"));
+					for(int x : mem) { out.println(x); }
 					out.close();
+					System.out.println("Wrote '"+argList.get(0) + ".coredump'.");
+	
+					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".before")));
+					System.out.println("Wrote '"+argList.get(0) + ".before'.");
+					
+					for(int x = 0; x < mem.length; x++) {
+						compiler.rom.set(x, mem[x]);
+					}
+					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".after")));
+					System.out.println("Wrote '"+argList.get(0) + ".after'.");
 				}
-				else {
-					PrintWriter out = new PrintWriter(new File(argList.get(1)));
-					for(int x : compiler.rom.toArray()) { out.println(x); }
-					out.close();
+				catch(FileNotFoundException e) {
+					e.printStackTrace();
 				}
 			}
-			catch(IOException ioe) { ioe.printStackTrace(); }
 		}
-		if (run) { Mako.exec(compiler.rom.toArray()); }
 	}
 
 	public MakoRom compile(String filename, boolean standalone) {
