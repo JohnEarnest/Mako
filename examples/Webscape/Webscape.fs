@@ -283,10 +283,18 @@
 	then
 ;
 
+:string ps1 "   You posted an eloquent missive."
+:string ps2 " You made an extremely clever joke."
+:string ps3 " You show your keen grasp of trivia."
+:string ps4 "  You made an insightful comment."
+:string ps5 " You corrected an error in grammar."
+:data post-succeed ps1 ps2 ps3 ps4 ps5
+:const post-succeed-count 5
+
 : post
 	difficulty 20 * work
 	RN @ 100 mod 90 < if
-		"   You posted an eloquent missive." message
+		post-succeed post-succeed-count random-message
 		site @ myposts + inc@
 		difficulty give-cred
 	else
