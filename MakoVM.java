@@ -87,7 +87,7 @@ public class MakoVM implements MakoConstants {
 
 	private void stor(int addr, int value) {
 		if (addr == CO) { System.out.print((char)value); return; }
-		if (addr == AU) {
+		if (addr == AU && soundLine != null) {
 			abuffer[apointer++] = (byte)value;
 			apointer %= abuffer.length;
 			if (apointer == 0) {

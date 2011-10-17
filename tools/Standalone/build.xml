@@ -1,0 +1,38 @@
+<!--
+	MakoVM standalone executable build script
+
+	To use this script, simply compile a MakoVM rom file
+	using Maker or some other tool and place it in this
+	directory. Note that it is not necessary to use the
+	"packed" export option.
+-->
+<project name="Mako" default="build-jar">
+
+	<target name="stage">
+		<delete dir="build" />
+		<mkdir  dir="build" />
+		<copy  file= "../../Mako.java"          todir="build" />
+		<copy  file= "../../MakoVM.java"        todir="build" />
+		<copy  file= "../../MakoConstants.java" todir="build" />
+		<copy  file= "Data.rom" todir="build" />
+	</target>
+
+	<target name="compile" depends="stage">
+		<javac	srcdir="."
+				destdir="build"
+				debug="on"
+				debuglevel="lines,vars,source"
+				includeantruntime="false"
+				deprecation="on"
+		/>
+	</target>
+
+	<target name="build-jar" depends="compile" >
+		<jar destfile="Mako.jar" basedir="build">
+			<manifest>
+				<attribute name="Main-Class" value="Mako"/>
+			</manifest>
+		</jar>
+	</target>
+
+</project>
