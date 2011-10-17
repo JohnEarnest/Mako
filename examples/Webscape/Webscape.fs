@@ -59,8 +59,6 @@
 :string name6 "NewGrounds.com"
 :string name7 "    MTU.edu"
 :string name8 " CogNation.org"
-
-:data diffs 1     3     1     1     2     1     1     2
 :data names name1 name2 name3 name4 name5 name6 name7 name8
 :const namecount 8
 
@@ -70,7 +68,6 @@
 :data button-labels b1 b2 b3
 :const buttoncount 3
 
-:string mar0 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 :string mar1 "Cats, Cats and more Cats! The official online home of anybody who Loooves cats! "
 :string mar2 "Red Potatoes Russet Potatoes Mashed Potatoes Yukon Gold Potatoes POTATOOOOOES.  "
 :string mar3 "Wikiphilia: The Consent-Free Online Encyclopedia anyone can edit.       Anyone. "
@@ -81,6 +78,8 @@
 :string mar8 "Main theme: Tedium        Special Bonus Theme: The Michigan Tech Experience     "
 :data marquees mar1 mar2 mar3 mar4 mar5 mar6 mar7 mar8
 
+:data  sdiff   1 3 1 1 2 1 1 2 # initial star ratings
+:array diffs   8 0 # the star-rating of each website
 :array posts   8 0 # how many posts were made since last refresh?
 :array myposts 8 0 # have I made a post here?
 
@@ -95,30 +94,9 @@
 
 ##############################################
 #
-# utility routines that should be elsewhere:
+# utility routines:
 #
 ##############################################
-: draw-number (x y n -- )
-	>r
-	loop
-		2dup tile-grid@ i 10 mod 112 + swap ! # draw digit
-		swap 1 - swap                         # move cursor
-		r> 10 / >r i                          # cast out digits
-	while
-	2drop r> drop
-;
-
-:data ascii -32
-: grid-type (x y addr -- )
-	>r tile-grid@ r> swap
-	loop
-		(string grid)
-		over @ ascii @ + over !
-		swap 1 + swap 1 +
-		over @
-	while
-	2drop
-;
 
 : light-text -32 ascii ! ;
 : dark-text   64 ascii ! ;
@@ -129,23 +107,9 @@
 	loop keys key-a and -if break then sync again
 ;
 
-##############################################
-#
-# time management
-#
-##############################################
-: timesup
-	seconds @ 0 <=
-	minutes @ 0 <=
-	and
-;
-
-: draw-time
-	1 28 tile-grid@ 2 112 fill
-	2 28 minutes @ draw-number
-	4 28 tile-grid@ 2 112 fill
-	5 28 seconds @ draw-number
-;
+: difficulty site @ diffs   + @ ;
+: site-posts site @ posts   + @ ;
+: site-mine  site @ myposts + @ ;
 
 ##############################################
 #
@@ -153,7 +117,22 @@
 #
 ##############################################
 
+: timesup
+	seconds @ 0 <=
+	minutes @ 0 <=
+	and
+;
+
+: draw-time
+	dark-text
+	1 28 tile-grid@ 2 112 fill
+	2 28 minutes @ draw-number
+	4 28 tile-grid@ 2 112 fill
+	5 28 seconds @ draw-number
+;
+
 : draw-cred
+	dark-text
 	20 28 tile-grid@ 15 96 fill
 	33 28 cred @ draw-number
 ;
@@ -171,10 +150,13 @@
 : this-diff  site @ diffs + @ ;
 
 : draw-sites
+	# site images
 	64x64 prevsite  24 64 0 >sprite
 	64x64 site @   128 64 1 >sprite
 	64x64 nextsite 232 64 2 >sprite
 	
+	# site names
+	light-text
 	13 5 tile-grid@ 20 32 fill
 	13 5 site @ names + @ grid-type
 	
@@ -204,13 +186,24 @@
 		i button @ xor -if dark-text else light-text then
 		14 21 i + i button-labels + @ grid-type
 	next
-	light-text
 ;
 
 : erase-buttons
 	7 for
 		1 18 i + tile-grid@ 38 0 fill
 	next
+;
+
+: message ( string -- )
+	erase-buttons
+	light-text
+	2 swap 22 swap grid-type
+	wait
+	erase-buttons
+;
+
+: random-message ( table count -- )
+	RN @ swap mod + @ message
 ;
 
 ##############################################
@@ -224,8 +217,6 @@
 	RN @ 100 mod 95 > if
 		RN @ namecount mod
 		dup posts   + inc@
-		
-		# if you've posted there, you get a bonus.
 		dup myposts + @ if
 			posts + inc@
 		else
@@ -233,12 +224,14 @@
 		then
 	then
 
+	# update seconds
 	draw-time
 	timesup if exit then
 	sect @ 1 - dup 0 > if sect ! exit then
 	drop 30 sect !
-	
 	seconds dec@
+
+	# update minutes
 	timesup if exit then
 	seconds @ 1 < if
 		minutes dec@
@@ -246,48 +239,21 @@
 	then
 ;
 
-: reset-game
-	light-text
-	
-	0 site   !
-	0 button !
-	0 cred   !
-	draw-cred
-	
-	 5 minutes !
-	 0 seconds !
-	draw-time
-	
-	posts   namecount 0 fill
-	myposts namecount 0 fill
+: delay
+	loop clock sync KY @ while
 ;
 
 : work ( time -- )
 	erase-buttons
-	14 22 "WORKING." grid-type
+	light-text 14 22 "WORKING." grid-type
 	dup for draw-marquee clock sync next
-	14 22 "WORKING.." grid-type
+	light-text 14 22 "WORKING.." grid-type
 	dup for draw-marquee clock sync next
-	14 22 "WORKING..." grid-type	
+	light-text 14 22 "WORKING..." grid-type	
 	dup for draw-marquee clock sync next
-	14 22 "WORKING...." grid-type
+	light-text 14 22 "WORKING...." grid-type
 	    for draw-marquee clock sync next
 	erase-buttons
-;
-
-: message ( string -- )
-	erase-buttons
-	2 swap 22 swap grid-type
-	wait
-	erase-buttons
-;
-
-: difficulty site @ diffs   + @ ;
-: site-posts site @ posts   + @ ;
-: site-mine  site @ myposts + @ ;
-
-: random-message ( table count -- )
-	RN @ swap mod + @ message
 ;
 
 :string mf1 "Your brilliant advice went unheeded."
@@ -335,10 +301,14 @@
 		site-mine 0 > if
 			"         You got a reply!" message
 		else
-			"The fools have not read your message." message
+			" New posts are mildly entertaining." message
 		then
 	else
-		"   No posts since your last visit." message
+		site-mine 0 > if
+			"The fools have not read your message." message
+		else
+			"   No posts since your last visit." message
+		then
 	then
 	site-posts difficulty * give-cred
 	0 site @ posts   + !
@@ -347,32 +317,41 @@
 
 :data buttonlogic post read moderate
 
-: delay loop clock sync KY @ while ;
+: reset-game
+	0 site   !
+	0 button !
+	0 cred   !
+	draw-cred
+	
+	 5 minutes !
+	 0 seconds !
+	draw-time
+	
+	posts       namecount 0 fill
+	myposts     namecount 0 fill
+	sdiff diffs namecount >move
+	"        Press space to begin. " message
+;
 
 : main
 	reset-game
-	" Press space to begin. " message
 	
 	loop
 		draw-sites
 		draw-marquee
 		draw-buttons
 		
-		KY @ dup dup dup
-		key-lf and if prevsite site !     delay then
-		key-rt and if nextsite site !     delay then
-		key-up and if prevbutton button ! delay then
-		key-dn and if nextbutton button ! delay then
-		
-		KY @ key-a and if button @ buttonlogic + @ exec then
+		KY @ dup dup dup dup
+		key-lf and if prevsite site !     delay     then
+		key-rt and if nextsite site !     delay     then
+		key-up and if prevbutton button ! delay     then
+		key-dn and if nextbutton button ! delay     then
+		key-a  and if button @ buttonlogic + @ exec then
 
 		timesup if
 			draw-time
-			0 give-cred
-			erase-buttons
-			15 22 "OUTTATIME!" grid-type
-			wait
-			erase-buttons
+			draw-cred
+			"             OUTTATIME!" message
 			reset-game
 		then
 		
