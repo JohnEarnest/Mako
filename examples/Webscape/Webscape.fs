@@ -79,9 +79,9 @@
 :data marquees mar1 mar2 mar3 mar4 mar5 mar6 mar7 mar8
 
 :data  sdiff   1 3 1 1 2 1 1 2 # initial star ratings
-:array diffs   8 0 # the star-rating of each website
-:array posts   8 0 # how many posts were made since last refresh?
-:array myposts 8 0 # have I made a post here?
+:array diffs   namecount 0     # the star-rating of each website
+:array posts   namecount 0     # how many posts were made since last refresh?
+:array myposts namecount 0     # have I made a post here?
 
 :var site
 :var mar

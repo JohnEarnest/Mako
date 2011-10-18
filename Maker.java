@@ -244,8 +244,8 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":array")) {
 			String name = tokens.remove().toString();
-			int count = (Integer)tokens.remove();
-			int value = (Integer)tokens.remove();
+			int count = getConstant(tokens.remove());
+			int value = getConstant(tokens.remove());
 			variables.put(name, rom.size());
 			for(int x = 0; x < count; x++) { rom.add(value, MakoRom.Type.Array); }
 		}
@@ -265,26 +265,15 @@ public class Maker implements MakoConstants {
 		else if (token.equals(":const")) {
 			String constName = tokens.remove().toString();
 			Object constValue = tokens.remove();
-			if (constValue instanceof Integer) {
-				constants.put(constName, (Integer)constValue);
-			}
-			else if (constants.containsKey(constValue.toString())) {
-				constants.put(constName, constants.get(constValue.toString()));
-			}
-			else if (variables.containsKey(constValue.toString())) {
-				constants.put(constName, variables.get(constValue.toString()));
-			}
-			else if (dictionary.containsKey(constValue.toString())) {
-				constants.put(constName, dictionary.get(constValue.toString()));
-			}
+			constants.put(constName, getConstant(constValue));
 		}
 		else if (token.equals(":image")) {
 			String imageName = tokens.remove().toString();
 			String fileName = unquote(tokens.remove().toString());
 			if (path != null) { fileName = path + File.separator + fileName; }
 			variables.put(imageName, rom.size());
-			int tileWidth  = (Integer)tokens.remove();
-			int tileHeight = (Integer)tokens.remove();
+			int tileWidth  = getConstant(tokens.remove());
+			int tileHeight = getConstant(tokens.remove());
 			rom.addImage(fileName, tileWidth, tileHeight);
 		}
 		else if (token.equals(":include")) {
@@ -449,6 +438,14 @@ public class Maker implements MakoConstants {
 		else {
 			throw new Error("Unknown word '"+token+"'");
 		}
+	}
+
+	private int getConstant(Object o) {
+		if (o instanceof Integer) { return (Integer)o; }
+		if ( constants.containsKey(o.toString())) { return  constants.get(o.toString()); }
+		if ( variables.containsKey(o.toString())) { return  variables.get(o.toString()); }
+		if (dictionary.containsKey(o.toString())) { return dictionary.get(o.toString()); }
+		throw new Error("Unknown constant '"+o+"'");
 	}
 
 	public void disassemble(String word) {
