@@ -8,22 +8,20 @@ import java.awt.image.MemoryImageSource;
 public class Mako {
 
 	public static void main(String[] args) {
-
 		String romFile = "Data.rom";
 
-		ArrayList<Integer> rom = new ArrayList<Integer>();
-		ClassLoader loader = new Mako().getClass().getClassLoader();
-		Scanner in = new Scanner(loader.getResourceAsStream(romFile));
-		while(in.hasNextInt()) {
-			rom.add(in.nextInt());
+		try {
+			DataInputStream in = new DataInputStream(new FileInputStream(romFile));
+			int[] rom = new int[in.available() / 4];
+			for(int x = 0; x < rom.length; x++) {
+				rom[x] = in.readInt();
+			}
+			exec(rom, false);
 		}
-		in.close();
-
-		int[] code = new int[rom.size()];
-		for(int x = 0; x < rom.size(); x++) {
-			code[x] = rom.get(x);
+		catch(IOException ioe) {
+			System.out.println("Unable to load '"+romFile+"'.");
+			System.exit(0);
 		}
-		exec(code);
 	}
 
 	public static void exec(int[] rom) {

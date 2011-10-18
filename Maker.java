@@ -22,7 +22,6 @@ public class Maker implements MakoConstants {
 		boolean run        = pluckArg(argList, "--run");
 		boolean fuzz       = pluckArg(argList, "--fuzz");
 		boolean standalone = pluckArg(argList, "--standalone");
-		boolean packed     = pluckArg(argList, "--packed");
 		boolean symbols    = pluckArg(argList, "--symbols");
 
 		Maker compiler = new Maker();
@@ -39,7 +38,7 @@ public class Maker implements MakoConstants {
 			compiler.rom.disassemble(System.out);
 		}
 		if (argList.size() > 1) {
-			compiler.rom.write(argList.get(1), packed, symbols);
+			compiler.rom.write(argList.get(1), symbols);
 		}
 		if (run) {
 			int[] mem = compiler.rom.toArray();
@@ -51,21 +50,17 @@ public class Maker implements MakoConstants {
 				System.out.println("Analyzing and dumping core...");
 
 				try {
-					PrintWriter out = new PrintWriter(new File(argList.get(0) + ".coredump"));
-					for(int x : mem) { out.println(x); }
-					out.close();
-					System.out.println("Wrote '"+argList.get(0) + ".coredump'.");
-
 					// we want to be able to see any significant differences,
 					// so we should ungroup array data like the stacks:
 					compiler.rom.swapType(MakoRom.Type.Array, MakoRom.Type.Data);
 
 					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".before")));
 					System.out.println("Wrote '"+argList.get(0) + ".before'.");
-					
-					for(int x = 0; x < mem.length; x++) {
-						compiler.rom.set(x, mem[x]);
-					}
+
+					for(int x = 0; x < mem.length; x++) { compiler.rom.set(x, mem[x]); }
+					compiler.rom.write(argList.get(0) + ".coredump", false);
+					System.out.println("Wrote '"+argList.get(0) + ".coredump'.");
+
 					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".after")));
 					System.out.println("Wrote '"+argList.get(0) + ".after'.");
 				}

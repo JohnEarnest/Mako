@@ -19,8 +19,8 @@ public class MakoRom implements MakoConstants {
 	public MakoRom(String filename) {
 		label("base rom", 0);
 		try {
-			Scanner in = new Scanner(new File(filename));
-			while(in.hasNextInt()) { add(in.nextInt(), Type.Array); }
+			DataInputStream in = new DataInputStream(new FileInputStream("Data.rom"));
+			while(in.available() > 0) { add(in.readInt(), Type.Array); }
 			in.close();
 		}
 		catch(IOException e) {
@@ -29,10 +29,8 @@ public class MakoRom implements MakoConstants {
 	}
 
 	public MakoRom(String filename, String symbols) {
+		this(filename);
 		try {
-			Scanner core = new Scanner(new File(filename));
-			while(core.hasNextInt()) { add(core.nextInt(), Type.Unknown); }
-
 			Scanner sym = new Scanner(new File(symbols));
 			while(sym.hasNextLine()) {
 				Scanner line = new Scanner(sym.nextLine());
@@ -53,26 +51,21 @@ public class MakoRom implements MakoConstants {
 					label(label, address);
 				}
 			}
+			sym.close();
 		}
 		catch(IOException e) {
-			throw new Error("Unable to open core and symbol files.");
+			throw new Error("Unable to open symbol file!");
 		}
 	}
 
-	public void write(String filename, boolean packed, boolean symbols) {
+	public void write(String filename, boolean symbols) {
 		try {
-			if (packed) {
-				DataOutputStream out = new DataOutputStream(new FileOutputStream(filename+".rom"));
-				for(int x : data) { out.writeInt(x); }
-				out.close();
-			}
-			else {
-				PrintWriter out = new PrintWriter(new File(filename+".rom"));
-				for(int x : data) { out.println(x); }
-				out.close();
-			}
+			DataOutputStream out = new DataOutputStream(new FileOutputStream(filename+".rom"));
+			for(int x : data) { out.writeInt(x); }
+			out.close();
+
 			if (symbols) {
-				PrintWriter out = new PrintWriter(new File(filename+".sym"));
+				PrintWriter sym = new PrintWriter(new File(filename+".sym"));
 				for(int x = 0; x < types.size(); x++) {
 					String type = "";
 					if      (types.get(x) == Type.Code)    { type = "code"; }
@@ -81,9 +74,9 @@ public class MakoRom implements MakoConstants {
 					else if (types.get(x) == Type.String)  { type = "string"; }
 					else if (types.get(x) == Type.Image)   { type = "image"; }
 					else if (types.get(x) == Type.Unknown) { type = "unknwon"; }
-					out.format("%d %s %s", x, type, getLabel(x));
+					sym.format("%d %s %s", x, type, getLabel(x));
 				}
-				out.close();
+				sym.close();
 			}
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); }
