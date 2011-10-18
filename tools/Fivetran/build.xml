@@ -1,0 +1,42 @@
+<!--
+	FiveTran build script
+
+	This will prepare the FiveTran 'base rom' and
+	build the FiveTran compiler itself.
+-->
+<project name="Mako" default="compile">
+
+	<target name="clean">
+		<delete file="Mako.java" />
+		<delete file="MakoVM.java" />
+		<delete file="MakoRom.java" />
+		<delete file="MakoConstants.java" />
+		<delete>
+			<fileset dir="."    includes="*.class"/>
+			<fileset dir="base" includes="*.rom"/>
+		</delete>
+	</target>
+
+	<target name="stage" depends="clean">
+		<copy  file= "../../Mako.java"          todir="." />
+		<copy  file= "../../MakoVM.java"        todir="." />
+		<copy  file= "../../MakoRom.java"       todir="." />
+		<copy  file= "../../MakoConstants.java" todir="." />
+		<java
+			classname="Maker"
+			classpath="../../"
+		>
+			<arg line="base/BaseRom.fs base/BaseRom"/>
+		</java>
+	</target>
+
+	<target name="compile" depends="stage">
+		<javac	srcdir="."
+				destdir="."
+				debug="on"
+				debuglevel="lines,vars,source"
+				includeantruntime="false"
+				deprecation="on"
+		/>
+	</target>
+</project>

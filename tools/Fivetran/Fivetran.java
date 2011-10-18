@@ -4,10 +4,10 @@ import java.io.*;
 public class Fivetran implements MakoConstants {
 	
 	public static final int REGISTERS        =    0;
-	public static final int PRINT_SUBROUTINE =   41;
-	public static final int INPUT_SUBROUTINE =   77;
-	public static final int GRID             = 6361;
-	public static final int SPRITES          = 7632;
+	public static final int PRINT_SUBROUTINE =   42;
+	public static final int INPUT_SUBROUTINE =   78;
+	public static final int GRID             = 6362;
+	public static final int SPRITES          = 7633;
 
 	List<Formula>         program   = new ArrayList<Formula>();
 	Map<Integer, Formula> formulas  = new HashMap<Integer, Formula>();
@@ -83,7 +83,8 @@ public class Fivetran implements MakoConstants {
 	private MakoRom compile() {
 		// load the 'base' rom with various mandatory
 		// library functions and memory regions.
-		MakoRom rom = new MakoRom("BaseRom.bin");
+		MakoRom rom = new MakoRom("base/BaseRom.rom");
+		rom.label("base rom", 0);
 
 		// lay down all referenced variables.
 		for(Variable v : variables.values()) {

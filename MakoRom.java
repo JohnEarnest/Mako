@@ -17,9 +17,8 @@ public class MakoRom implements MakoConstants {
 	}
 
 	public MakoRom(String filename) {
-		label("base rom", 0);
 		try {
-			DataInputStream in = new DataInputStream(new FileInputStream("Data.rom"));
+			DataInputStream in = new DataInputStream(new FileInputStream(filename));
 			while(in.available() > 0) { add(in.readInt(), Type.Array); }
 			in.close();
 		}
