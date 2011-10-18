@@ -18,31 +18,13 @@ public class Maker implements MakoConstants {
 
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
-		boolean run = false;
-		boolean fuzz = false;
-		boolean standalone = false;
-		boolean packed = false;
-		boolean symbols = false;
-		if (argList.contains("--run")) {
-			run = true;
-			argList.remove("--run");
-		}
-		if (argList.contains("--fuzz")) {
-			fuzz = true;
-			argList.remove("--fuzz");
-		}
-		if (argList.contains("--standalone")) {
-			standalone = true;
-			argList.remove("--standalone");
-		}
-		if (argList.contains("--packed")) {
-			packed = true;
-			argList.remove("--packed");
-		}
-		if (argList.contains("--symbols")) {
-			symbols = true;
-			argList.remove("--symbols");
-		}
+
+		boolean run        = pluckArg(argList, "--run");
+		boolean fuzz       = pluckArg(argList, "--fuzz");
+		boolean standalone = pluckArg(argList, "--standalone");
+		boolean packed     = pluckArg(argList, "--packed");
+		boolean symbols    = pluckArg(argList, "--symbols");
+
 		Maker compiler = new Maker();
 		compiler.compile(argList.get(0), standalone);
 
@@ -92,6 +74,14 @@ public class Maker implements MakoConstants {
 				}
 			}
 		}
+	}
+
+	private static boolean pluckArg(List<String> argList, String name) {
+		if (argList.contains(name)) {
+			argList.remove(name);
+			return true;
+		}
+		return false;
 	}
 
 	public MakoRom compile(String filename, boolean standalone) {

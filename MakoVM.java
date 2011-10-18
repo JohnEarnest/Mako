@@ -21,9 +21,8 @@ public class MakoVM implements MakoConstants {
 			soundLine.open(format, 32000);
 			soundLine.start();
 		}
-		catch(LineUnavailableException e) {
-			e.printStackTrace();
-		}
+		catch(IllegalArgumentException e) { System.out.println("Unable to initialize sound."); }
+		catch(LineUnavailableException e) { e.printStackTrace(); }
 	}
 
 	private void push(int v)      { m[m[DP]++] = v; }
