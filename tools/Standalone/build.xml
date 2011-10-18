@@ -14,7 +14,7 @@
 		<copy  file= "../../Mako.java"          todir="build" />
 		<copy  file= "../../MakoVM.java"        todir="build" />
 		<copy  file= "../../MakoConstants.java" todir="build" />
-		<copy  file= "Data.rom" todir="build" />
+		<copy  file= "Data.rom"                 todir="build" />
 	</target>
 
 	<target name="compile" depends="stage">
