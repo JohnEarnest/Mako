@@ -4,7 +4,7 @@ import java.util.Random;
 public class MakoVM implements MakoConstants {
 
 	private final Random rand = new Random();
-	public final int[] m;                 // main memory
+	public final int[] m; // main memory
 	public int keys = 0;
 
 	public MakoVM(int[] m) { this.m = m; }
@@ -19,7 +19,7 @@ public class MakoVM implements MakoConstants {
 		while(m[m[PC]] != OP_SYNC) {
 			tick();
 			if (m[PC] == -1) { System.exit(0); }
-                }
+		}
 		m[PC]++;
 	}
 
@@ -68,12 +68,13 @@ public class MakoVM implements MakoConstants {
 	}
 
 	private void drawTile(int tile, int px, int py, Graphics g) {
+		tile &= ~GRID_Z_MASK;
 		if (tile < 0) { return; }
 		int i = m[GT] + (tile * 8 * 8);
-                g.drawRGB(m, i, 8, px, py, 8, 8, true);
+		g.drawRGB(m, i, 8, px, py, 8, 8, true);
 	}
 
-        private final int[] s = new int[4096]; // sprite buffer
+	private final int[] s = new int[4096]; // sprite buffer
 	private void drawSprite(int tile, int status, int px, int py, Graphics g) {
 		if (status % 2 == 0) { return; }
 		final int w = (((status & 0x0F00) >>  8) + 1) << 3;
@@ -89,27 +90,30 @@ public class MakoVM implements MakoConstants {
 				s[x + (y * 64)] = m[i++];
 			}
 		}
-                g.drawRGB(s, 0, 64, px, py, w, h, true);
+		g.drawRGB(s, 0, 64, px, py, w, h, true);
+	}
+
+	private void drawGrid(boolean hiz, int scrollx, int scrolly, Graphics g) {
+		int i = m[GP];
+		for(int y = 0; y < 31; y++) {
+			for(int x = 0; x < 41; x++) {
+				if (!hiz && (m[i] & GRID_Z_MASK) != 0) { i++; continue; }
+				if ( hiz && (m[i] & GRID_Z_MASK) == 0) { i++; continue; }
+				drawTile(m[i++], x*8 - scrollx, y*8 - scrolly, g);
+			}
+			i += m[GS];
+		}
 	}
 
 	public void sync(Graphics g) {
 		final int scrollx = m[SX];
 		final int scrolly = m[SY];
 
-                // clear screen
-                g.setColor(m[CL]);
-                g.fillRect(0, 0, 320, 240);
+		// clear screen
+		g.setColor(m[CL]);
+		g.fillRect(0, 0, 320, 240);
 
-                // draw grid
-		int i = m[GP];
-		for(int y = 0; y < 31; y++) {
-			for(int x = 0; x < 41; x++) {
-				drawTile(m[i++], x*8 - scrollx, y*8 - scrolly, g);
-			}
-			i += m[GS];
-		}
-
-                // draw sprites
+		drawGrid(false, scrollx, scrolly, g);
 		for(int sprite = 0; sprite < 1024; sprite += 4) {
 			final int status = m[m[SP] + sprite    ];
 			final int tile   = m[m[SP] + sprite + 1];
@@ -117,5 +121,6 @@ public class MakoVM implements MakoConstants {
 			final int py     = m[m[SP] + sprite + 3];
 			drawSprite(tile, status, px - scrollx, py - scrolly, g);
 		}
+		drawGrid(true, scrollx, scrolly, g);
 	}
 }
