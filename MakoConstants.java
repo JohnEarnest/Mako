@@ -52,6 +52,7 @@ public interface MakoConstants {
 
 	public static final int H_MIRROR_MASK = 0x10000; // sprite is mirrored horizontally?
 	public static final int V_MIRROR_MASK = 0x20000; // sprite is mirrored vertically?
+	public static final int GRID_Z_MASK = 0x80000000; // grid tile is drawn above sprites?
 
 	public static final int KEY_UP = 0x01;
 	public static final int KEY_RT = 0x02;

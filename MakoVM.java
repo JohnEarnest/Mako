@@ -128,17 +128,23 @@ public class MakoVM implements MakoConstants {
 		}
 	}
 
-	private void sync() {
-		final int scrollx = m[SX];
-		final int scrolly = m[SY];
-		java.util.Arrays.fill(p, m[CL]);
+	private void drawGrid(boolean hiz, int scrollx, int scrolly) {
 		int i = m[GP];
 		for(int y = 0; y < 31; y++) {
 			for(int x = 0; x < 41; x++) {
+				if (!hiz && (m[i] & GRID_Z_MASK) != 0) { i++; continue; }
+				if ( hiz && (m[i] & GRID_Z_MASK) == 0) { i++; continue; }
 				drawTile(m[i++], x*8 - scrollx, y*8 - scrolly);
 			}
 			i += m[GS];
 		}
+	}
+
+	private void sync() {
+		final int scrollx = m[SX];
+		final int scrolly = m[SY];
+		java.util.Arrays.fill(p, m[CL]);
+		drawGrid(false, scrollx, scrolly);
 		for(int sprite = 0; sprite < 1024; sprite += 4) {
 			final int status = m[m[SP] + sprite    ];
 			final int tile   = m[m[SP] + sprite + 1];
@@ -146,5 +152,6 @@ public class MakoVM implements MakoConstants {
 			final int py     = m[m[SP] + sprite + 3];
 			drawSprite(tile, status, px - scrollx, py - scrolly);
 		}
+		drawGrid(true, scrollx, scrolly);
 	}
 }
