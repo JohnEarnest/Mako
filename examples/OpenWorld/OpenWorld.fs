@@ -43,7 +43,10 @@
 			j grid-height @ 1 - =
 			or or or
 			if    2 random 2 +
-			else  4 random 5 random 16 * + 4 + then
+			else
+				10 random 2 < if 10 grid-z or
+				else 4 random 5 random 16 * + 4 + then
+			then
 			i j tile-grid@ !
 		next
 	next

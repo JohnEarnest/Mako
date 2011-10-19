@@ -109,6 +109,7 @@ public class Maker implements MakoConstants {
 
 		constants.put("sprite-mirror-horiz", H_MIRROR_MASK);
 		constants.put("sprite-mirror-vert",  V_MIRROR_MASK);
+		constants.put("grid-z",              GRID_Z_MASK);
 
 		constants.put("true", -1);
 		constants.put("false", 0);

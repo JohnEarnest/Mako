@@ -103,6 +103,7 @@ public class MakoVM implements MakoConstants {
 	}
 
 	private void drawTile(int tile, int px, int py) {
+		tile &= ~GRID_Z_MASK;
 		if (tile < 0) { return; }
 		int i = m[GT] + (tile * 8 * 8);
 		for(int y = 0; y < 8; y++) {
