@@ -46,7 +46,8 @@ public class Maker implements MakoConstants {
 				Mako.exec(mem, fuzz);
 			}
 			catch(Throwable t) {
-				System.out.println("Runtime Error: " + t.getMessage());
+				System.out.println("Runtime Error: ");
+				t.printStackTrace();
 				System.out.println("Analyzing and dumping core...");
 
 				try {
@@ -405,6 +406,9 @@ public class Maker implements MakoConstants {
 				rom.addConst(-5);
 			}
 			else {
+				if (!dictionary.containsKey(methodName)) {
+					throw new Error("Unknown word quoted '"+methodName+"'");
+				}
 				rom.addConst(dictionary.get(methodName));
 			}
 		}

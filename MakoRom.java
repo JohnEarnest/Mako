@@ -97,6 +97,10 @@ public class MakoRom implements MakoConstants {
 		return labels.get(name);
 	}
 
+	public int get(int address) {
+		return data.get(address);
+	}
+
 	public void set(int index, int value) {
 		data.set(index, value);
 	}
