@@ -14,6 +14,7 @@
 :include "../Grid.fs"
 :include "../Sprites.fs"
 :include "../Print.fs"
+:include "../String.fs"
 :include "../Util.fs"
 :include "../Math.fs"
 :include "Entities.fs"
@@ -62,12 +63,20 @@
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 
 
-:const player     0
-:const bomb       8
-:const explosion 12
-:const bubbles   16
+:const player       0
+:const bomb         8
+:const explosion   12
+:const bubbles     16
+:const monsters    20
+:const player-gibs 28
+
+:const blastradius 32
+:const killradius  16
 
 :var dropped
+:var gameover
+:var direction
+:var dirtimer
 
 ######################################################
 ##
@@ -94,6 +103,11 @@
 		i 22 tile-grid@ !
 	next
 	wave @ wave-height + @ player py!
+
+	direction @ dirtimer +@
+	dirtimer @ dup 1 < swap 6 > or if
+		direction neg@
+	then
 ;
 
 ######################################################
@@ -115,11 +129,52 @@
 
 ######################################################
 ##
+## Game over animations
+##
+######################################################
+
+: show-gameover
+	1 1 tile-grid@ 38 0 fill
+	16 1 "THE  END" grid-type
+;
+
+: sink-player
+	dup py 240 > if free show-gameover exit then
+	wave-timer @ 8 mod if drop exit then
+	dup sprite@ .sprite-y inc@
+	wave-timer @ 32 mod if drop exit then
+	sprite@ .sprite-x brownian swap +@
+;
+
+: sink-hat
+	wave-timer @ 16 mod if drop exit then
+	dup sprite@ .sprite-y inc@
+	wave-timer @ 32 mod if drop exit then
+	sprite@ .sprite-x brownian swap +@
+;
+
+: capsize
+	gameover @ if exit then
+	true gameover !
+	2 player tile!
+	20 for waves think sync next
+	1 player tile!
+	20 for waves think sync next
+	2 player tile!
+	20 for waves think sync next
+	3 player tile!
+	player-gibs     12 5 player spawn ' sink-player type!
+	player-gibs 1 + 12 5 player spawn ' sink-hat    type!
+;
+
+######################################################
+##
 ## Core game logic
 ##
 ######################################################
 
 : move-player
+	gameover @ if exit then
 	keys dup
 	key-lf and if player px 2 - player px! then
 	key-rt and if player px 2 + player px! then
@@ -134,6 +189,43 @@
 	dup sprite@ .sprite-x brownian swap +@
 	wave-timer @ 32 mod if drop exit then
 	sprite@ .sprite-t 4 random bubbles + swap !
+;
+
+: menace
+	wave-timer @ 32 mod if drop exit then
+	sprite@ .sprite-t dup @ 1 xor swap !
+;
+
+: can-capsize
+	dup  px player px - dup *
+	swap py player py - dup *
+	+ killradius killradius * <
+;
+
+: swim
+	gameover @ if
+		# become braindead:
+		' menace type!
+		exit
+	then
+	dup py 64 < if
+		# kill the player if possible:
+		dup can-capsize if capsize then
+
+		# player seeking behavior:
+		wave-timer @ 8 mod if drop exit then
+		dup py 40 > if dup sprite@ .sprite-y dec@ then
+		dup px player px < if  2 over sprite@ .sprite-x +@ then
+		dup px player px > if -2 over sprite@ .sprite-x +@ then
+		menace
+	else
+		# normal swimming behavior:
+		wave-timer @ 4 mod if drop exit then
+		direction @ over sprite@ .sprite-x +@
+		wave-timer @ 16 mod if drop exit then
+		dup sprite@ .sprite-y dec@
+		menace
+	then
 ;
 
 : sink
@@ -162,6 +254,16 @@
 	dropped !
 ;
 
+: in-radius
+	dup  px dropped @ px - dup *
+	swap py dropped @ py - dup *
+	+ blastradius blastradius * <
+;
+
+: kill-monster
+	' bubble type!
+;
+
 : detonate
 	dropped @ ' explode type!
 	dropped @ 40 timer!
@@ -172,11 +274,13 @@
 		48 random 24 -
 		dropped @ spawn ' bubble type!
 	next
+	' in-radius ' kill-monster whoever
 	0 dropped !
 ;
 
 :var pressed
 : fire
+	gameover @ if exit then
 	keys key-a and if
 		pressed @ -if
 			dropped @
@@ -190,8 +294,24 @@
 	then
 ;
 
+: spawn-wave
+	7 for
+		10 for
+			16x16
+			monsters j 6 mod +
+			i 22 *
+			j 18 * 240 +
+			alloc dup >r >sprite
+			r> ' swim type!
+		next
+	next
+;
+
 : main
-	32x16 0 50 32 player >sprite
+	32x16 0 144 32 player >sprite
+	spawn-wave
+	0 dirtimer  !
+	1 direction !
 
 	loop
 		move-player

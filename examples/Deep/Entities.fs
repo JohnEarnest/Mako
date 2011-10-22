@@ -48,12 +48,12 @@
 	>r >r first-e
 	loop
 		dup i exec over valid and
-		if dup dup j exec then
+		if dup j exec then
 		1 + dup last-e <=
 	while
 	drop r> r> 2drop
 ;
 
 : always     drop true ;
-: apply-type types + @ exec ;
+: apply-type dup types + @ exec ;
 : think      ' always ' apply-type whoever ;
