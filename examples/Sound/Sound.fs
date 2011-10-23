@@ -25,8 +25,10 @@
 : main
 	0 t !
 	loop
-		s3 AU !
-		t @ 1 + t !
+		100 for
+			s3 AU !
+			t @ 1 + t !
+		next
 		sync
 	again
 ;
