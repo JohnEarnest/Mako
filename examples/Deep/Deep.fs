@@ -81,6 +81,9 @@
 ######################################################
 ##
 ## A rolling waves animation
+## 
+## Much of the rest of the game sort of crusted
+## around the wave system as a global timer. hm.
 ##
 ######################################################
 
@@ -94,20 +97,20 @@
 : waves
 	wave-timer @ if wave-timer dec@ exit then
 	50 wave-timer ! wave @ 1 + 8 mod wave !
-	39 for
-		wave @ wave-tiles + @
-		i 5 tile-grid@ !
-		wave @ wave-tiles2 + @
-		i 15 tile-grid@ !
-		wave @ wave-tiles3 + @
-		i 22 tile-grid@ !
-	next
+
+	0  5 tile-grid@ 40 wave @ wave-tiles  + @ fill
+	0 15 tile-grid@ 40 wave @ wave-tiles2 + @ fill
+	0 22 tile-grid@ 40 wave @ wave-tiles3 + @ fill
 	wave @ wave-height + @ player py!
 
 	direction @ dirtimer +@
 	dirtimer @ dup 1 < swap 6 > or if
 		direction neg@
 	then
+;
+
+: wave-time
+	wave-timer @ swap mod if r> 2drop then
 ;
 
 ######################################################
@@ -133,29 +136,55 @@
 ##
 ######################################################
 
-: show-gameover
-	1 1 tile-grid@ 38 0 fill
-	16 1 "THE  END" grid-type
-;
-
 : sink-player
-	dup py 240 > if free show-gameover exit then
-	wave-timer @ 8 mod if drop exit then
+	dup py 240 > if
+		free
+		16 1 "THE  END" grid-type exit
+	then
+	8 wave-time
 	dup sprite@ .sprite-y inc@
-	wave-timer @ 32 mod if drop exit then
+	32 wave-time
 	sprite@ .sprite-x brownian swap +@
 ;
 
 : sink-hat
-	wave-timer @ 16 mod if drop exit then
+	16 wave-time
 	dup sprite@ .sprite-y inc@
-	wave-timer @ 32 mod if drop exit then
+	32 wave-time
 	sprite@ .sprite-x brownian swap +@
+;
+
+: can-capsize
+	dup  px player px - dup *
+	swap py player py - dup *
+	+ killradius killradius * <
+;
+
+: disperse
+	32 wave-time
+	dup px player px >
+	if   dup sprite@ .sprite-x inc@
+	else dup sprite@ .sprite-x dec@ then
+	dup sprite@ .sprite-y inc@
+	sprite@ .sprite-t dup @ 1 xor swap !
+;
+
+:proto seek-player
+:proto swim
+: is-monster
+	dup  types + @ ' seek-player =
+	swap types + @ ' swim        = or
+;
+
+: disperse-monster
+	' disperse type!
 ;
 
 : capsize
 	gameover @ if exit then
 	true gameover !
+	' is-monster ' disperse-monster whoever
+	1 1 tile-grid@ 38 0 fill
 	2 player tile!
 	20 for waves think sync next
 	1 player tile!
@@ -169,63 +198,41 @@
 
 ######################################################
 ##
-## Core game logic
+## Entity scripts
 ##
 ######################################################
 
-: move-player
-	gameover @ if exit then
-	keys dup
-	key-lf and if player px 2 - player px! then
-	key-rt and if player px 2 + player px! then
-	player px 0 max 288 min player px!
-;
-
 : bubble
 	dup py 48 < if free exit then
-	wave-timer @ 4 mod if drop exit then
+	4 wave-time
 	dup sprite@ .sprite-y dec@
-	wave-timer @ 16 mod if drop exit then
+	16 wave-time
 	dup sprite@ .sprite-x brownian swap +@
-	wave-timer @ 32 mod if drop exit then
+	32 wave-time
 	sprite@ .sprite-t 4 random bubbles + swap !
 ;
 
 : menace
-	wave-timer @ 32 mod if drop exit then
+	32 wave-time
 	sprite@ .sprite-t dup @ 1 xor swap !
 ;
 
-: can-capsize
-	dup  px player px - dup *
-	swap py player py - dup *
-	+ killradius killradius * <
+: seek-player
+	dup can-capsize if capsize then
+	8 wave-time
+	dup py 40 > if dup sprite@ .sprite-y dec@ then
+	dup px player px < if 2 else -2 then
+	over sprite@ .sprite-x +@
+	menace
 ;
 
 : swim
-	gameover @ if
-		# become braindead:
-		' menace type!
-		exit
-	then
-	dup py 64 < if
-		# kill the player if possible:
-		dup can-capsize if capsize then
-
-		# player seeking behavior:
-		wave-timer @ 8 mod if drop exit then
-		dup py 40 > if dup sprite@ .sprite-y dec@ then
-		dup px player px < if  2 over sprite@ .sprite-x +@ then
-		dup px player px > if -2 over sprite@ .sprite-x +@ then
-		menace
-	else
-		# normal swimming behavior:
-		wave-timer @ 4 mod if drop exit then
-		direction @ over sprite@ .sprite-x +@
-		wave-timer @ 16 mod if drop exit then
-		dup sprite@ .sprite-y dec@
-		menace
-	then
+	dup py 64 < if ' seek-player type! exit then
+	4 wave-time
+	direction @ over sprite@ .sprite-x +@
+	16 wave-time
+	dup sprite@ .sprite-y dec@
+	menace
 ;
 
 : sink
@@ -245,6 +252,20 @@
 		exit
 	then
 	free
+;
+
+######################################################
+##
+## Core game logic
+##
+######################################################
+
+: move-player
+	gameover @ if exit then
+	keys dup
+	key-lf and if player px 2 - player px! then
+	key-rt and if player px 2 + player px! then
+	player px 0 max 288 min player px!
 ;
 
 : drop-charge

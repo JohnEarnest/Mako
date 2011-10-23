@@ -402,7 +402,7 @@ public class Maker implements MakoConstants {
 		else if (token.equals("'")) {
 			String methodName = tokens.remove().toString();
 			if (prototypes.containsKey(methodName)) {
-				prototypes.get(methodName).add(rom.size());
+				prototypes.get(methodName).add(rom.size()+1);
 				rom.addConst(-5);
 			}
 			else {
