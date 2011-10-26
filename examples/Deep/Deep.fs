@@ -68,6 +68,7 @@
 :const explosion   12
 :const bubbles     16
 :const monsters    20
+:const crab        24
 :const player-gibs 28
 
 :const blastradius 32
@@ -75,8 +76,10 @@
 
 :var dropped
 :var gameover
+:var ended
 :var direction
-:var dirtimer
+:var speed
+:var score
 
 ######################################################
 ##
@@ -102,11 +105,6 @@
 	0 15 tile-grid@ 40 wave @ wave-tiles2 + @ fill
 	0 22 tile-grid@ 40 wave @ wave-tiles3 + @ fill
 	wave @ wave-height + @ player py!
-
-	direction @ dirtimer +@
-	dirtimer @ dup 1 < swap 6 > or if
-		direction neg@
-	then
 ;
 
 : wave-time
@@ -139,7 +137,9 @@
 : sink-player
 	dup py 240 > if
 		free
-		16 1 "THE  END" grid-type exit
+		16 1 "THE  END" grid-type
+		true ended !
+		exit
 	then
 	8 wave-time
 	dup sprite@ .sprite-y inc@
@@ -173,7 +173,8 @@
 :proto swim
 : is-monster
 	dup  types + @ ' seek-player =
-	swap types + @ ' swim        = or
+	over types + @ ' swim        = or
+	swap types + @ ' disperse    = or
 ;
 
 : disperse-monster
@@ -219,7 +220,7 @@
 
 : seek-player
 	dup can-capsize if capsize then
-	8 wave-time
+	speed @ 2 / wave-time
 	dup py 40 > if dup sprite@ .sprite-y dec@ then
 	dup px player px < if 2 else -2 then
 	over sprite@ .sprite-x +@
@@ -230,7 +231,7 @@
 	dup py 64 < if ' seek-player type! exit then
 	4 wave-time
 	direction @ over sprite@ .sprite-x +@
-	16 wave-time
+	speed @ wave-time
 	dup sprite@ .sprite-y dec@
 	menace
 ;
@@ -260,6 +261,19 @@
 ##
 ######################################################
 
+: left+      px >r swap r> min swap            ;
+: leftmost   320 ' is-monster ' left+  whoever ;
+: right+     px >r swap r> max swap            ;
+: rightmost    0 ' is-monster ' right+ whoever ;
+
+: bounce
+	direction @ 0 > if
+		rightmost 303 > if direction neg@ then
+	else
+		leftmost    1 < if direction neg@ then
+	then
+;
+
 : move-player
 	gameover @ if exit then
 	keys dup
@@ -282,6 +296,7 @@
 ;
 
 : kill-monster
+	dup is-monster -if drop exit then
 	' bubble type!
 ;
 
@@ -319,26 +334,63 @@
 	7 for
 		10 for
 			16x16
-			monsters j 6 mod +
+			monsters j i + 4 mod +
 			i 22 *
 			j 18 * 240 +
 			alloc dup >r >sprite
 			r> ' swim type!
 		next
 	next
+	1 direction !
+	speed @ 8 > if 4 speed -@ then
+	score inc@
+;
+
+:var crabctr
+: spawn-crab
+	gameover @ if exit then
+	crabctr @ if crabctr dec@ exit then
+	500 200 random + crabctr !
+	16x16
+	crab
+	320 random
+	240
+	alloc dup >r >sprite
+	r> ' seek-player type!
+;
+
+: reset-game
+	32x16 0 144 32 player >sprite
+	   36 speed    !
+	    0 dropped  !
+	    0 score    !
+	    0 crabctr  !
+	false gameover !
+	false ended    !
+	' always ' free whoever
+	1 1 tile-grid@ 38 0 fill
+	50 for waves sync next
 ;
 
 : main
-	32x16 0 144 32 player >sprite
-	spawn-wave
-	0 dirtimer  !
-	1 direction !
+	reset-game
 
 	loop
 		move-player
 		fire
 		waves
+		bounce
 		think
+
+		35 1 tile-grid@ 4 0 fill
+		38 1 score @ draw-number
+
+		spawn-crab
+
+		' is-monster count -if spawn-wave then
+
+		ended @ gameover @ keys key-a and and and if reset-game then
+
 		sync
 	again
 ;

@@ -54,6 +54,8 @@
 	drop r> r> 2drop
 ;
 
-: always     drop true ;
-: apply-type dup types + @ exec ;
-: think      ' always ' apply-type whoever ;
+: count+      drop swap 1 + swap            ;
+: count       0 swap ' count+ whoever       ; ( 'filter -- )
+: always      drop true                     ;
+: apply-type  dup types + @ exec            ;
+: think       ' always ' apply-type whoever ;
