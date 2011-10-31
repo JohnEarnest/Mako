@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 import javax.swing.*;
+import javax.imageio.*;
 import java.util.*;
 import java.io.*;
 import java.awt.image.MemoryImageSource;
@@ -110,10 +112,21 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		                     0, 0, 320, 240, this);
 	}
 
+	private int screenShot = 0;
 	public void keyPressed(KeyEvent k)  {
 		if (k.getKeyCode() == KeyEvent.VK_ESCAPE) { System.exit(0); }
 		if (masks.containsKey(k.getKeyCode())) { keys |=   masks.get(k.getKeyCode()) ; }
 	}
-	public void keyReleased(KeyEvent k) { if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }}
+	public void keyReleased(KeyEvent k) {
+		if (k.getKeyCode() == KeyEvent.VK_F1) {
+			try {
+				BufferedImage shot = new BufferedImage(320, 240, BufferedImage.TYPE_INT_ARGB);
+				shot.getGraphics().drawImage(buffer, 0, 0, this);
+				ImageIO.write(shot, "png", new File("ScreenShot"+(screenShot++)+".png"));
+			}
+			catch(IOException e) { e.printStackTrace(); }
+		}
+		if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }
+	}
 	public void keyTyped(KeyEvent k) {}
 }
