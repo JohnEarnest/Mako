@@ -30,11 +30,11 @@
 
 :data grid
 
-	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1 
-	 0 36 37 37 48  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1 
-	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1 
-	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1 
-	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 -1 
 	 1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 -1 
 	 1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1 -1 
@@ -64,6 +64,8 @@
 
 
 :const player       0
+:const light1       1
+:const light2       2
 :const bomb         8
 :const explosion   12
 :const bubbles     16
@@ -274,6 +276,11 @@
 	then
 ;
 
+: draw-score
+	35 1 tile-grid@ 4 -1 fill
+	38 1 score @ draw-number
+;
+
 : move-player
 	gameover @ if exit then
 	keys dup
@@ -330,6 +337,16 @@
 	then
 ;
 
+:var skycolor
+:data skies
+	0xFF90C6C8
+	0xFF8C94C8
+	0xFFBC5FC8
+	0xFFD43353
+	0xFFA10F33
+	0xFF55081B
+	0xFF000000
+
 : spawn-wave
 	7 for
 		10 for
@@ -344,6 +361,8 @@
 	1 direction !
 	speed @ 8 > if 4 speed -@ then
 	score inc@
+	skycolor @ 6 < if skycolor inc@ then
+	skycolor @ skies + @ CL !
 ;
 
 :var crabctr
@@ -361,31 +380,61 @@
 
 : reset-game
 	32x16 0 144 32 player >sprite
+	16x16 invisible 30 100 0 light1 >sprite
+	16x16 invisible 31 200 0 light2 >sprite
 	   36 speed    !
 	    0 dropped  !
 	    0 score    !
 	    0 crabctr  !
+	    0 skycolor !
+	skies @ CL !
 	false gameover !
 	false ended    !
 	' always ' free whoever
-	1 1 tile-grid@ 38 0 fill
+	1 1 tile-grid@ 38 -1 fill
 	50 for waves sync next
+;
+
+:var light
+: storm
+	skycolor @ 6 < if exit then
+
+	# create flashes
+	light @ -if
+		320 random light1 px!
+		320 random light2 px!
+		10 random 5 > if 16x16 light1 sprite@ ! then
+		10 random 5 > if 16x16 light2 sprite@ ! then
+		500 random 300 + light !
+		0xFFFEFEFE CL !
+	then
+	light dec@
+
+	# hide lightning
+	CL @ 0xFF and 0xBB < if
+		16x16 invisible light1 sprite@ !
+		16x16 invisible light2 sprite@ !
+	then
+
+	# decay flashes
+	CL @ 0xFF and if
+		CL @ 0xFF and 2 -
+		dup dup 256 * or 256 * or 0xFF000000 or
+		CL !
+	then
 ;
 
 : main
 	reset-game
-
 	loop
 		move-player
 		fire
 		waves
 		bounce
 		think
-
-		35 1 tile-grid@ 4 0 fill
-		38 1 score @ draw-number
-
+		draw-score
 		spawn-crab
+		storm
 
 		' is-monster count -if spawn-wave then
 
