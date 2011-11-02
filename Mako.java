@@ -13,7 +13,8 @@ public class Mako {
 		String romFile = "Data.rom";
 
 		try {
-			DataInputStream in = new DataInputStream(new FileInputStream(romFile));
+			DataInputStream in = new DataInputStream(Mako.class.getClassLoader().getResourceAsStream(romFile));
+			//DataInputStream in = new DataInputStream(new FileInputStream(romFile));
 			int[] rom = new int[in.available() / 4];
 			for(int x = 0; x < rom.length; x++) {
 				rom[x] = in.readInt();
