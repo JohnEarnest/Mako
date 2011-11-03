@@ -27,13 +27,9 @@ public class Mako {
 		}
 	}
 
-	public static void exec(int[] rom) {
-		exec(rom, false);
-	}
-
 	public static void exec(int[] rom, boolean fuzz) {
-		JFrame window   = new JFrame();
-		MakoPanel view  = new MakoPanel(rom);
+		JFrame window  = new JFrame();
+		MakoPanel view = new MakoPanel(rom);
 
 		window.addKeyListener(view);
 		window.add(view);
@@ -42,30 +38,33 @@ public class Mako {
 		window.setResizable(false);
 		window.pack();
 
+		Random rng = new Random();
+
 		while(true) {
+			long start = System.currentTimeMillis();
+
 			view.vm.run();
-			view.mis.newPixels();
-			// if sync is never called, we'll assume it's meant
-			// as a 'headless' application or test fixture.
-			if (!window.isVisible()) { window.setVisible(true); }
-			
 			view.vm.keys = view.keys;
 
 			// 'fuzz' will generate a totally random key vector
 			// every frame for the purposes of burn-in testing.
 			if (fuzz) {
-				int keys = view.vm.keys;
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_UP; }
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_DN; }
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_LF; }
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_RT; }
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_A; }
-				if (Math.random() < .25) { keys ^= MakoConstants.KEY_B; }
-				view.vm.keys = keys;
+				view.vm.keys ^= rng.nextLong() & MakoConstants.KEY_MASK;
 			}
+
+			// if sync is never called, we'll assume it's meant
+			// as a 'headless' application or test fixture.
+			if (!window.isVisible()) { window.setVisible(true); }
+
+			view.mis.newPixels();
 			view.repaint();
-			try { Thread.sleep(10); }
-			catch(InterruptedException ie) {}
+
+			long total = System.currentTimeMillis() - start;
+
+			if (total < 1000 / 60) {  // aim for 60fps
+				try { Thread.sleep(1000 / 60 - total); }
+				catch (InterruptedException ie) {}
+			}
 		}
 	}
 }
@@ -79,14 +78,14 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		masks.put(KeyEvent.VK_DOWN,   KEY_DN); // key-dn
 		masks.put(KeyEvent.VK_LEFT,   KEY_LF); // key-lf
 		masks.put(KeyEvent.VK_W,      KEY_UP);
-		masks.put(KeyEvent.VK_D,      KEY_RT);
-		masks.put(KeyEvent.VK_S,      KEY_DN);
 		masks.put(KeyEvent.VK_A,      KEY_LF);
+		masks.put(KeyEvent.VK_S,      KEY_DN);
+		masks.put(KeyEvent.VK_D,      KEY_RT);
 		masks.put(KeyEvent.VK_ENTER,  KEY_A); // key-a
 		masks.put(KeyEvent.VK_SPACE,  KEY_A);
 		masks.put(KeyEvent.VK_Z,      KEY_A);
 		masks.put(KeyEvent.VK_X,      KEY_B); // key-b
-		masks.put(KeyEvent.VK_ESCAPE, KEY_B);
+		masks.put(KeyEvent.VK_SHIFT,  KEY_B);
 	}
 
 	private final int w = 960;
