@@ -60,4 +60,5 @@ public interface MakoConstants {
 	public static final int KEY_LF = 0x08;
 	public static final int KEY_A  = 0x10;
 	public static final int KEY_B  = 0x20;
+	public static final int KEY_MASK = KEY_UP | KEY_RT | KEY_DN | KEY_LF | KEY_A | KEY_B;
 }
