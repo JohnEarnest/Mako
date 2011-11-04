@@ -19,12 +19,24 @@ public class Maker implements MakoConstants {
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
 
-		boolean run        = pluckArg(argList, "--run");
+		boolean run        = pluckArg(argList, "--run") || pluckArg(argList, "-r");
 		boolean fuzz       = pluckArg(argList, "--fuzz");
 		boolean symbols    = pluckArg(argList, "--symbols");
-		boolean quiet      = pluckArg(argList, "--quiet");
+		boolean quiet      = pluckArg(argList, "--quiet") || pluckArg(argList, "-q");
+		boolean listing    = pluckArg(argList, "--listing") || pluckArg(argList, "-l");
 		boolean trace      = pluckArg(argList, "--trace");
 
+		if (argList.size() == 0) {
+			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
+							+ "Options:\n -r/--run\trun program after compiling\n"
+							+ " -l/--listing\toutput program disassembly\n"
+							+ " --fuzz\t\trandomize inputs when running\n"
+							+ " --word <word>\tdisassemble given word\n"
+							+ " --symbols\twrite debugging symbols\n"
+							+ " -q/--quiet\t\tsuppress output\n");
+			System.exit(1);
+		}
+		
 		Maker compiler = new Maker();
 
 		try { compiler.compileToken(":include", tokens("<Lang.fs>")); }
@@ -38,8 +50,13 @@ public class Maker implements MakoConstants {
 			argList.remove("--word");
 			argList.remove(word);
 		}
-		else if (!quiet) {
-			compiler.rom.disassemble(System.out);
+		else {
+			if (listing) {
+				compiler.rom.disassemble(System.out);
+			} else if (!quiet) {
+				// print the size summary
+				compiler.rom.disassemble(0, -1, System.out);
+			}
 		}
 		if (argList.size() > 1) {
 			compiler.rom.write(argList.get(1), symbols);
