@@ -1,1 +1,5 @@
 *.class
+*.DS_Store
+*.before
+*.after
+*.coredump.rom

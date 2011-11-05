@@ -56,7 +56,7 @@
 : cs3  B-1 rst A$1 rst G$1 rst rst rst ;
 : cavestory cs1 cs2 cs1 cs3 ;
 
-(: main
+: main
 	0 t !
 	#cavestory
 	loop
@@ -64,13 +64,13 @@
 		sync
 	again
 ;
-)
 
-# rolling white noise
+(# rolling white noise
 : main
-	16 for 8000 for RN @ 16 j - mod AU ! next next
+	15 for 8000 for RN @ 16 j - mod AU ! next next
 	loop
 		16 for 8000 for RN @ 32 j - mod AU ! next next
 		16 for 8000 for RN @ 16 j + mod AU ! next next
 	again
 ;
+)
