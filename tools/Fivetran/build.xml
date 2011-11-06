@@ -18,13 +18,13 @@
 	</target>
 
 	<target name="stage" depends="clean">
-		<copy  file= "../../Mako.java"          todir="." />
-		<copy  file= "../../MakoVM.java"        todir="." />
-		<copy  file= "../../MakoRom.java"       todir="." />
-		<copy  file= "../../MakoConstants.java" todir="." />
+		<copy  file= "../../src/Mako.java"          todir="." />
+		<copy  file= "../../src/MakoVM.java"        todir="." />
+		<copy  file= "../../src/MakoRom.java"       todir="." />
+		<copy  file= "../../src/MakoConstants.java" todir="." />
 		<java
 			classname="Maker"
-			classpath="../../"
+			classpath="../../build/"
 		>
 			<arg line="base/BaseRom.fs base/BaseRom"/>
 		</java>

@@ -18,7 +18,7 @@ public class Fivetran implements MakoConstants {
 		compiler.parseFile(args[0]);
 		MakoRom rom = compiler.compile();
 		if (Arrays.asList(args).contains("--run")) {
-			Mako.exec(rom.toArray());
+			Mako.exec(rom.toArray(), false);
 		}
 	}
 

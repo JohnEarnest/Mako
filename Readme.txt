@@ -4,6 +4,12 @@ Mako has two stacks- a parameter stack and a return stack. Most MakoVM instructi
 
 The Maker source files provided in the examples directory can be executed by compiling Maker and then invoking it with a filename and the '--run' flag. Without the flag, Maker will simply print a disassembly of the prepared Mako memory image.
 
-	java Maker /examples/Pong/Pong.fs --run
-
 To compile, run `ant` from the top directory.
+
+To run an example, invoke Maker from the command line:
+
+	java -jar dist/Maker.jar /examples/Pong/Pong.fs --run
+
+Or use the 'maker' script to save a little typing:
+
+	./maker /examples/Pong/Pong.fs --run
