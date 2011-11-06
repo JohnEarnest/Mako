@@ -7,14 +7,13 @@ public class Maker implements MakoConstants {
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
 	private Map<String, Integer> constants = new TreeMap<String, Integer>();
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
-	private Set<String> imported = new HashSet<String>();
 	private MakoRom rom = new MakoRom();
 	private boolean compiling = false;
 	private Stack<Integer> branchStack = new Stack<Integer>();
 	private Stack<Integer> loopStack   = new Stack<Integer>();
 	private Queue<Integer> breaks      = new LinkedList<Integer>();
 
-	private String path;
+	private Stack<String> currentPath = new Stack<String>();
 
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
@@ -130,8 +129,9 @@ public class Maker implements MakoConstants {
 		constants.put("scroll-y", 0);
 		constants.put("clear-color", 0xFF000000);
 		try {
-			path = new File(filename).getParent();
-			compileFile(filename);
+			File rootPath = new File(filename);
+			currentPath.push(rootPath.getParent());
+			compileFile(rootPath.getName());
 		}
 		catch(FileNotFoundException e) {
 			throw new Error(e.getMessage());
@@ -195,9 +195,11 @@ public class Maker implements MakoConstants {
 	}
 
 	private void compileFile(String filename) throws FileNotFoundException {
-		if (imported.contains(filename)) { return; }
-		imported.add(filename);
-		Scanner in = new Scanner(new File(filename));
+		currentPath.push(new File(currentPath.peek(), filename).getParent());
+		Scanner in = new Scanner(new File(
+			currentPath.peek(),
+			new File(filename).getName()
+		));
 		String source = "";
 		while(in.hasNextLine()) { source += in.nextLine() + '\n'; }
 		Queue<Object> tokens = tokens(source);
@@ -211,6 +213,7 @@ public class Maker implements MakoConstants {
 				compileToken((String)token, tokens);
 			}
 		}
+		currentPath.pop();
 	}
 
 	private void compileToken(String token, Queue<Object> tokens) throws FileNotFoundException {
@@ -271,8 +274,10 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":image")) {
 			String imageName = tokens.remove().toString();
-			String fileName = unquote(tokens.remove().toString());
-			if (path != null) { fileName = path + File.separator + fileName; }
+			String fileName = new File(
+				currentPath.peek(),
+				new File(unquote(tokens.remove().toString())).getName()
+			).toString();
 			variables.put(imageName, rom.size());
 			int tileWidth  = getConstant(tokens.remove());
 			int tileHeight = getConstant(tokens.remove());
@@ -280,7 +285,6 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":include")) {
 			String fileName = unquote(tokens.remove().toString());
-			if (path != null) { fileName = path + File.separator + fileName; }
 			compileFile(fileName);
 		}
 		else if (token.equals(":proto")) {
