@@ -1,0 +1,30 @@
+<project name="Mako" default="maker">
+	<property name="src" location="src"/>
+  	<property name="build" location="build"/>
+  	<property name="dist"  location="dist"/>
+
+	<target name="init">
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" destdir="${build}"
+				debug="on"
+				debuglevel="lines,vars,source"
+			   includeantruntime="false"/>
+	</target>
+
+	<target name="maker" depends="compile" >
+		<mkdir dir="${dist}/lib"/>
+		<jar destfile="${dist}/Maker.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="Maker"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+</project>

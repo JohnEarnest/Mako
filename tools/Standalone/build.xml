@@ -11,9 +11,9 @@
 	<target name="stage">
 		<delete dir="build" />
 		<mkdir  dir="build" />
-		<copy  file= "../../Mako.java"          todir="build" />
-		<copy  file= "../../MakoVM.java"        todir="build" />
-		<copy  file= "../../MakoConstants.java" todir="build" />
+		<copy  file= "../../src/Mako.java"          todir="build" />
+		<copy  file= "../../src/MakoVM.java"        todir="build" />
+		<copy  file= "../../src/MakoConstants.java" todir="build" />
 		<copy  file= "Data.rom"                 todir="build" />
 	</target>
 
