@@ -11,6 +11,7 @@ public class MASIC {
 	static Map<String, Integer> arrays = new HashMap<String, Integer>();
 	static StringBuilder data = new StringBuilder();
 	static StringBuilder prog = new StringBuilder();
+	static String dataName = null;
 
 	public static void main(String[] args) throws Exception {
 		Scanner in = new Scanner(new File(args[0]));
@@ -45,6 +46,21 @@ public class MASIC {
 	static void emitStatement(Cursor line) {
 		if (line.match("REM")) {
 			// comment- do nothing.
+		}
+		else if (line.match("DATA")) {
+			if (line.isAlpha()) {
+				dataName = line.parseVar();
+				arrays.put(dataName, 0);
+				data.append(":data "+dataName+" ");
+			}
+			while(true) {
+				data.append(line.parseNumber()+" ");
+				if (arrays.containsKey(dataName)) {
+					arrays.put(dataName, arrays.get(dataName) + 1);
+				}
+				if (!line.match(",")) { break; }
+			}
+			data.append("\n");
 		}
 		else if (line.match("PRINT")) {
 			while(true) {
@@ -191,6 +207,7 @@ public class MASIC {
 		else if (line.match("SGN"))   { emitExpression(line.parseParens()); prog.append("sgn "); }
 		else if (line.match("PEEK"))  { emitExpression(line.parseParens()); prog.append("@ "); }
 		else if (line.match("VAR"))   { emitVar(line.parseParens()); }
+		else if (line.match("LEN"))   { prog.append(arrays.get(line.parseParens().parseVar()) + " "); }
 		else if (line.match("RND"))   { emitExpression(line.parseParens()); prog.append("rnd "); }
 		else if (line.match("MAX"))   { twoArg(line); prog.append("max "); }
 		else if (line.match("MIN"))   { twoArg(line); prog.append("min "); }
