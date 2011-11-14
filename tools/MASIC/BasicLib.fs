@@ -39,3 +39,14 @@
 		then
 	again
 ;
+
+# inkey:
+: inkey   KY @ ;
+
+# array indexing:
+: bounds "INDEX OUT OF BOUNDS!" prints cr halt ;
+: 1d ( addr index size -- val )
+	over 0 < if bounds then
+	over <= if bounds then
+	+
+;

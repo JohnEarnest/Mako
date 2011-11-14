@@ -8,16 +8,21 @@ public class MASIC {
 
 	static Set<Integer> defined = new HashSet<Integer>();
 	static Set<String> variables = new HashSet<String>();
-	static StringBuilder prog = new StringBuilder();
+	static Map<String, Integer> arrays = new HashMap<String, Integer>();
 	static StringBuilder data = new StringBuilder();
+	static StringBuilder prog = new StringBuilder();
 
 	public static void main(String[] args) throws Exception {
 		Scanner in = new Scanner(new File(args[0]));
-
+		data.append(":array grid    1271 0\n");
+		data.append(":array sprites 1024 0\n");
+		arrays.put("grid", 1271);
+		arrays.put("sprites", 1024);
 		prog.append(":include \"BasicLib.fs\"\n");
 		prog.append(": main \n");
 		while(in.hasNextLine()) {
 			Cursor line = new Cursor(in.nextLine());
+			if (line.done()) { continue; }
 			if (line.isDigit()) {
 				int lineNumber = line.parseNumber();
 				defined.add(lineNumber);
@@ -57,9 +62,8 @@ public class MASIC {
 		}
 		else if (line.match("INPUT")) {
 			while(true) {
-				String var = line.parseVar();
 				prog.append("input ");
-				emitVar(var);
+				emitVar(line);
 				prog.append("! ");
 				if (!line.match(",")) { break; }
 			}
@@ -74,11 +78,23 @@ public class MASIC {
 			prog.append("then ");
 		}
 		else if (line.match("LET")) {
-			String var = line.parseVar();
-			line.match("=");
+			String name = line.parseVar();
+			Cursor args = null;
+			if (arrays.containsKey(name)) { args = line.parseParens(); }
+			line.expect('=');
 			emitExpression(line);
-			emitVar(var);
-			prog.append("! ");
+			if (arrays.containsKey(name)) {
+				prog.append(name + " ");
+				emitExpression(args);
+				prog.append(arrays.get(name) + " 1d ! ");
+			}
+			else {
+				if (!variables.contains(name)) {
+					data.append(":var "+name+"\n");
+					variables.add(name);
+				}
+				prog.append(name+" ! ");
+			}
 		}
 		else if (line.match("GOTO")) {
 			reference(line.parseNumber(), true);
@@ -107,7 +123,21 @@ public class MASIC {
 			String var = line.parseVar();
 			int size = line.parseParens().parseNumber();
 			data.append(":array "+var+" "+size+" 0\n");
-			variables.add(var);
+			arrays.put(var, size);
+		}
+		else if (line.match("IMAGE")) {
+			String var = line.parseVar();
+			line.expect('=');
+			String file = line.parseString();
+			line.expect(',');
+			int w = line.parseNumber();
+			line.expect(',');
+			int h = line.parseNumber();
+			data.append(":image "+var+" \""+file+"\" "+w+" "+h+"\n");
+			arrays.put(var, w * h * 256); // just guess on tileset size for now.
+		}
+		else if (line.match("SYNC")) {
+			prog.append("sync ");
 		}
 		else {
 			System.out.println(line.line);
@@ -156,28 +186,37 @@ public class MASIC {
 	}
 
 	static void emitFactor(Cursor line) {
-		// var | number | (expression) | intrinsic(expression)
-		if      (line.match("ABS"))  { emitExpression(line.parseParens()); prog.append("abs "); }
-		else if (line.match("SGN"))  { emitExpression(line.parseParens()); prog.append("sgn "); }
-		else if (line.match("PEEK")) { emitExpression(line.parseParens()); prog.append("@ "); }
-		else if (line.match("VAR"))  { emitVar(line.parseParens().line); }
-		else if (line.match("RND"))  { emitExpression(line.parseParens()); prog.append("rnd "); }
-		else if (line.match("MAX"))  { twoArg(line); prog.append("max "); }
-		else if (line.match("MIN"))  { twoArg(line); prog.append("min "); }
-		else if (line.isAlpha())     { emitVar(line.parseVar()); prog.append("@ "); }
-		else if (line.isDigit())     { prog.append(line.parseNumber()+" "); }
-		else if (line.at('('))       { emitExpression(line.parseParens()); }
+		// var | number | (expression) | intrinsic(expression) | array(expression)
+		if      (line.match("ABS"))   { emitExpression(line.parseParens()); prog.append("abs "); }
+		else if (line.match("SGN"))   { emitExpression(line.parseParens()); prog.append("sgn "); }
+		else if (line.match("PEEK"))  { emitExpression(line.parseParens()); prog.append("@ "); }
+		else if (line.match("VAR"))   { emitVar(line.parseParens()); }
+		else if (line.match("RND"))   { emitExpression(line.parseParens()); prog.append("rnd "); }
+		else if (line.match("MAX"))   { twoArg(line); prog.append("max "); }
+		else if (line.match("MIN"))   { twoArg(line); prog.append("min "); }
+		else if (line.match("INKEY")) { line.parseParens(); prog.append("inkey "); }
+		else if (line.isDigit())      { prog.append(line.parseNumber()+" "); }
+		else if (line.isAlpha())      { emitVar(line); prog.append("@ "); }
+		else if (line.at('('))        { emitExpression(line.parseParens()); }
 		else {
 			throw new Error("SYNTAX ERROR IN FACTOR!");
 		}
 	}
 
-	static void emitVar(String name) {
-		if (!variables.contains(name)) {
-			data.append(":var "+name+"\n");
-			variables.add(name);
+	static void emitVar(Cursor line) {
+		String name = line.parseVar();
+		if (arrays.containsKey(name)) {
+			prog.append(name + " ");
+			emitExpression(line.parseParens());
+			prog.append(arrays.get(name) + " 1d ");
 		}
-		prog.append(name+" ");
+		else {
+			if (!variables.contains(name)) {
+				data.append(":var "+name+"\n");
+				variables.add(name);
+			}
+			prog.append(name+" ");
+		}
 	}
 
 	static void twoArg(Cursor line) {
@@ -245,9 +284,9 @@ class Cursor {
 
 	String parseVar() {
 		String ret = "";
-		while(isAlpha()) { ret += read(); }
+		while(isAlpha() || at('_')) { ret += read(); }
 		trim();
-		return ret;
+		return ret.replace('_', '-');
 	}
 
 	String parseRelOp() {
