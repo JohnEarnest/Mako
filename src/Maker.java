@@ -243,6 +243,15 @@ public class Maker implements MakoConstants {
 			compiling = false;
 			rom.addReturn();
 		}
+		else if (token.equals("{")) {
+			branchStack.push(rom.addJump(-7));
+		}
+		else if (token.equals("}")) {
+			rom.addReturn();
+			int addr = branchStack.pop();
+			rom.set(addr, rom.size());
+			rom.addConst(addr+1);
+		}
 		else if (token.equals(":var")) {
 			variables.put(tokens.remove().toString(), rom.size());
 			rom.add(0, MakoRom.Type.Data);
