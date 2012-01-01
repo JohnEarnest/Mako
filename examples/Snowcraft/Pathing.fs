@@ -63,6 +63,7 @@
 	cr drop
 ;
 
+(
 # since we'll be doing recursion,
 # we need to beef these up a bit.
 :array data-stack   350 0
@@ -92,3 +93,4 @@
 	dirs print-path
 	halt
 ;
+)

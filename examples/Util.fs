@@ -26,6 +26,8 @@
 : tuck     swap over                     ;
 : nip      swap drop                     ;
 : ?dup     dup if dup then               ;
+: within   over >= >r <= r> and          ;
+
 
 : indexof (value array -- address)
 	loop
