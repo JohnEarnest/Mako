@@ -13,6 +13,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private final int CONTROL_O = 15;
 	private final int CONTROL_R = 18;
 	private final int CONTROL_V = 22;
+	private final int CONTROL_Y = 25;
 	private final int CONTROL_Z = 26;
 
 	private final GridPad host;
@@ -285,6 +286,18 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 					int rx = (int)(Math.random() * selected[0].length);
 					int ry = (int)(Math.random() * selected.length);
 					delta[a][b] = selected[ry][rx];
+				}
+			}
+			Edit change = new Edit(x1, y1, grid, delta);
+			change.apply();
+			redo.clear();
+			undo.push(change);
+		}
+		else if (e.getKeyChar() == CONTROL_Y) {
+			int[][] delta = new int[ah][aw];
+			for(int a = 0; a < ah; a++) {
+				for(int b = 0; b < aw; b++) {
+					delta[a][b] = grid[y1+a][x1+b] ^ 0x1;
 				}
 			}
 			Edit change = new Edit(x1, y1, grid, delta);

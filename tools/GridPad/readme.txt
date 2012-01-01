@@ -32,6 +32,8 @@ Keys:
 
 - Control + G : Randomized Fill. Selects tiles from the selected palette block randomly.
 
+- Control + Y : Toggle least significant bit of tile index within region. Useful if this bit distiguishes animated or light/dark versions of tiles.
+
 - Delete: Erase the selected region, replacing tiles with transparency.
 
 - ',' : reduce   the horizontal size of the map by 40 tiles
