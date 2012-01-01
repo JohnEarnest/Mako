@@ -1,0 +1,39 @@
+A field guide to MASIC
+
+Primitive operators:
+
++ - * / % ( )
+
+Relational operators:
+
+< > = >= <= <>
+
+Statement types:
+
+REM - treat the remainder of the line as a comment
+DIM name(size) - declare an array of a given size
+DATA name num, ... num - statically declare and initialize an array
+PRINT "text" or num - print values to stdout
+INPUT var - read numbers from stdin
+IF expr relop expr THEN statement - conditional
+LET var = expr - assignment statement
+GOTO line - unconditional jump
+GOSUB line - like GOTO, but you can later return
+RETURN - resume from the previous GOSUB
+POKE value, address - store a value to memory
+CALL address - gosub to a machine address
+END - stop execution
+IMAGE name = "filename", tilewidth, tileheight
+SYNC - update the graphics display
+
+Intrinsic functions:
+
+ABS(x) - absolute value
+SGN(x) - sign of x
+PEEK(x) - read memory at address
+VAR(x) - obtain address of a variable or array
+LEN(x) - obtain the length of an array
+RND(x) - return a random number from 0 to X, exclusive
+MAX(x,y) - return the maximum of two values
+MIN(x,y) - return the minimum of two values
+INKEY() - return the Mako key input vector
