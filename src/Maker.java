@@ -271,10 +271,15 @@ public class Maker implements MakoConstants {
 			rom.addString(unquote(tokens.remove().toString()));
 		}
 		else if (token.startsWith("\"")) {
-			int start = rom.addJump(-1);
-			rom.addString(unquote(token));
-			rom.set(start, rom.size());
-			rom.addConst(start + 1);
+			if (compiling) {
+				int start = rom.addJump(-1);
+				rom.addString(unquote(token));
+				rom.set(start, rom.size());
+				rom.addConst(start + 1);
+			}
+			else {
+				rom.addString(unquote(token));
+			}
 		}
 		else if (token.equals(":const")) {
 			String constName = tokens.remove().toString();
