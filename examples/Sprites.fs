@@ -26,6 +26,9 @@
 : >sprite  >r i py! i px! i tile! r> sprite@ ! ; (status tile x y sprite-id -- )
 : sprite>  >r i sprite@ @ i tile i px r> py    ; (sprite-id -- status tile x y )
 
+: show       sprite@ dup @ 1 or      swap ! ;
+: hide       sprite@ dup @ 1 not and swap ! ;
+
 # Assume that sprites are drawn
 # facing left normally: 
 
@@ -53,4 +56,15 @@
 	<= -rot >= and
 
 	and
+;
+
+# returns true if two sprites overlap,
+# respecting their locations and sizes.
+: c-sprites? ( sprite-a sprite-b -- flag )
+	>r >r
+	i py i sprite@ .sprite-h + j py >
+	i py j sprite@ .sprite-h - j py < and
+	i px i sprite@ .sprite-w + j px > and
+	i px j sprite@ .sprite-w - j px < and
+	rdrop rdrop
 ;
