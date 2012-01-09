@@ -12,6 +12,7 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	private final int CONTROL_L = 12;
 	private final int CONTROL_O = 15;
 	private final int CONTROL_R = 18;
+	private final int CONTROL_U = 21;
 	private final int CONTROL_V = 22;
 	private final int CONTROL_Y = 25;
 	private final int CONTROL_Z = 26;
@@ -54,6 +55,10 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	}
 
 	public void paint(Graphics g) {
+		Graphics2D hinter = (Graphics2D)g;
+		hinter.setRenderingHint(RenderingHints.KEY_RENDERING,     RenderingHints.VALUE_RENDER_SPEED);
+		hinter.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
 		super.paint(g);
 		g.setColor(Color.PINK);
 		g.fillRect(0, 0, getWidth(), getHeight());
@@ -115,11 +120,13 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 	}
 
 	private void drawTile(int tile, int a, int b, Graphics g) {
-		final int xtiles = palette.getTiles().getWidth(this) / GridPad.TILE_WIDTH;
+		boolean zBit = ((tile & 0x40000000 ) != 0) && tile > 0;
+		if (zBit) { tile &= ~0x40000000; }
+
 		final int gx = b * GridPad.TILE_WIDTH  * GridPad.SCALE;
 		final int gy = a * GridPad.TILE_HEIGHT * GridPad.SCALE;
-		final int tx = (tile % xtiles) * GridPad.TILE_WIDTH;
-		final int ty = (tile / xtiles) * GridPad.TILE_HEIGHT;
+		final int tx = (tile % palette.xtiles) * GridPad.TILE_WIDTH;
+		final int ty = (tile / palette.xtiles) * GridPad.TILE_HEIGHT;
 		g.drawImage(
 			palette.getTiles(),
 			gx,
@@ -132,6 +139,17 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			ty + GridPad.TILE_HEIGHT,
 			this
 		);
+
+		if (zBit) {
+			Graphics2D g2 = (Graphics2D)g.create();
+			g2.setXORMode(Color.BLACK);
+			g2.fillRect(
+				gx,
+				gy,
+				GridPad.TILE_WIDTH  * GridPad.SCALE,
+				GridPad.TILE_HEIGHT * GridPad.SCALE
+			);
+		}
 	}
 
 	public void mouseClicked(MouseEvent e) {
@@ -298,6 +316,18 @@ public class Editor extends JPanel implements MouseListener, MouseMotionListener
 			for(int a = 0; a < ah; a++) {
 				for(int b = 0; b < aw; b++) {
 					delta[a][b] = grid[y1+a][x1+b] ^ 0x1;
+				}
+			}
+			Edit change = new Edit(x1, y1, grid, delta);
+			change.apply();
+			redo.clear();
+			undo.push(change);
+		}
+		else if (e.getKeyChar() == CONTROL_U) {
+			int[][] delta = new int[ah][aw];
+			for(int a = 0; a < ah; a++) {
+				for(int b = 0; b < aw; b++) {
+					delta[a][b] = grid[y1+a][x1+b] ^ 0x40000000;
 				}
 			}
 			Edit change = new Edit(x1, y1, grid, delta);

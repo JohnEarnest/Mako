@@ -141,7 +141,7 @@ public class MakoVM implements MakoConstants {
 		}
 	}
 
-	private void sync() {
+	public void sync() {
 		final int scrollx = m[SX];
 		final int scrolly = m[SY];
 		java.util.Arrays.fill(p, m[CL]);

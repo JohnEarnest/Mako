@@ -12,6 +12,7 @@ import javax.swing.*;
 **/
 public class Palette extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 
+	public int xtiles;
 	private static final List<Image> tilesets = new ArrayList<Image>();
 
 	private final GridPad host;
@@ -54,6 +55,7 @@ public class Palette extends JPanel implements MouseListener, MouseMotionListene
 		));
 		x = 0;
 		y = 0;
+		xtiles = tiles.getWidth(this) / GridPad.TILE_WIDTH;
 	}
 
 	public Image getTiles() {

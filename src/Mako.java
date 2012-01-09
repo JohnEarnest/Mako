@@ -43,7 +43,16 @@ public class Mako {
 		while(true) {
 			long start = System.currentTimeMillis();
 
-			view.vm.run();
+			view.ticks[view.tickptr] = 0;
+			while(view.vm.m[view.vm.m[MakoConstants.PC]] != MakoConstants.OP_SYNC) {
+				view.ticks[view.tickptr]++;
+				view.vm.tick();
+				if (view.vm.m[MakoConstants.PC] == -1) { System.exit(0); }
+			}
+			view.vm.sync();
+			view.vm.m[MakoConstants.PC]++;
+			view.tickptr = (view.tickptr + 1) % view.ticks.length;
+			
 			view.vm.keys = view.keys;
 
 			// 'fuzz' will generate a totally random key vector
@@ -93,7 +102,7 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 	private final Image buffer;
 	public final MemoryImageSource mis;
 	public final MakoVM vm;
-	public int keys = 0;
+	public int keys  = 0;
 	
 	public MakoPanel(int[] rom) {
 		vm = new MakoVM(rom);
@@ -110,12 +119,23 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		g2.setRenderingHint( RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 		g2.drawImage(buffer, 0, 0,   w,   h,
 		                     0, 0, 320, 240, this);
+
+		if (showTicks) {
+			long sum = 0;
+			for(Integer i : ticks) { sum += i; }
+			g2.setColor(Color.GREEN);
+			g2.drawString(""+(sum/ticks.length), 20, 20);
+		}
 	}
 
 	private int screenShot = 0;
+	private boolean showTicks = false;
+	public int[] ticks = new int[30];
+	public int tickptr = 0;
+
 	public void keyPressed(KeyEvent k)  {
 		if (k.getKeyCode() == KeyEvent.VK_ESCAPE) { System.exit(0); }
-		if (masks.containsKey(k.getKeyCode())) { keys |=   masks.get(k.getKeyCode()) ; }
+		if (masks.containsKey(k.getKeyCode())) { keys |= masks.get(k.getKeyCode()) ; }
 	}
 	public void keyReleased(KeyEvent k) {
 		if (k.getKeyCode() == KeyEvent.VK_F1) {
@@ -125,6 +145,9 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 				ImageIO.write(shot, "png", new File("ScreenShot"+(screenShot++)+".png"));
 			}
 			catch(IOException e) { e.printStackTrace(); }
+		}
+		if (k.getKeyCode() == KeyEvent.VK_F5) {
+			showTicks = !showTicks;
 		}
 		if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }
 	}

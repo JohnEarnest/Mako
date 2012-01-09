@@ -10,6 +10,8 @@
 
 : =        xor -if true  else false then ;
 : !=       xor -if false else true  then ;
+: 0=            if false else true  then ;
+: 0!            if true  else false then ;
 : inc@     dup @ 1 + swap !              ;
 : dec@     dup @ 1 - swap !              ;
 : neg@     dup @ -1 * swap !             ;
@@ -26,7 +28,7 @@
 : tuck     swap over                     ;
 : nip      swap drop                     ;
 : ?dup     dup if dup then               ;
-: within   over >= >r <= r> and          ;
+: within   over >= >r <= r> and          ; ( min v max )
 
 
 : indexof (value array -- address)

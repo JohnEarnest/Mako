@@ -34,6 +34,8 @@ Keys:
 
 - Control + Y : Toggle least significant bit of tile index within region. Useful if this bit distiguishes animated or light/dark versions of tiles.
 
+- Control + U : Toggle the z-bit of tile index within region.
+
 - Delete: Erase the selected region, replacing tiles with transparency.
 
 - ',' : reduce   the horizontal size of the map by 40 tiles
