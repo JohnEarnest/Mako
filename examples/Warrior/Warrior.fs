@@ -11,6 +11,7 @@
 ######################################################
 
 :const start-level 0
+:const delay-time  19
 
 :include "../Print.fs"
 :include "../Util.fs"
@@ -40,6 +41,8 @@
 :const empty  0
 :const solid  1
 :const stairs 2
+:const gem    3
+:const slime  4
 
 ######################################################
 ##
@@ -57,14 +60,14 @@
 	-1 -1 -1 -1  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1  2  2  6  7  6  7  6  7  6  7  6  7  2  2  2  2  6  7  6  7  6  7  6  7  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1  2  2 22 23 22 23 22 23 22 23 22 23  2  2  2  2 22 23 22 23 22 23 22 23  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1  2  2  8  9  0  1  0  1  0  1  0  1  2  2  2  2  0  1  0  1  0  1  0  1  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1  2  2 24 25 16 17 16 17 16 17 16 17  2  2  2  2 16 17 16 17 16 17 16 17  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1  2  2  8  9  0  1  0  1  0  1  0  1  2  2  2  2  0  1  0  1 12 13  0  1  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1  2  2 24 25 16 17 16 17 16 17 16 17  2  2  2  2 16 17 16 17 28 29 16 17  2  2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1  2  2  2  2  2  2  2  2  2  2  0  1  2  2  2  2  0  1  2  2  2  2  0  1  2  2  2  2  2  2  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1  2  2  2  2  2  2  2  2  2  2 16 17  2  2  2  2 16 17  2  2  2  2 16 17  2  2  2  2  2  2  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2  0  1  6  7  6  7  0  1  2  2  2  2  0  1  6  7  6  7  6  7  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2 16 17 22 23 22 23 16 17  2  2  2  2 16 17 22 23 22 23 22 23  2  2 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2  0  1  0  1  0  1  0  1  2  2  2  2  0  1  0  1  0  1  4  5  2  2 -1 -1 -1 -1 -1 
-	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2 16 17 16 17 16 17 16 17  2  2  2  2 16 17 16 17 16 17 20 21  2  2 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2  0  1  0  1 10 11  0  1  2  2  2  2  0  1  0  1  0  1  4  5  2  2 -1 -1 -1 -1 -1 
+	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2 16 17 16 17 26 27 16 17  2  2  2  2 16 17 16 17 16 17 20 21  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2 -1 -1 -1 -1 -1 
 	-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
@@ -85,6 +88,28 @@
 
 ######################################################
 ##
+##  Sprite Management
+##
+######################################################
+
+:const player 200
+:const icon   201
+
+: alloc-sprite ( tile x y -- )
+	32 for
+		i sprite@ @ -if
+			>r >r >r 16x16 r> r> r> r>
+			>sprite exit
+		then
+	next
+;
+
+: free-sprites ( -- )
+	32 for 0 i sprite@ ! next
+;
+
+######################################################
+##
 ##  Game Simulation
 ##
 ######################################################
@@ -92,66 +117,135 @@
 :proto tick
 :proto level
 
-:var player
 :var move-dir
 :var move-action
+:var score
 
-: stop   loop keys if halt then sync again ;
-: wait   29 for sync next ;
+: wait
+	delay-time for sync next
+;
 
-: in-dir ( dir -- tile )
+: stop
+	"(Final score is " type score @ . ")" typeln
+	loop keys if halt then sync again
+;
+
+
+: check-dir ( dir -- dir )
 	0 over 3 within -if
 		"Invalid direction: " type . cr stop
 	then
-	dup  dir-x + @ 16 * player @ px +
-	swap dir-y + @ 16 * player @ py +
+;
+
+: sprite-in-dir ( dir -- id )
+	check-dir
+	dup  dir-x + @ 16 * player px +
+	swap dir-y + @ 16 * player py +
+	32 for
+		2dup i py = swap i px = and
+		i sprite@ @ 0! and if
+			2drop r> exit
+		then
+	next
+	2drop 33
+;
+
+: tile-in-dir ( dir -- tile )
+	check-dir
+	dup  dir-x + @ 16 * player px +
+	swap dir-y + @ 16 * player py +
 	pixel-grid@ @
+;
+
+: show-dir ( tile dir -- )
+	>r 16x16 swap
+	i  dir-x + @ 16 * player px +
+	r> dir-y + @ 16 * player py +
+	icon >sprite wait icon hide
+;
+
+: init-level ( level -- )
+	free-sprites
+	dup level levels + @ GP !
+	16x16 0 0 0 player >sprite
+	20 for
+		15 for
+			j 2 * i 2 * tile-grid@ @
+			dup 8 = if
+				j 16 * player px!
+				i 16 * player py!
+			then
+			dup 10 = if
+				2 j 16 * i 16 * alloc-sprite
+			then
+			dup 12 = if
+				3 j 16 * i 16 * alloc-sprite
+			then
+			drop
+		next
+	next
 ;
 
 : no-action
 	"No action specified." typeln stop
 ;
 
+: walkable? ( tile -- flag )
+	dup   0 =
+	over  8 = or
+	over 10 = or
+	swap 12 = or
+;
+
 : make-walk
-	move-dir @ in-dir
-	dup 0 = if
+	move-dir @ sprite-in-dir tile
+	3 = if
 		drop
-		move-dir @ dir-x + @ 16 * player @ px + player @ px!
-		move-dir @ dir-y + @ 16 * player @ py + player @ py!
+		drop 0 player sprite@ !
+		"Devoured via stepping on a slime." typeln
+		stop
+	then
+	move-dir @ tile-in-dir
+	dup walkable? if
+		drop
+		move-dir @ dir-x + @ 16 * player px + player px!
+		move-dir @ dir-y + @ 16 * player py + player py!
 		"Walked " type move-dir @ .dir "." typeln
 		exit
 	then
 	dup 4 = if
-		drop
+		drop 0 player sprite@ !
 		"Completed the dungeon." typeln
 		stop
 	then
+	drop
 	"Cannot walk " type move-dir @ .dir "." typeln stop
 ;
 
 : make-take
-	"Taking objects is not implemented yet." typeln stop
+	move-dir @ sprite-in-dir tile
+	dup 2 = if
+		drop 0 move-dir @ sprite-in-dir sprite@ !
+		1 player tile! wait 0 player tile!
+		score @ 10 + score !
+		"Picked up gem to the " type move-dir @ .dir "." typeln
+		"(Score is now " type score @ . ")" typeln
+		exit
+	then
+	drop
+	"There's nothing " type move-dir @ .dir " to take." typeln stop
 ;
 
 : make-attack
-	"Attacking enemies is not implemented yet." typeln stop
-;
-
-: init-level ( level -- )
-	dup level
-	levels + @ GP !
-	16x16 0 0 0 200 >sprite 200 player !
-	20 for
-		15 for
-			j 2 * i 2 * tile-grid@ @
-			dup 8 = if
-				j 16 * player @ px!
-				i 16 * player @ py!
-			then
-			# spawn any other entities here.
-			drop
-		next
-	next
+	move-dir @ sprite-in-dir tile
+	dup 3 = if
+		5 move-dir @ show-dir
+		drop 0 move-dir @ sprite-in-dir sprite@ !
+		"Killed slime to the " type move-dir @ .dir "." typeln
+		exit
+	then
+	drop
+	"There's nothing " type move-dir @ .dir " to attack." typeln stop
 ;
 
 : main
@@ -174,14 +268,14 @@
 : attack move-dir ! ' make-attack move-action ! ; ( dir -- )
 
 : look ( dir -- type )
-	>r 16x16 4
-	i dir-x + @ 16 * player @ px +
-	i dir-y + @ 16 * player @ py +
-	201 >sprite wait 0 201 sprite@ ! r>
-	in-dir
-	dup 0 = if drop empty  exit then
-	dup 4 = if drop stairs exit then
-	drop solid
+	4 over show-dir
+	dup sprite-in-dir tile
+	dup 2 = if 2drop gem   exit then
+	    3 = if  drop slime exit then
+	tile-in-dir
+	dup walkable? if drop empty  exit then
+	    4 =       if      stairs exit then
+	solid
 ;
 
 # fill these in:
@@ -201,14 +295,12 @@
 		false going-down !
 	then
 
-	east  look solid != if east  walk exit then
+	east look
+	dup gem    = if drop east take   exit then
+	dup slime  = if drop east attack exit then
+	    solid != if      east walk   exit then
+
 	north look empty  = if north walk true going-up !   exit then
 	south look empty  = if south walk true going-down ! exit then
 ;
-
-
-
-
-
-
 
