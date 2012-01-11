@@ -28,11 +28,13 @@ Constants are also provided for the types of objects and terrain you might see.
 - `gem` a gem you can pick up for points
 - `slime` a dangerous cave slime. Don't walk on 'em!
 
-You can also use your acute sense of hearing via `listen` to obtain the number of enemies on the current level.
+You can also use your acute sense of hearing via `listen` to obtain the number of enemies on the current level. The word `health` indicates how many hits your player can take, to a maximum of 3.
 
 Taking Action
 -------------
-Every game tick, the player should call either `walk`, `take` or `attack`. `walk` moves the player one tile in the given direction. `take` is used for picking up gems on a given adjacent tile. `attack` is used for swinging the sword in a given direction. If multiple actions are indicated during one call to 'tick', the most recent action will take place. If no action is specified or an impossible task is attempted (such as taking a nonexistent gem), Forth Warrior will assume your code has a bug and stop immediately.
+Every game tick, the player should call either `walk`, `take` or `attack`. `walk` moves the player one tile in the given direction. `take` is used for picking up gems on a given adjacent tile. `attack` is used for swinging the sword in a given direction. If multiple actions are indicated during one call to `tick`, the most recent action will take place. If no action is specified or an impossible task is attempted (such as taking a nonexistent gem), Forth Warrior will assume your code has a bug and stop immediately.
+
+Whenever you attack a Slime, you will take some damage due to the beast's acidic innards. Taking too much damage can be deadly, but fortunately you can walk it off- walking 4 tiles will allow your hero to recover one point of damage. Stepping into a slime's maw is instantly fatal!
 
 Scoring
 -------
