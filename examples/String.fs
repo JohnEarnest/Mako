@@ -21,10 +21,9 @@
 	again
 ;
 
-: size (addr x -- len)
-	>r 0
-	loop
-		over @ i xor -if swap r> 2drop exit then
+: size ( addr -- len )
+	0 loop
+		over @ -if swap drop break then
 		1 + swap 1 + swap
 	again
 ;
@@ -40,84 +39,47 @@
 	again
 ;
 
-: number (addr -- n)
-	0
-	over @ 45 xor -if swap 1 + swap -1 else 1 then >r
-	loop
-		over @ -if swap drop r> * exit then
-		10 * over @ 48 - + swap 1 + swap
+: = xor -if true else false then ;
+: digit?  dup 48 >= swap 57 <= and ;
+: white?  dup 9 = over 10 = or swap 32 = or ;
+
+:vector key CO @ ;
+
+# read first non-whitespace char from stdin.
+: >char ( -- char )
+	key loop
+		dup white? -if break then
+		drop key
 	again
 ;
 
-:vector key   CO @ ;
-
-:const pad-size 255
-:array pad      256 0
-
-# read in n chars or until return,
-# storing them in the pad, null-terminated.
-: expect (n -- )
-	pad + 1 - >r pad 1 -
+# read a signed/unsigned integer from stdin.
+: >number ( -- n )
+	>char dup 45 xor
+	-if drop -1 0 key else 1 swap 0 swap then
 	loop
-		1 + key
-		dup 10 xor -if drop 1 - break then
-		over ! dup i <
-	while
-	0 swap 1 + ! r> drop
+		dup digit? -if drop break then
+		48 - swap 10 * + key
+	again *
 ;
 
-# read in chars until we hit a delimiter,
-# storing them in the pad, null-terminated.
-# input will not exceed the size of the pad.
-: word (c -- )
-	>r pad 1 -
-	loop
-		1 + key
-		dup i xor             -if break then
-		over pad pad-size + >= if break then
-		over !
-	again
-	2drop 0 swap ! r> drop
+# read a whitespace-terminated word from stdin.
+: >word ( addr len -- )
+	>char swap
+	2 - for
+		dup white?
+		if r> 2drop 0 swap ! exit then
+		over ! 1 + key
+	next
+	drop 0 swap !
 ;
 
-(
-# usage examples:
-:include "Print.fs"
-
-:string str1 "---hello---"
-:string str2 "A sentence."
-
-:string a "aardvark"
-:string b "aa"
-:string c "blue"
-
-:string n1 "123"
-:string n2 "-2748"
-:string n3 "0"
-:string n4 "2"
-
-: main
-	str1 typeln                # should be '---hello---'
-	str1 3 + str1 6 + 5 >move
-	str1 typeln                # should be '---helhello'
-	str1 6 + str1 3 + 5 <move
-	str1 typeln                # should be '---hellollo'
-
-	str2 0 size . # should be 11
-	cr
-
-	a b -text . #  1 / pos
-	b a -text . # -1 / neg
-	a a -text . #  0 / 0
-	b c -text . # -1 / neg
-	cr
-
-	n1 number .
-	n2 number .
-	n3 number .
-	n4 number .
-	cr
-
-	halt
+# read a line from stdin.
+: >line ( addr len -- )
+	2 - for
+		key dup 10 xor
+		-if r> 2drop 0 swap ! exit then
+		over ! 1 +
+	next
+	0 swap !
 ;
-)
