@@ -57,7 +57,8 @@
 	pixel-grid@ @ 16 mod 7 >
 ;
 
-:data ascii -32
+:data ascii     -32
+:data grid-mask   0
 
 # draw a right-aligned number to the grid
 # starting with the rightmost digit at the specified x/y.
@@ -66,7 +67,7 @@
 	>r
 	loop
 		2dup tile-grid@ i 10 mod
-		ascii @ + 48 + swap !                # draw digit
+		ascii @ + 48 + grid-mask @ or swap ! # draw digit
 		swap 1 - swap                        # move cursor
 		r> 10 / >r i                         # cast out digits
 	while
@@ -78,7 +79,7 @@
 	>r tile-grid@ r> swap
 	loop
 		(string grid)
-		over @ ascii @ + over !
+		over @ ascii @ + grid-mask @ or over !
 		swap 1 + swap 1 +
 		over @
 	while

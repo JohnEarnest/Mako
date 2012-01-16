@@ -138,7 +138,7 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		if (masks.containsKey(k.getKeyCode())) { keys |= masks.get(k.getKeyCode()) ; }
 	}
 	public void keyReleased(KeyEvent k) {
-		if (k.getKeyCode() == KeyEvent.VK_F1) {
+		if (k.getKeyCode() == KeyEvent.VK_F6) {
 			try {
 				BufferedImage shot = new BufferedImage(320, 240, BufferedImage.TYPE_INT_ARGB);
 				shot.getGraphics().drawImage(buffer, 0, 0, this);

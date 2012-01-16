@@ -18,7 +18,7 @@
 : swap@    2dup @ >r @ swap ! r> swap !  ;
 : inc-r    r> r> 1 + >r >r               ;
 : dec-r    r> r> 1 - >r >r               ;
-: +@       swap over @ swap + swap !     ;
+: +@       swap over @ swap + swap !     ; ( val addr -- )
 : -@       swap over @ swap - swap !     ;
 : random   RN @ swap mod                 ;
 : brownian RN @ 3 mod 1 -                ;
@@ -28,7 +28,7 @@
 : tuck     swap over                     ;
 : nip      swap drop                     ;
 : ?dup     dup if dup then               ;
-: within   over >= >r <= r> and          ; ( min v max )
+: within   over >= >r <= r> and          ; ( min v max -- flag )
 
 
 : indexof (value array -- address)

@@ -10,7 +10,7 @@
 ######################################################
 
 : fill   >r 1 - for j over i + ! next r> 2drop    ; (addr len n  --)
-: >move  1 - for over i + @ over i + ! next 2drop ; (src dst len --) # copies high to low
+: >move  1 - for over i + @ over i + ! next 2drop ; (src dst len --)
 
 : <move (src dst len --) # copies low to high
 	>r swap dup r> + >r

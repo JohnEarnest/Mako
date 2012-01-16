@@ -23,6 +23,9 @@
 : py!        sprite@ .sprite-y ! ;
 : tile!      sprite@ .sprite-t ! ;
 
+: +px   sprite@ .sprite-x +@ ;
+: +py   sprite@ .sprite-y +@ ;
+
 : >sprite  >r i py! i px! i tile! r> sprite@ ! ; (status tile x y sprite-id -- )
 : sprite>  >r i sprite@ @ i tile i px r> py    ; (sprite-id -- status tile x y )
 
