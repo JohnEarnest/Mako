@@ -5,3 +5,4 @@ Fivetran     - a crude implementation of classical Fortran for MakoVM
 MASIC        - a compiler for TinyBASIC that emits Forth source
 MakoME       - a J2ME port of the Mako runtime
 Standalone   - an ANT build file for assembling standalone executable Jars for Mako applications
+Slice        - a tool for converting bitmaps into optimized tilemaps and grids
