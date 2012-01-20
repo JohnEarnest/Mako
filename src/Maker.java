@@ -196,6 +196,12 @@ public class Maker implements MakoConstants {
 
 	private void compileFile(String filename) throws FileNotFoundException {
 		currentPath.push(new File(currentPath.peek(), filename).getParent());
+		/*
+		System.out.println("Compiling: " + new File(
+			currentPath.peek(),
+			new File(filename).getName()
+		));
+		*/
 		Scanner in = new Scanner(new File(
 			currentPath.peek(),
 			new File(filename).getName()
@@ -298,8 +304,23 @@ public class Maker implements MakoConstants {
 			rom.addImage(fileName, tileWidth, tileHeight);
 		}
 		else if (token.equals(":include")) {
-			String fileName = unquote(tokens.remove().toString());
-			compileFile(fileName);
+			String srcName = tokens.remove().toString();
+			if (srcName.startsWith("<")) {
+
+				// I highly suspect this is a brittle solution- I need
+				// to test this on different machine configurations.
+				String libPath = new File(Maker.class.getProtectionDomain()
+					.getCodeSource().getLocation().getPath()).getParent();
+
+				currentPath.push(libPath + "/../lib/");
+				String fileName = srcName.substring(1, srcName.length() - 1);
+				compileFile(fileName);
+				currentPath.pop();
+			}
+			else {
+				String fileName = unquote(srcName);
+				compileFile(fileName);
+			}
 		}
 		else if (token.equals(":proto")) {
 			String wordName = tokens.remove().toString();
