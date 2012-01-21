@@ -8,8 +8,8 @@ To compile, run `ant` from the top directory.
 
 To run an example, invoke Maker from the command line:
 
-	java -jar dist/Maker.jar /examples/Pong/Pong.fs --run
+	java -jar dist/Maker.jar /games/Pong/Pong.fs --run
 
 Or use the 'maker' script to save a little typing:
 
-	./maker /examples/Pong/Pong.fs --run
+	./maker /games/Pong/Pong.fs --run
