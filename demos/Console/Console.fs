@@ -38,7 +38,7 @@
 		# shift the data on the grid
 		1159 for
 			console-display 1159 + i - 40 + @
-			console-display 1159 + i -     !
+			console-display 1159 + i -      !
 		next
 		# reposition the cursor
 		cursor @ 40 - cursor !

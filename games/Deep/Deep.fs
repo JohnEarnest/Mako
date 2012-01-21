@@ -283,8 +283,8 @@
 : move-player
 	gameover @ if exit then
 	keys dup
-	key-lf and if player px 2 - player px! then
-	key-rt and if player px 2 + player px! then
+	key-lf and if -2 player +px then
+	key-rt and if  2 player +px then
 	player px 0 max 288 min player px!
 ;
 
@@ -328,11 +328,11 @@
 			dropped @
 			if   detonate
 			else drop-charge 1 player tile! then
-			true pressed !
+			pressed on
 		then
 	else
 		0 player tile!
-		false pressed !
+		pressed off
 	then
 ;
 
@@ -387,8 +387,8 @@
 	    0 crabctr  !
 	    0 skycolor !
 	skies @ CL !
-	false gameover !
-	false ended    !
+	gameover off
+	ended    off
 	' always ' free whoever
 	1 1 tile-grid@ 38 -1 fill
 	50 for waves sync next
@@ -402,8 +402,8 @@
 	light @ -if
 		320 random light1 px!
 		320 random light2 px!
-		10 random 5 > if 16x16 light1 sprite@ ! then
-		10 random 5 > if 16x16 light2 sprite@ ! then
+		10 random 5 > if light1 show then
+		10 random 5 > if light2 show then
 		500 random 300 + light !
 		0xFFFEFEFE CL !
 	then
@@ -411,8 +411,8 @@
 
 	# hide lightning
 	CL @ 0xFF and 0xBB < if
-		16x16 invisible light1 sprite@ !
-		16x16 invisible light2 sprite@ !
+		light1 hide
+		light2 hide
 	then
 
 	# decay flashes

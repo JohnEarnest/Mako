@@ -20,23 +20,3 @@
 : rpick ( index -- element )
 	RP @ 2 - swap - @
 ;
-
-(
-# a use example:
-
-:include "Print.fs"
-
-: main
-
-	55 99 66 33
-	1 pick . cr # 66 expected
-	0 pick . cr # 33 expected
-	3 pick . cr # 55 expected
-	2 pick . cr # 99 expected
-
-	43 >r 98 >r 41 >r
-	1 rpick . cr # 98 expected
-	0 rpick . cr # 41 expected
-	2 rpick . cr # 43 expected
-;
-)

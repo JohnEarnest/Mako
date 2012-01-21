@@ -10,6 +10,8 @@
 
 : 0=            if false else true  then ;
 : 0!            if true  else false then ;
+: on       true  swap !                  ;
+: off      false swap !                  ;
 : inc@     dup @ 1 + swap !              ;
 : dec@     dup @ 1 - swap !              ;
 : neg@     dup @ -1 * swap !             ;
