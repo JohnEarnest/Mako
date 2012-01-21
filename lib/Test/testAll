@@ -1,0 +1,11 @@
+#!/bin/bash
+
+FIXTURES="
+	testMath.fs
+	testPick.fs
+	testVector.fs
+"
+
+# This script uses the CPAN module App::Prove
+# to automate running all the test fixtures.
+prove --exec '../../maker --quiet --run' $FIXTURES
