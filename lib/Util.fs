@@ -8,8 +8,6 @@
 ##
 ######################################################
 
-: =        xor -if true  else false then ;
-: !=       xor -if false else true  then ;
 : 0=            if false else true  then ;
 : 0!            if true  else false then ;
 : inc@     dup @ 1 + swap !              ;

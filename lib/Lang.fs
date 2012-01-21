@@ -13,6 +13,6 @@
 :const true  -1
 :const false  0
 
-: =   xor -if true else false then ;
-
-: foobar 23 ;
+: =     xor -if true  else false then ;
+: !=    xor -if false else true  then ;
+#: exec  r> drop >r ;

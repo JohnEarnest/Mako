@@ -35,8 +35,7 @@
 ;
 
 : last-task? ( -- flag )
-	curr-task @ dup .task-next @
-	xor -if true else false then
+	curr-task @ dup .task-next @ =
 ;
 
 : finish ( -- )
@@ -88,8 +87,8 @@
 ##
 ######################################################
 
-(
-:include "Print.fs"
+
+:include <Print.fs>
 
 # producer 
 :array prod-d 20 0
@@ -134,4 +133,3 @@
 	"child processes complete." typeln
 	finish
 ;
-)

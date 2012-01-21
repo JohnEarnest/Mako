@@ -39,7 +39,6 @@
 	again
 ;
 
-: = xor -if true else false then ;
 : digit?  dup 48 >= swap 57 <= and ;
 : white?  dup 9 = over 10 = or swap 32 = or ;
 

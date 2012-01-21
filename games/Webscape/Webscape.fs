@@ -12,8 +12,6 @@
 :include <Grid.fs>
 :include <Sprites.fs>
 :include <String.fs>
-:include <Util.fs>
-:include <Print.fs>
 
 :image sprite-tiles "sites.png" 64 64
 :image grid-tiles "net.png" 8 8
@@ -51,31 +49,31 @@
 	128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128  -1 
 	 -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1 
 
-:string name1 "   Cats.com"
-:string name2 " TaterPRO.ORG"
-:string name3 "  Wikiphilia"
-:string name4 "  TETRIS.XXX"
-:string name5 "FanFiction.net"
-:string name6 "NewGrounds.com"
-:string name7 "    MTU.edu"
-:string name8 " CogNation.org"
+:data name1 "   Cats.com"
+:data name2 " TaterPRO.ORG"
+:data name3 "  Wikiphilia"
+:data name4 "  TETRIS.XXX"
+:data name5 "FanFiction.net"
+:data name6 "NewGrounds.com"
+:data name7 "    MTU.edu"
+:data name8 " CogNation.org"
 :data names name1 name2 name3 name4 name5 name6 name7 name8
 :const namecount 8
 
-:string b1 "  POST      "
-:string b2 "  REFRESH   "
-:string b3 "  MODERATE  "
+:data b1 "  POST      "
+:data b2 "  REFRESH   "
+:data b3 "  MODERATE  "
 :data button-labels b1 b2 b3
 :const buttoncount 3
 
-:string mar1 "Cats, Cats and more Cats! The official online home of anybody who Loooves cats! "
-:string mar2 "Red Potatoes Russet Potatoes Mashed Potatoes Yukon Gold Potatoes POTATOOOOOES.  "
-:string mar3 "Wikiphilia: The Consent-Free Online Encyclopedia anyone can edit.       Anyone. "
-:string mar4 "Hot piece on piece action! Finish your line! FROM RUSSIA, WITH LOVEMAKING. XXX! "
-:string mar5 "John Reciprocating waited. There were vaccuums here, he was sure of it.         "
-:string mar6 "Columbian or Brazillian? Find out once and for all in a new special editorial.  "
-:string mar7 "Temperature: Cold            Special Events:                                    "
-:string mar8 "Main theme: Tedium        Special Bonus Theme: The Michigan Tech Experience     "
+:data mar1 "Cats, Cats and more Cats! The official online home of anybody who Loooves cats! "
+:data mar2 "Red Potatoes Russet Potatoes Mashed Potatoes Yukon Gold Potatoes POTATOOOOOES.  "
+:data mar3 "Wikiphilia: The Consent-Free Online Encyclopedia anyone can edit.       Anyone. "
+:data mar4 "Hot piece on piece action! Finish your line! FROM RUSSIA, WITH LOVEMAKING. XXX! "
+:data mar5 "John Reciprocating waited. There were vaccuums here, he was sure of it.         "
+:data mar6 "Columbian or Brazillian? Find out once and for all in a new special editorial.  "
+:data mar7 "Temperature: Cold            Special Events:                                    "
+:data mar8 "Main theme: Tedium        Special Bonus Theme: The Michigan Tech Experience     "
 :data marquees mar1 mar2 mar3 mar4 mar5 mar6 mar7 mar8
 
 :data  sdiff   1 3 1 1 2 1 1 2 # initial star ratings
@@ -256,15 +254,15 @@
 	erase-buttons
 ;
 
-:string mf1 "Your brilliant advice went unheeded."
-:string mf2 "These cretins will not be educated!"
-:string mf3 "  The ignorant masses ignore you."
+:data mf1 "Your brilliant advice went unheeded."
+:data mf2 "These cretins will not be educated!"
+:data mf3 "  The ignorant masses ignore you."
 :data moderate-fail mf1 mf2 mf3 
 :const moderate-fail-count 3
 
-:string ms1 "Your moderation improved the forum!"
-:string ms2 "  You have imparted great wisdom!"
-:string ms3 " Your genius has enriched the forum!"
+:data ms1 "Your moderation improved the forum!"
+:data ms2 "  You have imparted great wisdom!"
+:data ms3 " Your genius has enriched the forum!"
 :data moderate-succeed ms1 ms2 ms3
 :const moderate-succeed-count 3
 
@@ -283,11 +281,11 @@
 	then
 ;
 
-:string ps1 "   You posted an eloquent missive."
-:string ps2 " You made an extremely clever joke."
-:string ps3 " You show your keen grasp of trivia."
-:string ps4 "  You made an insightful comment."
-:string ps5 " You corrected an error in grammar."
+:data ps1 "   You posted an eloquent missive."
+:data ps2 " You made an extremely clever joke."
+:data ps3 " You show your keen grasp of trivia."
+:data ps4 "  You made an insightful comment."
+:data ps5 " You corrected an error in grammar."
 :data post-succeed ps1 ps2 ps3 ps4 ps5
 :const post-succeed-count 5
 

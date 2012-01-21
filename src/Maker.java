@@ -270,10 +270,6 @@ public class Maker implements MakoConstants {
 		else if (token.equals(":data")) {
 			variables.put(tokens.remove().toString(), rom.size());
 		}
-		else if (token.equals(":string")) {
-			variables.put(tokens.remove().toString(), rom.size());
-			rom.addString(unquote(tokens.remove().toString()));
-		}
 		else if (token.startsWith("\"")) {
 			if (compiling) {
 				int start = rom.addJump(-1);
@@ -452,7 +448,6 @@ public class Maker implements MakoConstants {
 			rom.addConst(rom.size() + 4);
 			rom.addStor();   // hooray for self-modifying code!
 			rom.addCall(-4);
-
 		}
 
 		else if (prototypes.containsKey(token)) {

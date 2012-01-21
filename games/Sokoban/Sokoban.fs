@@ -16,7 +16,6 @@
 :include <Sprites.fs>
 :include <Grid.fs>
 :include <Util.fs>
-:include <Print.fs>
 
 :const player-kind 1
 :const block-kind  2
@@ -362,8 +361,7 @@
 ;
 
 : check-score
-	0
-	15 for
+	0 15 for
 		i kind? target-kind = if
 			1 + # found a target
 			15 for
@@ -374,9 +372,7 @@
 		then
 	next
 	-if
-		"level completed..." type cr
-		50 for sync next
-		level!
+		50 for sync next level!
 	then
 ;
 

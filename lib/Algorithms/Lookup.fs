@@ -39,7 +39,7 @@
 	100   2
 	666  11
 
-:include "Print.fs"
+:include <Print.fs>
 
 : main
 	871 table lookup ? # 20 expected

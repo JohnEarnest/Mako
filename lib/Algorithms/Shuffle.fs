@@ -21,7 +21,7 @@
 (
 # a use example:
 
-:include "Print.fs"
+:include <Print.fs>
 
 :data arr 1 2 3 4 5 6
 
