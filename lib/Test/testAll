@@ -4,6 +4,7 @@ FIXTURES="
 	testMath.fs
 	testPick.fs
 	testVector.fs
+	testEntities.fs
 "
 
 # This script uses the CPAN module App::Prove

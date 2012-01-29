@@ -44,9 +44,6 @@
 	2drop r>
 ;
 
-:const +infinity  2147483647
-:const -infinity -2147483647
-
 # saturating addition
 : +s ( a b -- a+b ) 
 	over 0 > over 0 > >r >r
