@@ -14,6 +14,7 @@
 : off      false swap !                  ;
 : inc@     dup @ 1 + swap !              ;
 : dec@     dup @ 1 - swap !              ;
+: toggle   dup @ not swap !              ;
 : neg@     dup @ -1 * swap !             ;
 : swap@    2dup @ >r @ swap ! r> swap !  ;
 : inc-r    r> r> 1 + >r >r               ;
@@ -29,7 +30,6 @@
 : nip      swap drop                     ;
 : ?dup     dup if dup then               ;
 : within   over >= >r <= r> and          ; ( min v max -- flag )
-
 
 : indexof (value array -- address)
 	loop
