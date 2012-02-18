@@ -22,6 +22,7 @@ public class Maker implements MakoConstants {
 		boolean fuzz       = pluckArg(argList, "--fuzz");
 		boolean symbols    = pluckArg(argList, "--symbols");
 		boolean quiet      = pluckArg(argList, "--quiet");
+		boolean trace      = pluckArg(argList, "--trace");
 
 		Maker compiler = new Maker();
 
@@ -45,7 +46,7 @@ public class Maker implements MakoConstants {
 		if (run) {
 			int[] mem = compiler.rom.toArray();
 			try {
-				Mako.exec(mem, fuzz);
+				Mako.exec(mem, fuzz, trace ? compiler.rom : null);
 			}
 			catch(Throwable t) {
 				System.out.println("Runtime Error: ");

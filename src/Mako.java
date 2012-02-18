@@ -19,7 +19,7 @@ public class Mako {
 			for(int x = 0; x < rom.length; x++) {
 				rom[x] = in.readInt();
 			}
-			exec(rom, false);
+			exec(rom, false, null);
 		}
 		catch(IOException ioe) {
 			System.out.println("Unable to load '"+romFile+"'.");
@@ -27,7 +27,7 @@ public class Mako {
 		}
 	}
 
-	public static void exec(int[] rom, boolean fuzz) {
+	public static void exec(int[] rom, boolean fuzz, MakoRom traceRom) {
 		JFrame window  = new JFrame();
 		MakoPanel view = new MakoPanel(rom);
 
@@ -40,14 +40,38 @@ public class Mako {
 
 		Random rng = new Random();
 
+		Stack<String>        traceFunc   = new Stack<String>();
+		Map<String, Integer> traceCalls  = new HashMap<String, Integer>();
+		Map<String, Integer> traceCycles = new HashMap<String, Integer>();
+		traceFunc.push("main");
+
 		while(true) {
 			long start = System.currentTimeMillis();
 
 			view.ticks[view.tickptr] = 0;
 			while(view.vm.m[view.vm.m[MakoConstants.PC]] != MakoConstants.OP_SYNC) {
 				view.ticks[view.tickptr]++;
+
+				if (traceRom != null) {
+					int pc = view.vm.m[MakoConstants.PC];
+					int op = view.vm.m[pc];
+					int  a = view.vm.m[pc+1];
+					incMap(traceCycles, traceFunc.peek());
+
+					if (op == MakoConstants.OP_CALL) {
+						traceFunc.push(traceRom.getLabel(a));
+						incMap(traceCalls, traceFunc.peek());
+					}
+					if (op == MakoConstants.OP_RETURN) {
+						traceFunc.pop();
+					}
+				}
+
 				view.vm.tick();
-				if (view.vm.m[MakoConstants.PC] == -1) { System.exit(0); }
+				if (view.vm.m[MakoConstants.PC] == -1) {
+					if (traceRom != null) { printTrace(traceCalls, traceCycles); }
+					System.exit(0);
+				}
 			}
 			view.vm.sync();
 			view.vm.m[MakoConstants.PC]++;
@@ -76,9 +100,53 @@ public class Mako {
 			}
 		}
 	}
+
+	private static void incMap(Map<String, Integer> m, String k) {
+		if (k.startsWith("(")) { k = k.substring(1, k.length() - 1); }
+		if (k.length() == 0) { k = "(unknown)"; }
+		if (!m.containsKey(k)) { m.put(k, 1); }
+		else { m.put(k, m.get(k)+1); }
+	}
+
+	private static void printTrace(
+		final Map<String, Integer> calls,
+		final Map<String, Integer> cycles
+	) {
+		System.out.println();
+		System.out.println("Function           Cycles    Calls      Avg\n");
+		long totalCalls  = 0;
+		long totalCycles = 0;
+		ArrayList<String> functions = new ArrayList<String>(calls.keySet());
+		Collections.sort(functions, new Comparator<String>() {
+			public int compare(String o1, String o2) {
+				// I want to sort from greatest to smallest:
+				return -1 * cycles.get(o1).compareTo(cycles.get(o2));
+			}
+		});
+
+		for(String k : functions) {
+			System.out.format("%-16s %8d %8d %8d%n",
+				k,
+				cycles.get(k),
+				calls.get(k),
+				cycles.get(k) / calls.get(k)
+			);
+			totalCalls  += calls.get(k);
+			totalCycles += cycles.get(k);
+		}
+		System.out.println();
+		System.out.format("%-16s %8d %8d%n",
+			"Total:",
+			totalCycles,
+			totalCalls
+		);
+		System.out.println();
+	}
 }
 
 class MakoPanel extends JPanel implements KeyListener, MakoConstants {
+
+	public static final long serialVersionUID = 1337;
 
 	private static final Map<Integer, Integer> masks = new HashMap<Integer, Integer>();
 	{

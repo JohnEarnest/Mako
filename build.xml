@@ -11,7 +11,9 @@
 		<javac srcdir="${src}" destdir="${build}"
 				debug="on"
 				debuglevel="lines,vars,source"
-			   includeantruntime="false"/>
+			   includeantruntime="false">
+			<compilerarg value="-Xlint"/>
+		</javac>
 	</target>
 
 	<target name="maker" depends="compile" >

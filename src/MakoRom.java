@@ -72,8 +72,8 @@ public class MakoRom implements MakoConstants {
 					else if (types.get(x) == Type.Array)   { type = "array"; }
 					else if (types.get(x) == Type.String)  { type = "string"; }
 					else if (types.get(x) == Type.Image)   { type = "image"; }
-					else if (types.get(x) == Type.Unknown) { type = "unknwon"; }
-					sym.format("%d %s %s", x, type, getLabel(x));
+					else if (types.get(x) == Type.Unknown) { type = "unknown"; }
+					sym.format("%d %s %s%n", x, type, getLabel(x));
 				}
 				sym.close();
 			}
