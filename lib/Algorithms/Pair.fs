@@ -16,25 +16,32 @@
 ##  collisions on the stacks or in managed memory
 ##  during list operations.
 ##
+##  The 'gc-init' routine must be called before
+##  using any list-manipulation operations-
+##  it caches the base positions of the stacks
+##  so they can be scanned later.
+##  
+##  Additionally, users must declare empty
+##  word bodies named 'managed-begin' and
+##  'managed-end' to surround any persistent
+##  storage which may contain a pair reference.
+##
 ##  John Earnest
 ##
 ######################################################
 
-:include "../Print.fs"
-
 :const nil       -2147483648
 :const pair-mask 0x60000000
+:const pair-bits 0x9fffffff
 :const pair-flag 0x40000000
-:const pair-hole 0x20000000
 
 : nil? ( val -- flag )
 	nil xor -if true else false then
 ;
 
 : pair? ( addr -- flag )
-	dup pair-flag and swap
-	not pair-hole and or
-	    pair-mask xor
+	pair-mask and
+	pair-flag xor
 	if false else true then
 ;
 
@@ -42,9 +49,9 @@
 	dup nil? not swap pair? not and
 ;
 
-: .reach pair-mask not and     ;
-: .first pair-mask not and 1 + ;
-: .rest  pair-mask not and 2 + ;
+: .reach pair-bits and     ;
+: .first pair-bits and 1 + ;
+: .rest  pair-bits and 2 + ;
 
 : raw? ( addr -- flag )
 	dup pair? if .rest @ atom?
@@ -77,27 +84,38 @@
 :var return-min
 :var return-max
 
+:var free-head
+:data free-tail 0 0 0
+:data valid 1
+
+: >free  free-head @ over .first ! free-head ! ; ( pair* -- )
+: free>  free-head @ dup  .first @ free-head ! ; ( -- pair* )
+
+: free-cells ( -- count )
+	free-tail free-head !
+	0 heap heap-size 1 - for
+		dup @ valid @ xor
+		if dup pair-flag or >free
+		else swap 1 + swap then
+		3 +
+	next drop
+;
+
 : gc-init ( -- )
 	DP @       data-min !
 	RP @ 1 - return-min !
-;
-
-: free-cells ( -- count )
-	0 heap-size 1 - for
-		i 3 * heap + @ -if 1 + then
-	next
+	free-cells drop
 ;
 
 : walk ( pair* -- )
-	dup .reach @ if drop exit then
-	dup .reach true swap !
+	dup .reach @ valid @ = if drop exit then
+	dup .reach   valid @ swap !
 	dup .first @ dup pair? if walk else drop then
 	    .rest  @ dup pair? if walk else drop then
 ;
 
 : scan ( min max -- )
-	over -
-	for
+	over - for
 		dup i + @ dup pair? if walk
 		else drop then
 	next
@@ -108,24 +126,16 @@
 	#"collecting garbage..." typeln
 	DP @   data-max !
 	RP @ return-max !
-	free-cells
-	heap-size 1 - for 0 i 3 * heap + ! next
+	valid @ 1 + valid !
 	data-min   @   data-max @ scan
 	return-min @ return-max @ scan
 	' managed-begin ' managed-end scan
-	free-cells swap - 1 <
-	if "failed to free space." typeln halt then
+	free-cells
+	-if "failed to free space." typeln halt then
 ;
 
 : new-pair ( -- pair* )
-	heap-size 1 - for
-		i 3 * heap + dup @ -if
-			pair-flag or
-			1 over .reach ! rdrop exit
-		then
-		drop
-	next
-	collect new-pair
+	free> dup free-tail = if drop collect new-pair then
 ;
 
 ######################################################
@@ -138,8 +148,7 @@
 ######################################################
 
 : pair ( first rest -- pair* )
-	new-pair >r
-	i .rest  ! i .first ! r>
+	new-pair dup >r .first swap over 1 + ! ! r>
 ;
 
 : first   .first @             ; ( pair* -- first )
@@ -233,6 +242,13 @@
 	rest swap rest list-equal?
 ;
 
+: list-dequal? ( a* b* -- flag )
+	over pair? over pair? and if
+	over first over first     list-dequal?
+	swap rest >r swap rest r> list-dequal? and
+	else = then
+;
+
 : list-apply ( pair* func* -- )
 	over nil? if 2drop exit then
 	>r -split i exec r> list-apply
@@ -276,90 +292,8 @@
 	list-cross pair
 ;
 
-######################################################
-##
-##  Tests and examples
-##
-######################################################
-
 # a little sugar for mitigating
 # any remaining Lisp envy:
 : [ nil        ;
 : ] list-build ;
 : . list-print ;
-
-# managed memory- any persistent storage
-# which might reference a pair must be wrapped
-# in these markers.
-: managed-begin ;
-
-:var A
-:var B
-
-: managed-end ;
-
-: main
-	# this routine must be called before
-	# using any list-manipulation operations-
-	# it caches the base positions of the stacks
-	# so they can be scanned later.
-	gc-init
-
-	666 # stack 'canary'
-
-	1 2 pair pair? .
-	nil      pair? .
-	true     pair? .
-	false    pair? . cr
-
-	[ 1 [ 2 3 ] 4 5 pair 6 ]             . cr
-	77 33 44 nil pair pair pair          . cr
-	5 4 3 pair pair                      . cr
-	nil 1 pair                           . cr
-	[ 1 2 3 [ 4 5 6 ] 7 [ 8 [ 9 10 ] ] ] . cr
-	[ 3 4 5 ] A !
-	[ 5 4 3 ] B !
-	[ A @ B @ A @ B @ ] . cr
-
-	[ 9 8 7 ] [ 6 5 4 ] list-join . cr
-
-	[ 9 8 7 6 5 ]         list-flatten . cr
-	[ 9 [ [ 8 ] 7 ] 6 5 ] list-flatten . cr
-	[ 1 2 pair 3 4 pair ] list-flatten . cr
-
-	[ 1 2 3 4 5 ] list-reverse . cr
-
-	[ 1 ]     list-length .
-	[ 1 2 ]   list-length .
-	[ 1 2 3 ] list-length . cr
-
-	[ 4 5 6 ]
-	dup 0 list-nth .
-	dup 1 list-nth .
-	    2 list-nth . cr
-
-	[ 23 45 99 ] list-last . cr
-	[ 23 45 99 ] list-butlast . cr
-
-	[ 1 2 3 ] [ 1 2 ]   list-equal? .
-	[ 1 2 3 ] [ 1 5 3 ] list-equal? .
-	[ 1 2 3 ] [ 1 2 3 ] list-equal? . cr
-
-	[ 1 1 2 3 5 8 13 ] { . ", " type } list-apply cr
-	[ 1 2 3 4 ] { 3 * } list-map . cr
-	[ 1 2 3 4 ] 0 { + } list-reduce . cr
-
-	[ 5 4 3 2 1 ] { drop true }  list-filter . cr
-	[ 5 4 3 2 1 ] { drop false } list-filter . cr 
-	[ 1 2 3 4 5 ] { 2 mod }      list-filter . cr
-	[ 1 2 3 4 5 ] { 1 + 2 mod }  list-filter . cr
-
-	[ 1 2 3 ] [ 4 5 6 ] list-zip . cr
-	[ 1 2 ] [ 3 4 5 6 ] list-zip . cr
-	[ 9 8 7 ] 88 list-zipwith    . cr
-	[ 1 2 3 ] [ 4 5 ] list-cross . cr
-
-	. cr # print the canary
-
-	halt
-;
