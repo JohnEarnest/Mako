@@ -1,0 +1,29 @@
+
+include <Print>;
+
+// Calculate a few values of the
+// Ackermann function recursively.
+
+func ack(m, n) {
+	if (m = 0) { return n+1; }
+	if (n = 0) { return ack(m-1, 1); }
+	return ack(m-1, ack(m, n-1));
+}
+
+func printAck(m, n) {
+	print("Ack(");
+	printNum(m);
+	print(", ");
+	printNum(n);
+	print("): ");
+	printNum(ack(m, n));
+	println();
+}
+
+func main() {
+	printAck(0, 0);
+	printAck(1, 3);
+	printAck(2, 3);
+	printAck(3, 4);
+	printAck(3, 8);
+}

@@ -10,7 +10,7 @@ func printChar(c) {
 }
 
 func printDecimal(n) {
-	if (n > 10) {
+	if (n >= 10) {
 		printDecimal(n/10);
 	}
 	printChar(n%10 + '0');

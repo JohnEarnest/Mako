@@ -1,0 +1,32 @@
+include <Print>;
+
+// Run a prime sieve several times
+// and print out how many primes we find.
+
+var flags[8192 + 1];
+
+func main() {
+	
+	var num   := 50;
+	var count := 0;
+	
+	while (num >= 0) {
+		num   -= 1;
+		count := 0;
+		
+		for (var i := 2; i <= 8192; i += 1;) {
+			(&flags + i) := 1;
+		}
+		for (var i := 2; i <= 8192; i += 1;) {
+			if (*(&flags + i)) {
+				for (var k := i + i; k <= 8192; k += i;) {
+					(&flags + k) := 0;
+				}
+				count += 1;
+			}
+		}
+	}
+	
+	printNum(count);
+	println();
+}

@@ -29,8 +29,8 @@ public class SPC {
 
 		globals.set("CO", MakoConstants.CO);
 
-		storage.add(new Storage("data_stack",   1024));
-		storage.add(new Storage("return_stack", 1024));
+		storage.add(new Storage("data_stack",   4096));
+		storage.add(new Storage("return_stack", 4096));
 		storage.add(new Storage("grid",         1271));
 		storage.add(new Storage("grid_tiles",     64));
 		storage.add(new Storage("sprites",      1024));
@@ -599,7 +599,7 @@ public class SPC {
 			}
 			int loopHead = rom.size();
 			condition.emit();
-			breaks.add(rom.addJumpZ(-1));
+			int loopTail = rom.addJumpZ(-1);
 			body.emit();
 			for(Integer x : continues) {
 				rom.set(x, rom.size());
@@ -609,6 +609,7 @@ public class SPC {
 				step.emit();
 			}
 			rom.addJump(loopHead);
+			rom.set(loopTail, rom.size());
 			for(Integer x : breaks) {
 				rom.set(x, rom.size());
 			}
@@ -947,7 +948,7 @@ enum BinOp {
 			rom.add(opcode,       MakoRom.Type.Code);
 			rom.add(rom.size()+5, MakoRom.Type.Code);
 			rom.addConst(-1);
-			rom.addJump(rom.size() + 3);
+			rom.addJump(rom.size() + 4);
 			rom.addConst(0);
 		}
 		else {
