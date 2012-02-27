@@ -1,0 +1,52 @@
+include <Print>;
+
+// Based on the LLVM 3.0 Standalone Stanford
+// benchmark example 'Perm.c'-
+// appears to generate a series of
+// lexicographic permutations of digits.
+
+var array[11];
+var counter := 0;
+
+func swap(a, b) {
+	var t := *a;
+	*a    := *b;
+	*b    := t;
+}
+
+func init(n) {
+	for(var i := 1; i <= n; i += 1;) {
+		(&array + i) := i - 1;
+	}
+}
+
+func permute(n) {
+	counter += 1;
+	if (n > 1) {
+		permute(n-1);
+		for(var k := n-1; k >= 1; k -= 1;) {
+			swap((&array + n), (&array + k));
+			permute(n-1);
+			swap((&array + n), (&array + k));
+		}
+	}
+}
+
+func perm() {
+	counter := 0;
+	for(var i := 1; i <= 5; i += 1;) {
+		init(7);
+		permute(7);
+	}
+	if (counter != 43300) {
+		print("Error in Perm.\n");
+	}
+	printNum(counter);
+	println();
+}
+
+func main() {
+	for(var trial := 0; trial < 100; trial += 1;) {
+		perm();
+	}
+}

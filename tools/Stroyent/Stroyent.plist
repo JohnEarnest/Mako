@@ -1,0 +1,42 @@
+{
+        BBEditDocumentType = "CodelessLanguageModule";
+        BBLMColorsSyntax = YES;
+        BBLMIsCaseSensitive = YES;
+        BBLMKeywordList = (
+			true,
+			false,
+			for,
+			while,
+			break,
+			continue,
+			return,
+			if,
+			elseif,
+			else,
+			var,
+			func,
+			main,
+			struct,
+			sync,
+			const,
+			include,
+			image
+        );
+        BBLMLanguageCode = snt;
+        "BBLMLanguageDisplayName" = "Stroyent";
+        BBLMScansFunctions = NO;
+        BBLMSuffixMap = (
+                {
+                        BBLMLanguageSuffix = ".snt";
+                },
+        );
+        "Language Features" = {
+                "Open Block Comments" = "/*";
+                "Close Block Comments" = "*/";
+                "Open Line Comments" = "//";
+                "Open Strings 1" = "\"";
+                "Close Strings 1" = "\"";
+                "End-of-line Ends Strings 1" = NO;
+                "Identifier and Keyword Characters" = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxy_$";
+        };
+}

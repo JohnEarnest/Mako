@@ -31,3 +31,7 @@ func print(str) {
 		str += 1;
 	}
 }
+
+func println() {
+	printChar(10);
+}

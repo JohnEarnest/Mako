@@ -138,7 +138,7 @@ public class SPC {
 
 		for(String s : globals.undefined()) {
 			System.out.println("Error: No declaration for '"+s+"'!");
-			System.exit(-1);
+			//System.exit(-1);
 		}
 	}
 
@@ -301,6 +301,7 @@ public class SPC {
 			return new Call(name, c);
 		}
 		else {
+			if (name == "") { System.out.println(c.line); }
 			return new Deref(new Reference(name));
 		}
 	}
@@ -461,9 +462,9 @@ public class SPC {
 		}
 
 		void emit() {
-			locals.push(name);
 			init.emit();
 			rom.addStr();
+			locals.push(name);
 		}
 	}
 	
@@ -720,6 +721,7 @@ public class SPC {
 		String name;
 		
 		Reference(String name) {
+			if (name == "") { throw new Error("WHAT"); }
 			this.name = name;
 		}
 
@@ -793,7 +795,7 @@ class Locals {
 			if (locals.get(x).equals(name)) { return ret; }
 			ret++;
 		}
-		return -777;
+		return -767;
 	}
 
 	int size() {
@@ -862,7 +864,9 @@ class Globals {
 		}
 		refs.put(name, new ArrayList<Integer>());
 		refs.get(name).add(rom.size());
-		return -777;
+		throw new Error("what");
+		//System.out.println("GET REF: '"+name+"'");
+		//return -777;
 	}
 
 	Set<String> undefined() {
@@ -891,6 +895,13 @@ enum AssignOp {
 }
 
 enum BinOp {
+	Equ("=",  3, MakoConstants.OP_JUMPIF), // synthetic
+	Neq("!=", 3, MakoConstants.OP_JUMPZ),
+	Sge(">=", 3, MakoConstants.OP_SLT),
+	Sle("<=", 3, MakoConstants.OP_SGT),
+	Ror(">>", 2, MakoConstants.OP_DIV),
+	Rol("<<", 2, MakoConstants.OP_MUL),
+
 	And("&", 3, MakoConstants.OP_AND), // primitive
 	Or ("|", 3, MakoConstants.OP_OR ),
 	Xor("^", 3, MakoConstants.OP_XOR),
@@ -900,14 +911,7 @@ enum BinOp {
 	Div("/", 1, MakoConstants.OP_DIV),
 	Mod("%", 1, MakoConstants.OP_MOD),
 	Sgt(">", 3, MakoConstants.OP_SGT),
-	Slt("<", 3, MakoConstants.OP_SLT),
-	
-	Equ("=",  3, MakoConstants.OP_JUMPIF), // synthetic
-	Neq("!=", 3, MakoConstants.OP_JUMPZ),
-	Sge(">=", 3, MakoConstants.OP_SLT),
-	Sle("<=", 3, MakoConstants.OP_SGT),
-	Ror(">>", 2, MakoConstants.OP_DIV),
-	Rol("<<", 2, MakoConstants.OP_MUL);
+	Slt("<", 3, MakoConstants.OP_SLT);
 
 	final String name;
 	final int level;
@@ -937,7 +941,7 @@ enum BinOp {
 			rom.add(opcode, MakoRom.Type.Code);
 			rom.addNot();
 		}
-		else if (this == Equ) {
+		else if (this == Equ || this == Neq) {
 			// xor -if true else false then
 			rom.addXor();
 			rom.add(opcode,       MakoRom.Type.Code);
