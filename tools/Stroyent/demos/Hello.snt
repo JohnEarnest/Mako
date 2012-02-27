@@ -1,0 +1,5 @@
+include <Print>;
+
+func main() {
+	print("Hello, World!\n");
+}

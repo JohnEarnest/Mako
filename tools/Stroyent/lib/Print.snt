@@ -1,0 +1,33 @@
+//
+// Print.snt
+//
+// A collection of routines for
+// communicating via the debug port.
+//
+
+func printChar(c) {
+	CO := c;
+}
+
+func printDecimal(n) {
+	if (n > 10) {
+		printDecimal(n/10);
+	}
+	printChar(n%10 + '0');
+}
+
+func printNum(n) {
+	if (n < 0) {
+		printChar('-');
+		n *= -1;
+	}
+	printDecimal(n);
+	printChar(' ');
+}
+
+func print(str) {
+	while(*str) {
+		printChar(*str);
+		str += 1;
+	}
+}

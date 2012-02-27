@@ -1,0 +1,40 @@
+<!--
+	Stroyent build script
+-->
+<project name="Stroyent" default="compile">
+
+	<target name="clean">
+		<delete dir="build" />
+		<delete dir="dist" />
+		<delete file="src/Mako.java" />
+		<delete file="src/MakoVM.java" />
+		<delete file="src/MakoRom.java" />
+		<delete file="src/MakoConstants.java" />
+	</target>
+
+	<target name="stage" depends="clean">
+		<mkdir dir="build" />
+		<mkdir dir="dist"  />
+		<copy  file= "../../src/Mako.java"          todir="src" />
+		<copy  file= "../../src/MakoVM.java"        todir="src" />
+		<copy  file= "../../src/MakoRom.java"       todir="src" />
+		<copy  file= "../../src/MakoConstants.java" todir="src" />
+	</target>
+
+	<target name="compile" depends="stage">
+		<javac	srcdir="src"
+				destdir="build"
+				debug="on"
+				debuglevel="lines,vars,source"
+				includeantruntime="false"
+				deprecation="on"
+		>
+				<compilerarg value="-Xlint"/>
+		</javac>
+		<jar destfile="dist/Stroyent.jar" basedir="build">
+			<manifest>
+				<attribute name="Main-Class" value="SPC"/>
+			</manifest>
+		</jar>
+	</target>
+</project>
