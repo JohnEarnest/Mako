@@ -14,8 +14,8 @@ public class SPC {
 	private final List<Integer> breaks    = new ArrayList<Integer>();
 	private final List<Integer> continues = new ArrayList<Integer>();
 	private int stringIndex  = 0;
-	
 	private final Stack<String> currentPath = new Stack<String>();
+	private final Map<String, Integer> constants = new HashMap<String, Integer>();
 
 	public static void main(String[] args) {
 		SPC compiler = new SPC(new ArrayList<String>(Arrays.asList(args)));
@@ -107,7 +107,12 @@ public class SPC {
 				structs.add(new Struct(cursor));
 			}
 			else if (cursor.match("const")) {
-				throw new Error("Not Implemented!");
+				String name = cursor.parseName();
+				if (constants.containsKey(name)) {
+					throw new Error("Error: Multiple declarations for '"+name+"'!");
+				}
+				constants.put(name, parseConstantExpression(cursor));
+				cursor.expect(';');
 			}
 			else if (cursor.match("include")) {
 				if (cursor.match("<")) {
@@ -277,33 +282,46 @@ public class SPC {
 	}
 
 	private Expression parseFactor(Cursor c) {
-		// (expression) | constant | var | call(expressions) | unary(factor) | string
 		if (c.match("~")) { return new       Not(parseFactor(c)); }
 		if (c.match("*")) { return new     Deref(parseFactor(c)); }
 		if (c.match("&")) { return new AddressOf(parseFactor(c)); }
 		if (c.match("-")) { return new BinaryNode(BinOp.Mul, new Constant(-1), parseFactor(c)); }
 
+		if (c.isNumber()) {
+			return new Constant(c.parseNumber());
+		}
 		if (c.at('"')) {
 			Storage text = new Storage(c.parseString());
 			storage.add(text);
-			return new Reference(text.name);
+			return parseIndexer(new Reference(text.name), c);
 		}
 		if (c.match("(")) {
 			Expression ret = parseExpression(c);
 			c.expect(')');
-			return ret;
-		}
-		if (c.isNumber()) {
-			return new Constant(c.parseNumber());
+			return parseIndexer(ret, c);
 		}
 		String name = c.parseName();
 		if (c.at('(')) {
-			return new Call(name, c);
+			return parseIndexer(new Call(name, c), c);
+		}
+		else if (constants.containsKey(name)) {
+			return new Constant(constants.get(name));
 		}
 		else {
-			if (name == "") { System.out.println(c.line); }
-			return new Deref(new Reference(name));
+			Expression e = parseIndexer(new Reference(name), c);
+			if (!(e instanceof Deref)) { e = new Deref(e); }
+			return e;
 		}
+	}
+
+	private Expression parseIndexer(Expression prev, Cursor c) {
+		if (c.at('[')) {
+			c.expect('[');
+			Expression index = parseExpression(c);
+			c.expect(']');
+			return new Deref(new BinaryNode(BinOp.Add, prev, index));
+		}
+		return prev;
 	}
 
 	// this will emit code to leave the address of
@@ -577,10 +595,10 @@ public class SPC {
 					condition = parseExpression(c);
 					c.expect(';');
 				}
-				if (!c.match(")")) {
+				if (!c.match(";")) {
 					step = parseStatement(c);
-					c.expect(')');
 				}
+				c.expect(')');
 				body = new Block(c);
 			}
 			else {

@@ -16,7 +16,7 @@ func swap(a, b) {
 
 func init(n) {
 	for(var i := 1; i <= n; i += 1;) {
-		(&array + i) := i - 1;
+		array[i] := i - 1;
 	}
 }
 
@@ -25,9 +25,9 @@ func permute(n) {
 	if (n > 1) {
 		permute(n-1);
 		for(var k := n-1; k >= 1; k -= 1;) {
-			swap((&array + n), (&array + k));
+			swap(&array[n], &array[k]);
 			permute(n-1);
-			swap((&array + n), (&array + k));
+			swap(&array[n], &array[k]);
 		}
 	}
 }

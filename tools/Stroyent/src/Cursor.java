@@ -81,11 +81,13 @@ public class Cursor {
 	// expressions are done when we encounter a
 	// - semicolon (statement terminator)
 	// - unmatched end parenthesis
+	// - unmatched end bracket
 	// - assignment operator
 	boolean expressionDone() {
 		trim();
 		if (line.startsWith(";")) { return true; }
 		if (line.startsWith(")")) { return true; }
+		if (line.startsWith("]")) { return true; }
 		if (isAny(":&|^+-*/%") && second() == '=') { return true; }
 		return false;
 	}
