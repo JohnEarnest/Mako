@@ -1,0 +1,41 @@
+//
+// String.snt
+//
+// String and memory manipulation routines.
+//
+
+func fill(addr, length, value) {
+	for(var x := 0; x < length; x += 1;) {
+		*addr := value;
+		addr  += 1;
+	}
+}
+
+func move(from, to, length) {
+	for(var x := 0; x < length; x += 1;) {
+		*to  := *from;
+		to   += 1;
+		from += 1;
+	}
+}
+
+func length(string) {
+	var ret := 0;
+	while(*string) {
+		string += 1;
+		ret    += 1;
+	}
+	return ret;
+}
+
+// compare two null-terminated strings
+// lexicographically. positive if a>b,
+// negative if a<b, zero if equal.
+func compare(a, b) {
+	while(true) {
+		if ( *a != *b) { return *a - *b; }
+		if ((*a = 0) & (*b = 0)) { return 0; }
+		a += 1;
+		b += 1;
+	}
+}

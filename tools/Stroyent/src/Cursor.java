@@ -1,27 +1,51 @@
 public class Cursor {
 	String line;
+	String lastLine = "";
+	int lineNo = 1;
+	int charNo = 0;
+
 	Cursor(String s) {
-		line = s;
+		line = s.replace("\t", "    ");
 	}
 
 	String skip(int n) {
 		String skipped = line.substring(0, n);
 		line = line.substring(n);
+		for(char c : skipped.toCharArray()) {
+			if (c == '\n') {
+				lineNo++;
+				charNo = 0;
+				lastLine = "";
+			}
+			else {
+				lastLine += c;
+				charNo++;
+			}
+		}
 		return skipped;
+	}
+
+	String thisLine() {
+		String ret = lastLine;
+		while(!done() && !at('\n')) {
+			ret += current();
+			next();
+		}
+		return ret;
 	}
 
 	void skipUntil(String s) {
 		while(!match(s)) {
-			if (done()) { throw new Error("Reached end of file while parsing."); }
+			if (done()) { break; }
 			next();
 		}
 	}
 
 	void trim() {
-		line = line.trim();
+		while(!done() && Character.isWhitespace(current())) { next(); }
 		if (line.startsWith("//")) { skipUntil("\n"); }
 		if (line.startsWith("/*")) { skipUntil("*/"); }
-		line = line.trim();
+		while(!done() && Character.isWhitespace(current())) { next(); }
 	}
 
 	void next()        { skip(1); }
@@ -33,6 +57,7 @@ public class Cursor {
 	boolean isDigit()  { return !done() && Character.isDigit(current()); }
 	boolean isAlpha()  { return !done() && Character.isLetter(current()); }
 	int digit()        { return Character.digit(current(), 10); }
+	int hexDigit()     { return Character.digit(current(), 16); }
 
 	void expect(char c) {
 		if (!at(c)) {
@@ -49,6 +74,16 @@ public class Cursor {
 			int ret = (int)read();
 			expect('\'');
 			return ret;
+		}
+		if (line.startsWith("0x")) {
+			skip(2);
+			int n = 0;
+			while(isAny("0123456789ABCDEFabcdef")) {
+				n = (n * 16) + hexDigit();
+				next();
+			}
+			trim();
+			return n;
 		}
 		if (!isDigit()) {
 			System.out.println(line);

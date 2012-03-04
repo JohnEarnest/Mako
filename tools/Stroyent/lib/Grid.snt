@@ -1,0 +1,36 @@
+//
+// Grid.snt
+//
+// Grid drivers and utilities.
+//
+
+func tileGrid(x, y) {
+	return ((*GS + 41) * y) + *GP + x;
+}
+
+func pixelGrid(x, y) {
+	return tileGrid(x / 8, y / 8);
+}
+
+var ascii    := -32;
+var gridMask :=   0;
+
+func gridPrint(x, y, str) {
+	while(*str) {
+		*tileGrid(x, y) := (*str + ascii) | gridMask;
+		x   += 1;
+		str += 1;
+	}
+}
+
+// Numbers draw right-to-left and
+// must be positive. Mainly meant
+// for score counters and the like:
+
+func gridPrintNum(x, y, n) {
+	while(n > 0) {
+		*tileGrid(x, y) := ((n % 10) + ascii + 48) | gridMask;
+		x -=  1;
+		n /= 10;
+	}
+}

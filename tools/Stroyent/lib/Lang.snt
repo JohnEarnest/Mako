@@ -1,0 +1,36 @@
+//
+// Lang.snt
+//
+// A set of utility routines and definitions
+// that will always be loaded by the SPC compiler.
+//
+
+// Mako registers:
+
+const PC   0; // program counter
+const DP   1; // data stack pointer
+const RP   2; // return stack pointer
+const GP   3; // grid pointer
+const GT   4; // grid tile pointer
+const SP   5; // sprite pointer
+const ST   6; // sprite tile pointer
+const SX   7; // scroll X
+const SY   8; // scroll Y
+const GS   9; // grid horizontal skip
+const CL  10; // clear color
+const RN  11; // random number
+const KY  12; // key input
+const CO  13; // character-out (debug)
+const AU  14; // audio-out (8khz, 8-bit)
+
+// Additional constants:
+
+const KEY_UP  0x01;
+const KEY_RT  0x02;
+const KEY_DN  0x04;
+const KEY_LF  0x08;
+const KEY_A   0x10;
+const KEY_B   0x20;
+
+const true  -1;
+const false  0;

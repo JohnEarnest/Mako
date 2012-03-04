@@ -27,8 +27,6 @@ public class SPC {
 			rom.add(0, MakoRom.Type.Data);
 		}
 
-		globals.set("CO", MakoConstants.CO);
-
 		storage.add(new Storage("data_stack",   4096));
 		storage.add(new Storage("return_stack", 4096));
 		storage.add(new Storage("grid",         1271));
@@ -38,6 +36,12 @@ public class SPC {
 
 		boolean run   = pluckArg(args, "--run");
 		boolean print = pluckArg(args, "--print");
+
+		String libPath = new File(SPC.class.getProtectionDomain()
+						.getCodeSource().getLocation().getPath()).getParent();
+		currentPath.push(libPath + "/../lib/");
+		compileFile("Lang.snt");
+		currentPath.pop();
 
 		File rootPath = new File(args.get(0));
 		currentPath.push(rootPath.getParent());
@@ -72,6 +76,7 @@ public class SPC {
 	}
 
 	public void compileFile(String fileName) {
+		Cursor cursor = null;
 		try {
 			currentPath.push(new File(currentPath.peek(), fileName).getParent());
 			Scanner in = new Scanner(new File(
@@ -84,12 +89,24 @@ public class SPC {
 				fileText.append(in.nextLine());
 				fileText.append('\n');
 			}
-			compile(new Cursor(fileText.toString()));
+			cursor = new Cursor(fileText.toString());
+			compile(cursor);
 
 			currentPath.pop();
 		}
 		catch(FileNotFoundException e) {
 			System.out.println("Unable to open file '"+fileName+"'");
+			System.exit(-1);
+		}
+		catch(Error e) {
+			if (cursor != null) {
+				System.out.println("Error in '"+fileName+"', line "+cursor.lineNo+":");
+				System.out.println("\t"+cursor.thisLine());
+				System.out.print('\t');
+				for(int x = 0; x < cursor.charNo - 1; x++) { System.out.print(" "); }
+				System.out.println('^');
+			}
+			System.out.println(e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -129,7 +146,15 @@ public class SPC {
 				cursor.expect(';');
 			}
 			else if (cursor.match("image")) {
-				throw new Error("Not Implemented!");
+				String imageName = cursor.parseName();
+				String fileName  = new File(currentPath.peek(), new File(cursor.parseString()).getName()).toString();
+				cursor.expect(',');
+				int tileWidth = cursor.parseNumber();
+				cursor.expect(',');
+				int tileHeight = cursor.parseNumber();
+				cursor.expect(';');
+				globals.set(imageName, rom.size());
+				rom.addImage(fileName, tileWidth, tileHeight);
 			}
 			else {
 				throw new Error("Unrecognized token '"+cursor.parseName()+"'!");
@@ -228,6 +253,22 @@ public class SPC {
 					((Constant)b).value
 				));
 			}
+
+			// this is a slightly hacky way of doing things,
+			// but it avoids repeating all my code for mirror images.
+			for(int x = 0; x < 2; x++) {
+				if (a instanceof Constant && ((Constant)a).value == 0) {
+					if (op == BinOp.Add) { return b; }
+					if (op == BinOp.Mul) { return a; }
+				}
+				if (a instanceof Constant && ((Constant)a).value == 1) {
+					if (op == BinOp.Mul) { return b; }
+				}
+
+				Expression t = a;
+				a = b;
+				b = t;
+			}
 		}
 		if (e instanceof AddressOf) {
 			if (e.children.get(0) instanceof Deref) {
@@ -301,6 +342,9 @@ public class SPC {
 			return parseIndexer(ret, c);
 		}
 		String name = c.parseName();
+		if (name.length() < 1) {
+			throw new Error("Expression or identifier expected!");
+		}
 		if (c.at('(')) {
 			return parseIndexer(new Call(name, c), c);
 		}
@@ -740,7 +784,6 @@ public class SPC {
 		String name;
 		
 		Reference(String name) {
-			if (name == "") { throw new Error("WHAT"); }
 			this.name = name;
 		}
 
