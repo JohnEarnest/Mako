@@ -34,3 +34,6 @@ const KEY_B   0x20;
 
 const true  -1;
 const false  0;
+
+func keys()      { return *KY; }
+func rand(x) { return (*RN) % x; }

@@ -5,7 +5,7 @@ import java.util.*;
 
 public class SPC {
 	
-	private final List<Struct>   structs   = new ArrayList<Struct>();
+	private final Map<String, Struct> structs = new HashMap<String, Struct>();
 	private final List<Storage>  storage   = new ArrayList<Storage>();
 	private final List<Function> functions = new ArrayList<Function>();
 	private final MakoRom rom     = new MakoRom();
@@ -121,7 +121,8 @@ public class SPC {
 				functions.add(new Function(cursor));
 			}
 			else if (cursor.match("struct")) {
-				structs.add(new Struct(cursor));
+				Struct s = new Struct(cursor);
+				structs.put(s.name, s);
 			}
 			else if (cursor.match("const")) {
 				String name = cursor.parseName();
@@ -168,7 +169,9 @@ public class SPC {
 
 		for(String s : globals.undefined()) {
 			System.out.println("Error: No declaration for '"+s+"'!");
-			//System.exit(-1);
+		}
+		if (globals.undefined().size() > 0) {
+			System.exit(-1);
 		}
 	}
 
@@ -345,7 +348,14 @@ public class SPC {
 		if (name.length() < 1) {
 			throw new Error("Expression or identifier expected!");
 		}
-		if (c.at('(')) {
+		if (structs.containsKey(name)) {
+			c.expect('.');
+			if (!c.match("size")) {
+				throw new Error("'size' expected!");
+			}
+			return new Constant(structs.get(name).size());
+		}
+		else if (c.at('(')) {
 			return parseIndexer(new Call(name, c), c);
 		}
 		else if (constants.containsKey(name)) {
@@ -359,7 +369,18 @@ public class SPC {
 	}
 
 	private Expression parseIndexer(Expression prev, Cursor c) {
-		if (c.at('[')) {
+		if (c.at('.')) {
+			c.expect('.');
+			String name = c.parseName();
+			if (!structs.containsKey(name)) {
+				throw new Error("Struct '"+name+"' not defined.");
+			}
+			c.expect('.');
+			String field = c.parseName();
+			return new Deref(new BinaryNode(BinOp.Add, prev,
+				new Constant(structs.get(name).offset(field))));
+		}
+		else if (c.at('[')) {
 			c.expect('[');
 			Expression index = parseExpression(c);
 			c.expect(']');
@@ -397,6 +418,23 @@ public class SPC {
 			while(!c.match("}")) {
 				fields.add(new Storage(c));
 			}
+		}
+
+		int offset(String name) {
+			int total = 0;
+			for(Storage s : fields) {
+				if (s.name.equals(name)) { return total; }
+				total += s.size;
+			}
+			throw new Error("Field '"+name+"' defined in '"+this.name+"'.");
+		}
+
+		int size() {
+			int total = 0;
+			for(Storage s : fields) {
+				total += s.size;
+			}
+			return total;
 		}
 	}
 	
@@ -874,7 +912,7 @@ class Locals {
 			rom.addConst(MakoConstants.RP);
 			rom.addDup();
 			rom.addLoad();
-			rom.addConst(locals.search(null) - 1);
+			rom.addConst(depth);
 			rom.addSub();
 			rom.addSwap();
 			rom.addStor();
@@ -926,9 +964,7 @@ class Globals {
 		}
 		refs.put(name, new ArrayList<Integer>());
 		refs.get(name).add(rom.size());
-		throw new Error("what");
-		//System.out.println("GET REF: '"+name+"'");
-		//return -777;
+		return -777;
 	}
 
 	Set<String> undefined() {

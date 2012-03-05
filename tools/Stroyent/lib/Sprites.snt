@@ -1,0 +1,72 @@
+//
+// Sprites.snt
+//
+// Sprite drivers and utilities.
+//
+
+struct sprite { status; tile; x; y; }
+const  SPRITE_HORIZ 0x10000;
+const  SPRITE_VERT  0x20000;
+const  S8x8      1;
+const  S16x16 4353;
+
+func getSprite(id) {
+	return (*SP) + (sprite.size * id);
+}
+
+func spriteInit(id, status, tile, x, y) {
+	var s := getSprite(id);
+	(s).sprite.status := status;
+	(s).sprite.tile   := tile;
+	(s).sprite.x      := x;
+	(s).sprite.y      := y;
+}
+
+func spriteSize(id, w, h) {
+	var s := getSprite(id);
+	*w := ((((s).sprite.status & 0x0F00) >>  8) + 1) * 8;
+	*h := ((((s).sprite.status & 0xF000) >> 12) + 1) * 8;
+}
+
+func spriteShow(id, flag) {
+	if (flag) { getSprite(id).sprite.status |=  1; }
+	else      { getSprite(id).sprite.status &= ~1; }
+}
+
+func spriteFlip(id, horiz, vert) {
+	var s := getSprite(id);
+	if (horiz) { (s).sprite.status |=  SPRITE_HORIZ; }
+	else       { (s).sprite.status &= ~SPRITE_HORIZ; }
+	if (vert)  { (s).sprite.status |=  SPRITE_VERT; }
+	else       { (s).sprite.status &= ~SPRITE_VERT; }
+}
+
+func spriteMove(id, dx, dy) {
+	var s := getSprite(id);
+	(s).sprite.x += dx;
+	(s).sprite.y += dy;
+}
+
+func spriteCollide(x, y, id) {
+	var sw := 0;
+	var sh := 0;
+	spriteSize(id, &sw, &sh);
+	var s := getSprite(id);
+	return (x > (s).sprite.x      ) &
+	       (x < (s).sprite.x + sw ) &
+	       (y > (s).sprite.y      ) &
+	       (y < (s).sprite.y + sh );
+}
+
+func spritesCollide(a, b) {
+	var sa := getSprite(a);
+	var sb := getSprite(b);
+	var aw := 0; var ah := 0;
+	var bw := 0; var bh := 0;
+	spriteSize(a, &aw, &ah);
+	spriteSize(b, &bw, &bh);
+	return ((sa).sprite.y + ah > (sb).sprite.y) &
+	       ((sa).sprite.y - bh < (sb).sprite.y) &
+	       ((sa).sprite.x + aw > (sb).sprite.x) &
+	       ((sa).sprite.x - bw < (sb).sprite.x);
+}

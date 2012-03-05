@@ -61,7 +61,6 @@ public class Cursor {
 
 	void expect(char c) {
 		if (!at(c)) {
-			System.out.println(line);
 			throw new Error("Error while parsing- '"+c+"' expected.");
 		}
 		next();
