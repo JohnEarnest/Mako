@@ -4,6 +4,8 @@
 // Grid drivers and utilities.
 //
 
+const GRID_Z_MASK 0x40000000;
+
 func tileGrid(x, y) {
 	return ((*GS + 41) * y) + *GP + x;
 }

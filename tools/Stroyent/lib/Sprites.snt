@@ -7,8 +7,9 @@
 struct sprite { status; tile; x; y; }
 const  SPRITE_HORIZ 0x10000;
 const  SPRITE_VERT  0x20000;
-const  S8x8      1;
-const  S16x16 4353;
+const  S8x8       1;
+const  S16x16  4353;
+const  S32x32 13057;
 
 func getSprite(id) {
 	return (*SP) + (sprite.size * id);

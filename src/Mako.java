@@ -210,7 +210,9 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 			try {
 				BufferedImage shot = new BufferedImage(320, 240, BufferedImage.TYPE_INT_ARGB);
 				shot.getGraphics().drawImage(buffer, 0, 0, this);
-				ImageIO.write(shot, "png", new File("ScreenShot"+(screenShot++)+".png"));
+				File file = new File("ScreenShot"+(screenShot++)+".png");
+				System.out.println("Wrote screenshot: "+file);
+				ImageIO.write(shot, "png", file);
 			}
 			catch(IOException e) { e.printStackTrace(); }
 		}
