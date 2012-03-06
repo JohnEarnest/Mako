@@ -120,10 +120,9 @@ func crabLogic() {
 		getSprite(CRAB).sprite.tile := (walkTimer / 4) % 2;
 		getSprite(CRAB).sprite.x    += crabSpeed;
 		if (getSprite(CRAB).sprite.x > 320-32) { getSprite(CRAB).sprite.x := 320-32; }
-	}	
-	if (~supported) {
-		getSprite(CRAB).sprite.tile := 2;
 	}
+	if (supported) { if (keys()) { score += 1; } }
+	else           { getSprite(CRAB).sprite.tile := 2; }
 	if (keys()) { walkTimer += 1; }
 	else        { walkTimer := 0; }
 
@@ -147,7 +146,7 @@ func levelLogic() {
 }
 
 func resetGame() {
-	gridPrint(1, 1, "CRABFALL! ");
+	gridPrint( 1, 1, "CRABFALL! ");
 	score     := 1;
 	alive     := true;
 	spriteInit(CRAB, S32x32, 0, 160, 100);
@@ -172,7 +171,7 @@ func main() {
 		if (alive) {
 			crabLogic();
 			levelLogic();
-			score += 1;
+			gridPrint(29, 1, "         ");
 			gridPrintNum(38, 1, score);
 		}
 		else {
