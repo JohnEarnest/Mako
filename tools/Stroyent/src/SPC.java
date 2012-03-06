@@ -11,6 +11,7 @@ public class SPC {
 	private final MakoRom rom     = new MakoRom();
 	private final Locals  locals  = new Locals(rom);
 	private final Globals globals = new Globals(rom);
+	private final Stack<Integer>       loopDepth = new Stack<Integer>();
 	private final Stack<List<Integer>> breaks    = new Stack<List<Integer>>();
 	private final Stack<List<Integer>> continues = new Stack<List<Integer>>();
 	private int stringIndex  = 0;
@@ -700,9 +701,11 @@ public class SPC {
 			int loopHead = rom.size();
 			condition.emit();
 			int loopTail = rom.addJumpZ(-1);
+			loopDepth.push(locals.size());
 			breaks.push(   new ArrayList<Integer>());
 			continues.push(new ArrayList<Integer>());
 			body.emit();
+			loopDepth.pop();
 			for(Integer x : continues.pop()) {
 				rom.set(x, rom.size());
 			}
@@ -746,6 +749,8 @@ public class SPC {
 		}
 
 		void emit() {
+			if (loopDepth.size() < 1) { throw new Error("Breaks must be within a loop body."); }
+			locals.emitPop(locals.size() - loopDepth.peek());
 			breaks.peek().add(rom.addJump(-1));
 		}
 	}
@@ -756,6 +761,8 @@ public class SPC {
 		}
 
 		void emit() {
+			if (loopDepth.size() < 1) { throw new Error("Continues must be within a loop body."); }
+			locals.emitPop(locals.size() - loopDepth.peek());
 			continues.peek().add(rom.addJump(-1));
 		}
 	}
