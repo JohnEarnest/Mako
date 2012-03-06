@@ -11,8 +11,8 @@ public class SPC {
 	private final MakoRom rom     = new MakoRom();
 	private final Locals  locals  = new Locals(rom);
 	private final Globals globals = new Globals(rom);
-	private final List<Integer> breaks    = new ArrayList<Integer>();
-	private final List<Integer> continues = new ArrayList<Integer>();
+	private final Stack<List<Integer>> breaks    = new Stack<List<Integer>>();
+	private final Stack<List<Integer>> continues = new Stack<List<Integer>>();
 	private int stringIndex  = 0;
 	private final Stack<String> currentPath = new Stack<String>();
 	private final Map<String, Integer> constants = new HashMap<String, Integer>();
@@ -700,20 +700,20 @@ public class SPC {
 			int loopHead = rom.size();
 			condition.emit();
 			int loopTail = rom.addJumpZ(-1);
+			breaks.push(   new ArrayList<Integer>());
+			continues.push(new ArrayList<Integer>());
 			body.emit();
-			for(Integer x : continues) {
+			for(Integer x : continues.pop()) {
 				rom.set(x, rom.size());
 			}
-			continues.clear();
 			if (step != null) {
 				step.emit();
 			}
 			rom.addJump(loopHead);
 			rom.set(loopTail, rom.size());
-			for(Integer x : breaks) {
+			for(Integer x : breaks.pop()) {
 				rom.set(x, rom.size());
 			}
-			breaks.clear();
 			if (start != null) {
 				locals.pop();
 			}
@@ -746,7 +746,7 @@ public class SPC {
 		}
 
 		void emit() {
-			breaks.add(rom.addJump(-1));
+			breaks.peek().add(rom.addJump(-1));
 		}
 	}
 
@@ -756,7 +756,7 @@ public class SPC {
 		}
 
 		void emit() {
-			continues.add(rom.addJump(-1));
+			continues.peek().add(rom.addJump(-1));
 		}
 	}
 
