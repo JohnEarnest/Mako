@@ -90,13 +90,13 @@ public class SPC {
 				fileText.append(in.nextLine());
 				fileText.append('\n');
 			}
-			cursor = new Cursor(fileText.toString());
+			cursor = new Cursor(fileText.toString(), fileName);
 			compile(cursor);
 
 			currentPath.pop();
 		}
 		catch(FileNotFoundException e) {
-			System.out.println("Unable to open file '"+fileName+"'");
+			System.out.println("Unable to open file '"+fileName+"'.");
 			System.exit(-1);
 		}
 		catch(Error e) {
@@ -128,7 +128,7 @@ public class SPC {
 			else if (cursor.match("const")) {
 				String name = cursor.parseName();
 				if (constants.containsKey(name)) {
-					throw new Error("Error: Multiple declarations for '"+name+"'!");
+					throw new Error("Multiple declarations for '"+name+"'.");
 				}
 				constants.put(name, parseConstantExpression(cursor));
 				cursor.expect(';');
@@ -159,14 +159,20 @@ public class SPC {
 				rom.addImage(fileName, tileWidth, tileHeight);
 			}
 			else {
-				throw new Error("Unrecognized token '"+cursor.parseName()+"'!");
+				throw new Error("Unrecognized token '"+cursor.parseName()+"'.");
 			}
 		}
 	}
 
 	private void emit() {
-		for(Storage  s :   storage) { s.emit(); }
-		for(Function f : functions) { f.emit(); }
+		try {
+			for(Storage  s :   storage) { s.emit(); }
+			for(Function f : functions) { f.emit(); }
+		}
+		catch(EmitError e) {
+			System.out.println(e.getMessage());
+			System.exit(-1);
+		}
 
 		for(String s : globals.undefined()) {
 			System.out.println("Error: No declaration for '"+s+"'!");
@@ -223,7 +229,7 @@ public class SPC {
 	private int parseConstantExpression(Cursor c) {
 		Expression e = parseExpression(c);
 		if (!(e instanceof Constant)) {
-			throw new Error("Constant expression expected!");
+			throw new Error("Constant expression expected.");
 		}
 		return ((Constant)e).value;
 	}
@@ -327,9 +333,9 @@ public class SPC {
 	}
 
 	private Expression parseFactor(Cursor c) {
-		if (c.match("~")) { return new       Not(parseFactor(c)); }
-		if (c.match("*")) { return new     Deref(parseFactor(c)); }
-		if (c.match("&")) { return new AddressOf(parseFactor(c)); }
+		if (c.match("~")) { return new       Not(parseFactor(c));   }
+		if (c.match("*")) { return new     Deref(parseFactor(c));   }
+		if (c.match("&")) { return new AddressOf(parseFactor(c),c); }
 		if (c.match("-")) { return new BinaryNode(BinOp.Mul, new Constant(-1), parseFactor(c)); }
 
 		if (c.isNumber()) {
@@ -347,12 +353,12 @@ public class SPC {
 		}
 		String name = c.parseName();
 		if (name.length() < 1) {
-			throw new Error("Expression or identifier expected!");
+			throw new Error("Expression or identifier expected.");
 		}
 		if (structs.containsKey(name)) {
 			c.expect('.');
 			if (!c.match("size")) {
-				throw new Error("'size' expected!");
+				throw new Error("'size' expected.");
 			}
 			return new Constant(structs.get(name).size());
 		}
@@ -427,7 +433,7 @@ public class SPC {
 				if (s.name.equals(name)) { return total; }
 				total += s.size;
 			}
-			throw new Error("Field '"+name+"' defined in '"+this.name+"'.");
+			throw new Error("Field '"+name+"' not defined in '"+this.name+"'.");
 		}
 
 		int size() {
@@ -671,7 +677,7 @@ public class SPC {
 				if (!c.match(";")) {
 					start = parseStatement(c);
 					if (!(start instanceof Local)) {
-						throw new Error("First argument of for loop must be a variable declaration!");
+						throw new Error("First argument of for loop must be a variable declaration.");
 					}
 				}
 				if (!c.match(";")) {
@@ -744,24 +750,30 @@ public class SPC {
 	}
 
 	class Break extends Statement {
+		private final EmitError e;
+
 		Break(Cursor c) {
+			e = new EmitError(c, "Breaks must be within a loop body.");
 			c.expect(';');
 		}
 
 		void emit() {
-			if (loopDepth.size() < 1) { throw new Error("Breaks must be within a loop body."); }
+			if (loopDepth.size() < 1) { throw e; }
 			locals.emitPop(locals.size() - loopDepth.peek());
 			breaks.peek().add(rom.addJump(-1));
 		}
 	}
 
 	class Continue extends Statement {
+		private final EmitError e;
+
 		Continue(Cursor c) {
+			e = new EmitError(c, "Continues must be within a loop body.");
 			c.expect(';');
 		}
 
 		void emit() {
-			if (loopDepth.size() < 1) { throw new Error("Continues must be within a loop body."); }
+			if (loopDepth.size() < 1) { throw e; }
 			locals.emitPop(locals.size() - loopDepth.peek());
 			continues.peek().add(rom.addJump(-1));
 		}
@@ -794,12 +806,15 @@ public class SPC {
 	}
 
 	class AddressOf extends Expression {
-		AddressOf(Expression expression) {
+		private final EmitError e;
+
+		AddressOf(Expression expression, Cursor c) {
+			e = new EmitError(c, "Unable get address of non-pointer value.");
 			this.children.add(expression);
 		}
 
 		void emit() {
-			throw new Error("Unable get address of non-pointer value!");
+			throw e;
 		}
 	}
 
@@ -884,6 +899,23 @@ abstract class Expression {
 
 abstract class Statement {
 	abstract void emit();
+}
+
+class EmitError extends Error {
+	public static final long serialVersionUID = 1;
+	public final int lineNo;
+	public final String fileName;
+	private final String desc;
+
+	EmitError(Cursor c, String desc) {
+		this.lineNo   = c.lineNo;
+		this.fileName = c.fileName;
+		this.desc     = desc;
+	}
+
+	public String getMessage() {
+		return String.format("Error in '%s', line %d:\n%s", fileName, lineNo, desc);
+	}
 }
 
 class Locals {

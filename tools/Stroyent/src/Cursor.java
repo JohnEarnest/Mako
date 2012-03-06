@@ -1,11 +1,13 @@
 public class Cursor {
 	String line;
+	String fileName;
 	String lastLine = "";
 	int lineNo = 1;
 	int charNo = 0;
 
-	Cursor(String s) {
+	Cursor(String s, String fileName) {
 		line = s.replace("\t", "    ");
+		this.fileName = fileName;
 	}
 
 	String skip(int n) {
@@ -86,7 +88,7 @@ public class Cursor {
 		}
 		if (!isDigit()) {
 			System.out.println(line);
-			throw new Error("Invalid number format!");
+			throw new Error("Invalid number format.");
 		}
 		int n = 0;
 		while(isDigit()) {
