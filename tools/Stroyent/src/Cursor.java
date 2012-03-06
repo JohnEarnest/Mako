@@ -133,7 +133,8 @@ public class Cursor {
 	}
 
 	String parseString() {
-		expect('"');
+		if (!at('"')) { throw new Error("Error while parsing- '\"' expected."); }
+		next();
 		String ret = "";
 		while(true) {
 			if (at('"')) { break; }
