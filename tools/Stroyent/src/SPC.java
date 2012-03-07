@@ -57,6 +57,10 @@ public class SPC {
 		rom.set(MakoConstants.SP, globals.get("sprites"));
 		rom.set(MakoConstants.ST, globals.get("sprite_tiles"));
 
+		if (args.size() > 1) {
+			rom.write(args.get(1), false);
+		}
+
 		if (print) {
 			System.out.println();
 			rom.disassemble(System.out);
