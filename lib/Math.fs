@@ -16,6 +16,15 @@
 : gcd   ?dup if swap over mod gcd then ; ( a b -- gcd )
 : lcm   2dup gcd >r * abs r> /         ; ( a b -- lcm )
 
+: n-digits ( n -- count )
+	0 swap
+	loop
+		10 / swap 1 + swap
+		dup
+	while
+	drop
+;
+
 : fact ( n -- n! )
 	dup 1 < if drop 1 exit then
 	1 loop
