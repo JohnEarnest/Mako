@@ -97,6 +97,8 @@
 :var timer
 :var energy
 :var quota
+:var dayslate
+
 :data money        500
 :data vitamins       0
 :data work-count     0
@@ -258,9 +260,9 @@
 :data d-dartboard   "Board of the darts."
 
 : no-action      ;
-: end-sequence   ;
 : always    true ;
-:const object-size  6
+:const end-sequence  0
+:const object-size   6
 :const object-count 26
 
 :proto start-sequence
@@ -295,6 +297,7 @@
 
 : a-front-desk
 	"Signed in at work." prompt
+	0 dayslate !
 	worked on
 	0 work-count !
 	front-desk  sleep
@@ -428,15 +431,17 @@
 	flower sleep
 ;
 
+:data slot-prob 10
 : a-slots
 	money @ 200 >= if
 		"I take my chances at the slots." prompt
 		"Spent $2."                       prompt
 		200 money -@
-		RN @ 10 mod 2 < if
+		RN @ slot-prob @ mod 2 < if
 			"I Win!"         prompt
 			"Obtained $199!" prompt
 			19900 give-money
+			slot-prob @ 2 * slot-prob !
 		else
 			"Nuts. I lost." prompt
 		then
@@ -804,7 +809,7 @@ d-dartboard   37 23 false  a-dartboard    always
 		sequence-index @ @ nth-object .task @ exec if
 			sleep
 			sequence-index inc@
-			sequence-index @ @ ' end-sequence = if
+			sequence-index @ @ end-sequence = if
 				sequence off
 				restore-status
 				sequence-finale @ exec
@@ -851,11 +856,20 @@ d-dartboard   37 23 false  a-dartboard    always
 	bed         wake
 ;
 
+:proto game-over
+
 : late
 	worked @ if exit then
 	worked on
-	"I am late for work."       prompt
-	"Today is unpaid vacation." prompt
+	"I am late for work." prompt
+	dayslate inc@
+	dayslate @ 2 >= if
+		"I have been fired." prompt
+		"Well, shoot."       prompt
+		game-over
+	else
+		"Today is unpaid vacation." prompt
+	then
 	sequence @ if
 		sequence off
 		restore-status
@@ -918,10 +932,6 @@ d-dartboard   37 23 false  a-dartboard    always
 			t1 ST !
 			pass-time
 			anim-markers
-			
-			#timer @ 200 / . cr
-			timer @ 200 /  8 > if late then
-			timer @ 200 / 15 > if evened @ -if "Work time is over." prompt then evening then
 		then
 	then
 	sync
@@ -1080,8 +1090,11 @@ d-dartboard   37 23 false  a-dartboard    always
 		player py 8 / 8 * player py!
 
 		dayover @ if break then
-		timer @ 200 / hand-len 3 - > if "I NEED SLEEP BADLY." status then
-		timer @ 200 / hand-len     > if game-over then
+
+		timer @ 200 /  9 >= if late then
+		timer @ 200 / 15 >  if evened @ -if "Work time is over." prompt then evening then
+		timer @ 200 / 22 >= if "I NEED SLEEP BADLY." status then
+		timer @ 200 / 24 >= if "My sleep deprivation consumes me." prompt game-over then
 
 		tick
 	again
