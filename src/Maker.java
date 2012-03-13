@@ -247,7 +247,7 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(";")) {
 			compiling = false;
-			if (wordName.equals("main")) { rom.addJump(-1); }
+			if ("main".equals(wordName)) { rom.addJump(-1); }
 			else                         { rom.addReturn(); }
 			wordName = null;
 		}

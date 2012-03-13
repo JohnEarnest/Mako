@@ -358,6 +358,7 @@ Maker has a few more spiffy capabilities that deserve brief mention.
 Whenever Mako attempts to jump to the address -1, the VM will halt. Maker provides the word `halt` as a convenient way to do this.
 
 Anonymous inline words can be defined by enclosing code in curly braces. Like a string constant (enclosed in double quotes), these inline definitions will leave the address of the resulting chunk of memory on the stack:
+
 	: exec2 dup exec exec       ;
 	: { "Hello" type } exec2 cr ;
 
