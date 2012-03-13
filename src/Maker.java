@@ -9,6 +9,7 @@ public class Maker implements MakoConstants {
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
 	private MakoRom rom = new MakoRom();
 	private boolean compiling = false;
+	private String wordName = null;
 	private Stack<Integer> branchStack = new Stack<Integer>();
 	private Stack<Integer> loopStack   = new Stack<Integer>();
 	private Queue<Integer> breaks      = new LinkedList<Integer>();
@@ -225,7 +226,7 @@ public class Maker implements MakoConstants {
 		// defining words
 		if (token.equals(":")) {
 			compiling = true;
-			String wordName = tokens.remove().toString();
+			wordName = tokens.remove().toString();
 			dictionary.put(wordName, rom.size());
 			if (prototypes.containsKey(wordName)) {
 				for(Integer a : prototypes.remove(wordName)) {
@@ -235,7 +236,7 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":vector")) {
 			compiling = true;
-			String wordName = tokens.remove().toString();
+			wordName = tokens.remove().toString();
 			dictionary.put(wordName, rom.size());
 			if (prototypes.containsKey(wordName)) {
 				for(Integer a : prototypes.remove(wordName)) {
@@ -246,7 +247,9 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(";")) {
 			compiling = false;
-			rom.addReturn();
+			if (wordName.equals("main")) { rom.addJump(-1); }
+			else                         { rom.addReturn(); }
+			wordName = null;
 		}
 		else if (token.equals("{")) {
 			branchStack.push(rom.addJump(-7));

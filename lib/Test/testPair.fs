@@ -69,6 +69,4 @@
 	[ [ 1 4 pair 2 4 pair 3 4 pair ] [ 1 5 pair 2 5 pair 3 5 pair ] ] list-dequal? "cross" ok
 
 	666 = "canary" ok
-
-	halt
 ;

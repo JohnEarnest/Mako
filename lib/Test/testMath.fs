@@ -43,6 +43,4 @@
 
 	# check canary
 	666 = "canary" ok
-
-	halt
 ;
