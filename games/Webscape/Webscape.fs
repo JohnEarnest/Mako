@@ -49,37 +49,38 @@
 	128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128 128  -1 
 	 -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1 
 
-:data name1 "   Cats.com"
-:data name2 " TaterPRO.ORG"
-:data name3 "  Wikiphilia"
-:data name4 "  TETRIS.XXX"
-:data name5 "FanFiction.net"
-:data name6 "NewGrounds.com"
-:data name7 "    MTU.edu"
-:data name8 " CogNation.org"
-:data names name1 name2 name3 name4 name5 name6 name7 name8
-:const namecount 8
+:table names
+	"   Cats.com"
+	" TaterPRO.ORG"
+	"  Wikiphilia"
+	"  TETRIS.XXX"
+	"FanFiction.net"
+	"NewGrounds.com"
+	"    MTU.edu"
+	" CogNation.org"
+;
 
-:data b1 "  POST      "
-:data b2 "  REFRESH   "
-:data b3 "  MODERATE  "
-:data button-labels b1 b2 b3
-:const buttoncount 3
+:table button-labels
+	"  POST      "
+	"  REFRESH   "
+	"  MODERATE  "
+;
 
-:data mar1 "Cats, Cats and more Cats! The official online home of anybody who Loooves cats! "
-:data mar2 "Red Potatoes Russet Potatoes Mashed Potatoes Yukon Gold Potatoes POTATOOOOOES.  "
-:data mar3 "Wikiphilia: The Consent-Free Online Encyclopedia anyone can edit.       Anyone. "
-:data mar4 "Hot piece on piece action! Finish your line! FROM RUSSIA, WITH LOVEMAKING. XXX! "
-:data mar5 "John Reciprocating waited. There were vaccuums here, he was sure of it.         "
-:data mar6 "Columbian or Brazillian? Find out once and for all in a new special editorial.  "
-:data mar7 "Temperature: Cold            Special Events:                                    "
-:data mar8 "Main theme: Tedium        Special Bonus Theme: The Michigan Tech Experience     "
-:data marquees mar1 mar2 mar3 mar4 mar5 mar6 mar7 mar8
+:table marquees
+	"Cats, Cats and more Cats! The official online home of anybody who Loooves cats! "
+	"Red Potatoes Russet Potatoes Mashed Potatoes Yukon Gold Potatoes POTATOOOOOES.  "
+	"Wikiphilia: The Consent-Free Online Encyclopedia anyone can edit.       Anyone. "
+	"Hot piece on piece action! Finish your line! FROM RUSSIA, WITH LOVEMAKING. XXX! "
+	"John Reciprocating waited. There were vaccuums here, he was sure of it.         "
+	"Columbian or Brazillian? Find out once and for all in a new special editorial.  "
+	"Temperature: Cold            Special Events:                                    "
+	"Main theme: Tedium        Special Bonus Theme: The Michigan Tech Experience     "
+;
 
-:data  sdiff   1 3 1 1 2 1 1 2 # initial star ratings
-:array diffs   namecount 0     # the star-rating of each website
-:array posts   namecount 0     # how many posts were made since last refresh?
-:array myposts namecount 0     # have I made a post here?
+:data  sdiff   1 3 1 1 2 1 1 2  # initial star ratings
+:array diffs   names-size 0     # the star-rating of each website
+:array posts   names-size 0     # how many posts were made since last refresh?
+:array myposts names-size 0     # have I made a post here?
 
 :var site
 :var mar
@@ -141,10 +142,10 @@
 	draw-cred
 ;
 
-: nextsite   site @ 1 + namecount mod ;
-: prevsite   site @ 1 - namecount mod ;
-: nextbutton button @ 1 + buttoncount mod ;
-: prevbutton button @ 1 - buttoncount mod ;
+: nextsite   site @ 1 + names-size mod ;
+: prevsite   site @ 1 - names-size mod ;
+: nextbutton button @ 1 + button-labels-size mod ;
+: prevbutton button @ 1 - button-labels-size mod ;
 : this-diff  site @ diffs + @ ;
 
 : draw-sites
@@ -180,7 +181,7 @@
 ;
 
 : draw-buttons
-	buttoncount 1 - for
+	button-labels-size 1 - for
 		i button @ xor -if dark-text else light-text then
 		14 21 i + i button-labels + @ grid-type
 	next
@@ -213,7 +214,7 @@
 : clock
 	# randomly distribute posts
 	RN @ 100 mod 95 > if
-		RN @ namecount mod
+		RN @ names-size mod
 		dup posts   + inc@
 		dup myposts + @ if
 			posts + inc@
@@ -254,17 +255,17 @@
 	erase-buttons
 ;
 
-:data mf1 "Your brilliant advice went unheeded."
-:data mf2 "These cretins will not be educated!"
-:data mf3 "  The ignorant masses ignore you."
-:data moderate-fail mf1 mf2 mf3 
-:const moderate-fail-count 3
+:table moderate-fail
+	"Your brilliant advice went unheeded."
+	"These cretins will not be educated!"
+	"  The ignorant masses ignore you."
+;
 
-:data ms1 "Your moderation improved the forum!"
-:data ms2 "  You have imparted great wisdom!"
-:data ms3 " Your genius has enriched the forum!"
-:data moderate-succeed ms1 ms2 ms3
-:const moderate-succeed-count 3
+:table moderate-succeed
+	"Your moderation improved the forum!"
+	"  You have imparted great wisdom!"
+	" Your genius has enriched the forum!"
+;
 
 : moderate
 	site @ diffs + @ 6 < -if
@@ -273,26 +274,26 @@
 	then
 	difficulty 30 * work
 	RN @ 100 mod 70 > if
-		moderate-succeed moderate-succeed-count random-message
+		moderate-succeed moderate-succeed-size random-message
 		site @ diffs + inc@
 		difficulty 20 * give-cred
 	else
-		moderate-fail moderate-fail-count random-message
+		moderate-fail moderate-fail-size random-message
 	then
 ;
 
-:data ps1 "   You posted an eloquent missive."
-:data ps2 " You made an extremely clever joke."
-:data ps3 " You show your keen grasp of trivia."
-:data ps4 "  You made an insightful comment."
-:data ps5 " You corrected an error in grammar."
-:data post-succeed ps1 ps2 ps3 ps4 ps5
-:const post-succeed-count 5
+:table post-succeed
+	"   You posted an eloquent missive."
+	" You made an extremely clever joke."
+	" You show your keen grasp of trivia."
+	"  You made an insightful comment."
+	" You corrected an error in grammar."
+;
 
 : post
 	difficulty 20 * work
 	RN @ 100 mod 90 < if
-		post-succeed post-succeed-count random-message
+		post-succeed post-succeed-size random-message
 		site @ myposts + inc@
 		difficulty give-cred
 	else
@@ -333,9 +334,9 @@
 	 0 seconds !
 	draw-time
 	
-	posts       namecount 0 fill
-	myposts     namecount 0 fill
-	sdiff diffs namecount >move
+	posts       names-size 0 fill
+	myposts     names-size 0 fill
+	sdiff diffs names-size >move
 	"        Press space to begin. " message
 ;
 

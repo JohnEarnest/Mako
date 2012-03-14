@@ -393,18 +393,20 @@
 	sandwich sleep
 ;
 
-:data p1 "I need $1.99."
-:data p2 "I need $4.99."
-:data p3 "I need... $10.99?"
-:data p4 "I need $14.99!"
-:data p5 "I need $30.99! Outrageous!"
-:data s1 "I spent $1.99."
-:data s2 "I spent $4.99."
-:data s3 "I spent $10.99. Hm."
-:data s4 "I spent... $14.99?"
-:data s5 "I spent $30.99! Highway robbery!"
-:data energy-needed p1 p2 p3 p4 p5
-:data energy-spent  s1 s2 s3 s4 s5
+:table energy-needed
+	"I need $1.99."
+	"I need $4.99."
+	"I need... $10.99?"
+	"I need $14.99!"
+	"I need $30.99! Outrageous!"
+;
+:table energy-spent
+	"I spent $1.99."
+	"I spent $4.99."
+	"I spent $10.99. Hm."
+	"I spent... $14.99?"
+	"I spent $30.99! Highway robbery!"	
+;
 :data energy-prices 199 499 1099 1499 3099
 :var energy-price
 
@@ -617,37 +619,39 @@
 	true
 ;
 
-:data bs1 "I engage in smalltalk with the female."
-:data bs2 "I flatter the female."
-:data bs3 "I attempt to charm the female."
-:data bs4 "I make idle banter with the female."
-:data bs5 "She is not very interested."
-:data bs6 "She yawns."
-:data bs7 "She rolls her eyes."
-:data bs8 "She glances at the barkeep."
-:data blonde1 bs1 bs2 bs3 bs4
-:data blonde2 bs5 bs6 bs7 bs8
-
+:table blonde1
+	"I engage in smalltalk with the female."
+	"I flatter the female."
+	"I attempt to charm the female."
+	"I make idle banter with the female."
+;
+:table blonde2
+	"She is not very interested."
+	"She yawns."
+	"She rolls her eyes."
+	"She glances at the barkeep."
+;
 : t-blonde
-	RN @ 4 mod blonde1 + @ prompt
-	RN @ 4 mod blonde2 + @ prompt
+	RN @ blonde1-size mod blonde1 + @ prompt
+	RN @ blonde2-size mod blonde2 + @ prompt
 	true
 ;
 
-:data rs1 "I discuss work with the female."
-:data rs2 "I discuss my hobbies."
-:data rs3 "We discuss our favorite movies."
-:data rs4 "I talk about my allergies."
-:data rs5 "She feigns interest politely."
-:data rs6 "She giggles."
-:data rs7 "She nods and smiles."
-:data rs8 "She seems to be enjoying herself."
-:data red1 rs1 rs2 rs3 rs4
-:data red2 rs5 rs6 rs7 rs8
-
+:table red1
+	"I discuss work with the female."
+	"I discuss my hobbies."
+	"We discuss our favorite movies."
+	"I talk about my allergies."
+;
+:table red2
+	"She feigns interest politely."
+	"She giggles."
+	"She nods and smiles."
+	"She seems to be enjoying herself."
+;
 : t-redhead
-	RN @ 4 mod red1 + @ prompt
-	RN @ 4 mod red2 + @ prompt
+	RN @ red1-size mod red1 + @ prompt
+	RN @ red2-size mod red2 + @ prompt
 	true
 ;
 
@@ -968,13 +972,14 @@ d-dartboard   37 23 false  a-dartboard    always
 	grid GP !
 ;
 
-:data day1 "MONDAY."
-:data day2 "TUESDAY."
-:data day3 "WEDNESDAY."
-:data day4 "THURSDAY."
-:data day5 "FRIDAY."
-:data day-names day1 day2 day3 day4 day5
-:data quotas       1    2    2    3    4
+:table day-names
+	"MONDAY."
+	"TUESDAY."
+	"WEDNESDAY."
+	"THURSDAY."
+	"FRIDAY."
+;
+:data quotas      1 2 2 3 4
 :array start-buff 1271 8 0
 
 : summary-mode  t1 GT ! t1 ST ! start-buff GP ! 255 for i hide next ;

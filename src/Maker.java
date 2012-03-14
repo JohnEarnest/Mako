@@ -271,6 +271,29 @@ public class Maker implements MakoConstants {
 		else if (token.equals(":data")) {
 			variables.put(tokens.remove().toString(), rom.size());
 		}
+		else if (token.equals(":table")) {
+			String tableName = tokens.remove().toString();
+			List<Integer> tableEntries = new ArrayList<Integer>();
+			while(true) {
+				Object o = tokens.remove();
+				if (o instanceof Integer) {
+					tableEntries.add((Integer)o);
+				}
+				else {
+					String so = o.toString();
+					if (so.equals(";")) { break; }
+					if (so.startsWith("\"")) {
+						tableEntries.add(rom.size());
+						rom.addString(unquote(so));
+					}
+				}
+			}
+			variables.put(tableName, rom.size());
+			for(Integer i : tableEntries) {
+				rom.add(i, MakoRom.Type.Data); // CHANGE TO ARRAY TYPE AFTER TESTING!!!!!!
+			}
+			constants.put(tableName + "-size", tableEntries.size());
+		}
 		else if (token.startsWith("\"")) {
 			if (compiling) {
 				int start = rom.addJump(-1);

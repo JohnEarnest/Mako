@@ -15,6 +15,7 @@
 			:image,
 			:include,
 			:proto,
+			:table,
 			if,
 			-if,
 			else,
