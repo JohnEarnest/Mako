@@ -262,6 +262,19 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 		45 func2
 		42 func3
 
+`:table` is another way to create lookup tables. The most common application of this command is the creation of an array of strings. Strings will be laid out as they are encountered, and a list of pointers will be added to the rom after a `;` is encountered. In addition to building the list of pointers, `:table` makes a constant available indicating the 1-indexed size of the table in cells by appending a `-size` suffix to the table name.
+
+	:table colors
+		"Red"
+		"Orange"
+		"Green"
+		"Blue"
+		"Indigo"
+		"Violet"
+	;
+
+	: color-name  RN @ colors-size mod colors + @ ;
+
 `:image` is used for including image data from external files. It requires a name, a quoted filename and a horizontal and vertical size (in pixels) of the tiles of the image. The pixels of the image will be stored one 32-bit color pixel to a cell in, one tile after another. Images will be discussed in more detail later on.
 
 	# load a sheet of 16 pixel wide by 32 pixel tall tiles
