@@ -11,7 +11,6 @@ Let's begin with a simple "Hello, World" program:
 	:include "Print.fs"
 	: main
 		"Hello, World!" typeln
-		halt
 	;
 
 Forth programs are made out of whitespace delimited tokens called _words_. Tokens can contain any combination of characters. Strings are a special exception, and include any text enclosed within double quotes. When a word's name is encountered, it is executed. Some special words are carried out at compilation time, while most are carried out at runtime.
@@ -20,11 +19,11 @@ The first word in this program is `:include`. By convention, words beginning wit
 
 We then reach the word `:`, which defines a word. The next token is used as a name. The name `main` is special, and will always be used as the entrypoint to a program. `:` should always be paired with a `;`, which terminates a definition.
 
-The string `"Hello, World!"` will compile an inline string constant and leave the address of this string on the stack, to be used by the `typeln`	word to print a sequence of characters to stdout. Finally, the word `halt` ceases execution.
+The string `"Hello, World!"` will compile an inline string constant and leave the address of this string on the stack, to be used by the `typeln`	word to print a sequence of characters to stdout.
 
 To run this example, place your code in the `examples` directory in a file called `Hello.fs`, and type the following:
 
-	java Maker examples/Hello.fs --run
+	./maker examples/Hello.fs --run
 
 We see a whole bunch of output- a disassembly of our compiled program followed by the text "Hello, World!":
 
@@ -263,10 +262,6 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 		45 func2
 		42 func3
 
-`:string` defines a named string. This is an alternative to the inline form described earlier which and be referenced from several places instead of only once. String definitions require a name and a quoted string, which will be stored with a null-terminator.
-
-	:string hello "Hello, World!"
-
 `:image` is used for including image data from external files. It requires a name, a quoted filename and a horizontal and vertical size (in pixels) of the tiles of the image. The pixels of the image will be stored one 32-bit color pixel to a cell in, one tile after another. Images will be discussed in more detail later on.
 
 	# load a sheet of 16 pixel wide by 32 pixel tall tiles
@@ -359,6 +354,13 @@ Special Tricks
 --------------
 
 Maker has a few more spiffy capabilities that deserve brief mention.
+
+Whenever Mako attempts to jump to the address -1, the VM will halt. Maker provides the word `halt` as a convenient way to do this.
+
+Anonymous inline words can be defined by enclosing code in curly braces. Like a string constant (enclosed in double quotes), these inline definitions will leave the address of the resulting chunk of memory on the stack:
+
+	: exec2 dup exec exec       ;
+	: { "Hello" type } exec2 cr ;
 
 `'` (pronounced "tick"), followed by a word name will, instead of compiling a `CALL` to the word definition, push the address of the first cell of the word definition. You can then call a dynamic address with `exec`. These instructions are useful for function pointer style tricks and supplying words with predicates.
 

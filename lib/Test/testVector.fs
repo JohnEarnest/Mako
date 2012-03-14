@@ -19,7 +19,5 @@
 	' a devector
 	a              5 = "devector" ok
 
-	666 = "canary" ok	
-
-	halt
+	666 = "canary" ok
 ;

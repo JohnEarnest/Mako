@@ -78,6 +78,4 @@
 	ent-max 4 - py 0  = and "sorted" ok
 
 	666 = "canary" ok
-	
-	halt
 ;

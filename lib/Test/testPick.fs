@@ -14,6 +14,4 @@
 	1 rpick 98 = "rp1" ok
 	0 rpick 41 = "rp2" ok
 	2 rpick 43 = "rp3" ok
-
-	halt
 ;
