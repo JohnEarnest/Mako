@@ -12,6 +12,8 @@ public class MakoVM implements MakoConstants {
 	private final byte[] abuffer = new byte[1000];
 	private int apointer = 0;
 
+	public final java.util.Queue<Integer> keyQueue = new java.util.LinkedList<Integer>();
+
 	public MakoVM(int[] m) {
 		this.m = m;
 		try {
@@ -77,6 +79,10 @@ public class MakoVM implements MakoConstants {
 	private int load(int addr) {
 		if (addr == RN) { return rand.nextInt(); }
 		if (addr == KY) { return keys; }
+		if (addr == KB) {
+			if (keyQueue.size() > 0) { return keyQueue.remove(); }
+			return -1;
+		}
 		if (addr == CO) {
 			try { return System.in.read(); }
 			catch(java.io.IOException e) { e.printStackTrace(); }

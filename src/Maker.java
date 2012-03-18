@@ -101,6 +101,7 @@ public class Maker implements MakoConstants {
 		variables.put("KY", KY);
 		variables.put("CO", CO); // character-out (debug)
 		variables.put("AU", AU);
+		variables.put("KB", KB);
 
 		constants.put("key-up", KEY_UP);
 		constants.put("key-rt", KEY_RT);

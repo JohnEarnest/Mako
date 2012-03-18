@@ -154,10 +154,12 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		masks.put(KeyEvent.VK_RIGHT,  KEY_RT); // key-rt
 		masks.put(KeyEvent.VK_DOWN,   KEY_DN); // key-dn
 		masks.put(KeyEvent.VK_LEFT,   KEY_LF); // key-lf
+		/*
 		masks.put(KeyEvent.VK_W,      KEY_UP);
 		masks.put(KeyEvent.VK_A,      KEY_LF);
 		masks.put(KeyEvent.VK_S,      KEY_DN);
 		masks.put(KeyEvent.VK_D,      KEY_RT);
+		*/
 		masks.put(KeyEvent.VK_ENTER,  KEY_A); // key-a
 		masks.put(KeyEvent.VK_SPACE,  KEY_A);
 		masks.put(KeyEvent.VK_Z,      KEY_A);
@@ -221,5 +223,7 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		}
 		if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }
 	}
-	public void keyTyped(KeyEvent k) {}
+	public void keyTyped(KeyEvent k) {
+		vm.keyQueue.add((int)k.getKeyChar());
+	}
 }
