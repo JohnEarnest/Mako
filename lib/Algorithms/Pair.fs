@@ -108,7 +108,7 @@
 ;
 
 : walk ( pair* -- )
-	dup .reach @ valid @ = if drop exit then
+	dup .reach @ valid @ xor -if drop exit then
 	dup .reach   valid @ swap !
 	dup .first @ dup pair? if walk else drop then
 	    .rest  @ dup pair? if walk else drop then
@@ -135,7 +135,7 @@
 ;
 
 : new-pair ( -- pair* )
-	free> dup free-tail = if drop collect new-pair then
+	free> dup free-tail xor -if drop collect new-pair then
 ;
 
 ######################################################

@@ -47,11 +47,24 @@
 	next
 ;
 
+: brap
+	0 2000 for
+		RN @ 32 mod if RN @ 4 mod + then dup AU !
+	next drop
+;
+
 #######################################################
 ##
 ##  Demos
 ##
 #######################################################
+
+: main
+	brap
+	50 for sync next
+	halt
+;
+
 (
 :data instr square-note noise-note saw-note
 : note

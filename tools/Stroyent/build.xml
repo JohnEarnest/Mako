@@ -36,5 +36,9 @@
 				<attribute name="Main-Class" value="SPC"/>
 			</manifest>
 		</jar>
+		<delete file="src/Mako.java" />
+		<delete file="src/MakoVM.java" />
+		<delete file="src/MakoRom.java" />
+		<delete file="src/MakoConstants.java" />
 	</target>
 </project>
