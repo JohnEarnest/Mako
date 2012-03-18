@@ -61,10 +61,11 @@ class MakoCanvas extends GameCanvas implements Runnable, MakoConstants {
     }
 
     public void run() {
+	boolean sflag = true;
         while(run) {
             vm.run();
-            vm.run(); // drop every other frame
-            vm.sync(g);
+	    if (sflag) { vm.sync(g); } // drop every other frame
+            sflag = !sflag;
             flushGraphics();
 
             int keys = getKeyStates();

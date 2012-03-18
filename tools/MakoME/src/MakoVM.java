@@ -60,6 +60,7 @@ public class MakoVM implements MakoConstants {
 	private int load(int addr) {
 		if (addr == RN) { return rand.nextInt(); }
 		if (addr == KY) { return keys; }
+		if (addr == KB) { return -1; }
 		return m[addr];
 	}
 
