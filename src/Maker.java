@@ -19,16 +19,27 @@ public class Maker implements MakoConstants {
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>(Arrays.asList(args));
 
-		boolean run        = pluckArg(argList, "--run");
+		boolean run        = pluckArg(argList, "--run") || pluckArg(argList, "-r");
 		boolean fuzz       = pluckArg(argList, "--fuzz");
 		boolean symbols    = pluckArg(argList, "--symbols");
-		boolean quiet      = pluckArg(argList, "--quiet");
+		boolean quiet      = pluckArg(argList, "--quiet") || pluckArg(argList, "-q");
+		boolean listing    = pluckArg(argList, "--listing") || pluckArg(argList, "-l");
 		boolean trace      = pluckArg(argList, "--trace");
 
-		Maker compiler = new Maker();
+		if (argList.size() == 0) {
+			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
+							+ "Options:\n -r/--run\trun program after compiling\n"
+							+ " -l/--listing\toutput program disassembly\n"
+							+ " --fuzz\t\trandomize inputs when running\n"
+							+ " --word <word>\tdisassemble given word\n"
+							+ " --symbols\twrite debugging symbols\n"
+							+ " -q/--quiet\t\tsuppress output\n");
+			System.exit(1);
+		}
 
+		Maker compiler = new Maker();
 		try { compiler.compileToken(":include", tokens("<Lang.fs>")); }
-		catch(FileNotFoundException f) { throw new Error("unable to load lib/Lang.fs!"); }
+		catch(IOException f) { throw new Error("unable to load lib/Lang.fs!"); }
 		compiler.compile(argList.get(0));
 
 		if (argList.contains("--word")) {
@@ -38,8 +49,13 @@ public class Maker implements MakoConstants {
 			argList.remove("--word");
 			argList.remove(word);
 		}
-		else if (!quiet) {
-			compiler.rom.disassemble(System.out);
+		else {
+			if (listing) {
+				compiler.rom.disassemble(System.out);
+			} else if (!quiet) {
+				// print the size summary
+				compiler.rom.disassemble(0, -1, System.out);
+			}
 		}
 		if (argList.size() > 1) {
 			compiler.rom.write(argList.get(1), symbols);
@@ -69,7 +85,7 @@ public class Maker implements MakoConstants {
 					compiler.rom.disassemble(new PrintStream(new File(argList.get(0) + ".after")));
 					System.out.println("Wrote '"+argList.get(0) + ".after'.");
 				}
-				catch(FileNotFoundException e) {
+				catch(IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -136,7 +152,7 @@ public class Maker implements MakoConstants {
 			currentPath.push(rootPath.getParent());
 			compileFile(rootPath.getName());
 		}
-		catch(FileNotFoundException e) {
+		catch(IOException e) {
 			throw new Error(e.getMessage());
 		}
 		if (!dictionary.containsKey("main")) {
@@ -195,7 +211,7 @@ public class Maker implements MakoConstants {
 		}
 	}
 
-	private void compileFile(String filename) throws FileNotFoundException {
+	private void compileFile(String filename) throws IOException {
 		currentPath.push(new File(currentPath.peek(), filename).getParent());
 		/*
 		System.out.println("Compiling: " + new File(
@@ -203,12 +219,19 @@ public class Maker implements MakoConstants {
 			new File(filename).getName()
 		));
 		*/
-		Scanner in = new Scanner(new File(
+
+		FileReader in = new FileReader(new File(
 			currentPath.peek(),
 			new File(filename).getName()
 		));
-		String source = "";
-		while(in.hasNextLine()) { source += in.nextLine() + '\n'; }
+		StringBuilder contents = new StringBuilder();
+		char[] buffer = new char[4096];
+		int read = 0;
+		while ((read = in.read(buffer)) >= 0) {
+			contents.append(buffer, 0, read);
+		}
+		String source = contents.toString();
+
 		Queue<Object> tokens = tokens(source);
 		while(tokens.size() > 0) {
 			Object token = tokens.remove();
@@ -223,7 +246,7 @@ public class Maker implements MakoConstants {
 		currentPath.pop();
 	}
 
-	private void compileToken(String token, Queue<Object> tokens) throws FileNotFoundException {
+	private void compileToken(String token, Queue<Object> tokens) throws IOException {
 		// defining words
 		if (token.equals(":")) {
 			compiling = true;
@@ -328,7 +351,6 @@ public class Maker implements MakoConstants {
 		else if (token.equals(":include")) {
 			String srcName = tokens.remove().toString();
 			if (srcName.startsWith("<")) {
-
 				// I highly suspect this is a brittle solution- I need
 				// to test this on different machine configurations.
 				String libPath = new File(Maker.class.getProtectionDomain()
@@ -531,6 +553,7 @@ public class Maker implements MakoConstants {
 
 	private static Queue<Object> tokens(String text) {
 		int index = 0;
+		int begin;
 		Queue<Object> ret = new LinkedList<Object>();
 
 		while(index < text.length()) {
@@ -555,38 +578,69 @@ public class Maker implements MakoConstants {
 			}
 			// quoted strings
 			else if (text.charAt(index) == '"') {
-				index++;
+				begin = index++;
 				while(index < text.length() && text.charAt(index) != '"') {
-					token += text.charAt(index);
 					index++;
 				}
 				index++;
-				token = '"' + token + '"';
+				token = text.substring(begin, index);
 			}
 			// whitespace-delimited words
 			else {
+				begin = index;
 				while(index < text.length() && !Character.isWhitespace(text.charAt(index))) {
-					token += text.charAt(index);
 					index++;
 				}
+				token = text.substring(begin, index);
+				index++;
 			}
-			// hex, binary and decimal numbers with C-style prefixes.
-			try {
-				if (token.startsWith("0x")) {
-					ret.add((int)Long.parseLong(token.substring(2), 16));
+
+			if (token.length() > 0) {
+				// hex, binary and decimal numbers with C-style prefixes.
+				try {
+					if (token.startsWith("0x")) {
+						ret.add((int)Long.parseLong(token.substring(2), 16));
+					}
+					else if (token.startsWith("0b")) {
+						ret.add((int)Long.parseLong(token.substring(2), 2));
+					}
+					else {
+						// parse ints directly, since throwing an exception
+						// for every identifier is expensive
+						int i = 0;
+						char c = token.charAt(0);
+						int num = 0, sgn = 1;
+						if (c == '-') {
+							i++;
+							sgn = -1;
+						}
+						if (i < token.length()) {
+							for (; i < token.length(); i++) {
+								c = token.charAt(i);
+								if ('0' <= c && c <= '9') {
+									num = num * 10 + (c - '0');
+								} else {
+									// a normal identifier
+									break;
+								}
+							}
+							if (i == token.length()) {
+								ret.add(num * sgn);
+							} else {
+								ret.add(token);
+							}
+						} else {
+							ret.add(token);
+						}
+					}
 				}
-				else if (token.startsWith("0b")) {
-					ret.add((int)Long.parseLong(token.substring(2), 2));
+				catch(NumberFormatException e) {
+					e.printStackTrace();
+					System.err.println(token);
+					//if (token.length() > 0) { ret.add(token); }
 				}
-				else {
-					ret.add(Integer.parseInt(token));
-				}
-			}
-			catch(NumberFormatException e) {
-				if (token.length() > 0) { ret.add(token); }
 			}
 		}
 		return ret;
 	}
-
 }
