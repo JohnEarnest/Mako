@@ -10,57 +10,18 @@
 ######################################################
 
 :include <Print.fs>
+:include <String.fs>
 :include <Vector.fs>
 :include <Grid.fs>
 :include <Sprites.fs>
 
-: +!       swap over @ swap + swap !         ;
-: -!       swap over @ swap - swap !         ;
-: inc      dup @ 1 + swap !                  ;
-: dec      dup @ 1 - swap !                  ;
-: abs      dup 0 < if -1 * then              ;
-: min      2dup > if swap then drop          ;
-: max      2dup < if swap then drop          ;
-: digit?   dup 48 < swap 57 > or not         ;
-: white?   dup 9 = over 10 = or swap 32 = or ;
-
-: >move (src dst len --)
-	1 - for
-		over i + @
-		over i + !
-	next 2drop
-;
-
-: <move (src dst len --) # copies low to high
-	>r swap dup r> + >r
-	loop
-		dup i >= if r> 2drop drop exit then
-		dup >r @ over ! r>
-		1 + swap 1 + swap		
-	again
-;
-
-: fill (addr len n  --)
-	>r 1 - for
-		j over i + !
-	next r> 2drop
-;
-
-: size ( addr -- len )
-	0 loop
-		over @ -if swap drop break then
-		1 + swap 1 + swap
-	again
-;
-
-: -text (a b -- flag)
-	loop
-		over @ over @
-		2dup - if - >r 2drop r> exit then
-		and -if 2drop 0 exit then
-		1 + swap 1 + swap
-	again
-;
+: +!       swap over @ swap + swap ! ;
+: -!       swap over @ swap - swap ! ;
+: inc      dup @ 1 + swap !          ;
+: dec      dup @ 1 - swap !          ;
+: abs      dup 0 < if -1 * then      ;
+: min      2dup > if swap then drop  ;
+: max      2dup < if swap then drop  ;
 
 ######################################################
 ##
@@ -74,6 +35,7 @@
 
 :var   here
 :var   head
+:var   end
 :var   mode
 :var   input-index    # index into input buffer (private)
 :array input     80 0 # input buffer
@@ -85,7 +47,6 @@
 : .args 3 + ; # argument field/address
 : .name 4 + ; # name (null-terminated)
 
-: patch      here @ swap !       ;
 : ,          here @ ! here inc   ; ( val -- )
 : [const]    0 , ,               ; ( addr -- )
 : [call]     1 , ,               ; ( addr -- )
@@ -196,10 +157,6 @@
 	r>  head @ .code !
 ;
 
-: immediate ( -- )
-	imm head @ .type !
-;
-
 : constant ( arg-addr -- val? )
 	mode @ def = if [const] then
 ;
@@ -260,16 +217,20 @@
 
 # high-level internals/globals
 :data d_>move    d_j        code >move     0 ">move"
-:data d_-text    d_>move    code -text     0 "-text"
-:data d_,        d_-text    imm  ,         0 ","
+:data d_<move    d_>move    code <move     0 "<move"
+:data d_fill     d_<move    code fill      0 "fill"
+:data d_size     d_fill     code size      0 "size"
+:data d_-text    d_size     code -text     0 "-text"
+:data d_digit?   d_-text    code digit?    0 "digit?"
+:data d_white?   d_digit?   code white?    0 "white?"
+:data d_,        d_white?   code ,         0 ","
 :data d_[const]  d_,        code [const]   0 "[const]"
 :data d_[call]   d_[const]  code [call]    0 "[call]"
 :data d_[jump]   d_[call]   code [jump]    0 "[jump]"
 :data d_[jumpz]  d_[jump]   code [jumpz]   0 "[jumpz]"
 :data d_[jumpif] d_[jumpz]  code [jumpif]  0 "[jumpif]"
 :data d_[return] d_[jumpif] code [return]  0 "[return]"
-:data d_digit?   d_[return] code digit?    0 "digit?"
-:data d_.prev    d_digit?   code .prev     0 ".prev"
+:data d_.prev    d_[return] code .prev     0 ".prev"
 :data d_.type    d_.prev    code .type     0 ".type"
 :data d_.code    d_.type    code .code     0 ".code"
 :data d_.args    d_.code    code .args     0 ".args"
@@ -279,24 +240,14 @@
 :data d_>number? d_word     code >number?  0 ">number?"
 :data d_create   d_>number? code create    0 "create"
 :data d_does>    d_create   imm  does>     0 "does>"
-:data d_imm      d_does>    imm  immediate 0 "immediate"
-:data d_here     d_imm      def constant here  "here"
+:data d_here     d_does>    def constant here  "here"
 :data d_head     d_here     def constant head  "head"
-:data d_mode     d_head     def constant mode  "mode"
+:data d_end      d_head     def constant end   "end"
+:data d_mode     d_end      def constant mode  "mode"
 :data d_input    d_mode     def constant input "input"
 
 # core immediate words
-:data d_if    d_input imm :proto p_if    p_if    0 "if"    : p_if    [jumpz]     ;
-:data d_-if   d_if    imm :proto p_-if   p_-if   0 "-if"   : p_-if   [jumpif]    ;
-:data d_then  d_-if   imm :proto p_then  p_then  0 "then"  : p_then  patch       ;
-:data d_loop  d_then  imm :proto p_loop  p_loop  0 "loop"  : p_loop  here @      ;
-:data d_again d_loop  imm :proto p_again p_again 0 "again" : p_again [jump]      ;
-:data d_until d_again imm :proto p_until p_until 0 "until" : p_until [jumpz] !   ;
-:data d_while d_until imm :proto p_while p_while 0 "while" : p_while [jumpif] !  ;
-:data d_for   d_while imm :proto p_for   p_for   0 "for"   : p_for   17 , here @ ;
-:data d_next  d_for   imm :proto p_next  p_next  0 "next"  : p_next  31 , , 18 , 13 , ;
-:data d_else  d_next  imm :proto p_else  p_else  0 "else"  : p_else  -2 [jump] here @ 1 - swap patch ;
-:data d_[     d_else  imm :proto [       [       0 "["     : [       imm mode !  ;
+:data d_[     d_input imm :proto [       [       0 "["     : [       imm mode !  ;
 :data d_]     d_[     imm :proto ]       ]       0 "]"     : ]       def mode !  ;
 :data d_:     d_]     imm :proto p_:     p_:     0 ":"     : p_:     create ]    ;
 :data d_;     d_:     imm :proto p_;     p_;     0 ";"     : p_;     [return] [  ;
@@ -310,7 +261,10 @@
 :data d_typeln   d_type     code typeln 0 "typeln"
 
 :array free-space 4096 0
+:data  last-cell  0
 :const last-def   d_typeln
+
+: direct  input over size 1 + >move interpret ;
 
 ######################################################
 ##
@@ -318,23 +272,15 @@
 ##
 ######################################################
 
-: direct  input over size 1 + >move interpret ;
-
-: key CO @ ;
-: >line ( addr len -- )
-	2 - for
-		key dup 10 xor
-		-if r> 2drop 0 swap ! exit then
-		over ! 1 +
-	next
-	0 swap !
-;
-
 :data  sprite-tiles
 :image   grid-tiles "text.png" 8 8
 
-:var cc
-:var cx
+:const cursor-s 0
+:var   used
+:var   cursor
+:var   cx
+:data  cc -32
+
 : console-newline
 	0 cx !
 	27 for
@@ -360,17 +306,28 @@
 : plain-text -32 cc ! ;
 : code-text   64 cc ! ;
 
-:const cursor-s 0
-:var   used
-:var   cursor
-
 : main
-
 	last-def   head !
+	last-cell  end  !
 	free-space here !
 	
 	{ drop } ' emit revector
-	": words head @ loop dup .name type space .prev @ dup while cr cr ; " direct 
+
+	": immediate  0 head @ .type !   ;" direct
+	":  if        [jumpz]            ; immediate" direct
+	": -if        [jumpif]           ; immediate" direct
+	": then       here @ swap !      ; immediate" direct
+	": loop       here @             ; immediate" direct
+	": again      [jump]             ; immediate" direct
+	": until      [jumpz]  !         ; immediate" direct
+	": while      [jumpif] !         ; immediate" direct
+	": for        17 , here @        ; immediate" direct
+	": next       31 , , 18 , 13 ,   ; immediate" direct
+	": else       -2 [jump] here @ 1 - swap here @ swap ! ; immediate" direct
+	": words head @ loop dup .name type space .prev @ dup while cr ;"  direct
+	": allot      1 - for 0 , next   ;" direct
+	": free       end @ here @ -     ;" direct
+
 	' console-emit ' emit revector
 
 	0 0 "MakoDE BIOS 0.1" grid-type
