@@ -112,7 +112,7 @@
 		if
 			dup .type @ imm = if .code @ exec else
 				dup .type @ def = if
-					dup .args @ swap .code @ exec
+					dup .code @ swap .args @ exec
 				else
 					.code @
 					mode @ def = if [call] else exec then
@@ -139,26 +139,22 @@
 	cr
 ;
 
-: create ( -- )
-	head @ here @ head ! ,  # prev
-	code ,                  # type
-	-7 ,                    # code
-	 0 ,                    # args
-	word word-buff 1 - loop # name
-		1 +
-		dup @ ,
-		dup @
+: [create] ( name -- )
+	head @ here @ head ! , # prev
+	code , 0 , 0 ,         # type, code, args
+	1 - loop               # name
+		1 + dup @ , dup @
 	while drop
+;
+
+: create ( -- )
+	word word-buff [create]
 	here @ head @ .code !
 ;
 
 : does> ( -- )
 	def head @ .type !
-	r>  head @ .code !
-;
-
-: constant ( arg-addr -- val? )
-	mode @ def = if [const] then
+	r>  head @ .args !
 ;
 
 ######################################################
@@ -189,82 +185,118 @@
 :data d_r>   d_>r   code :proto p_r>   p_r>   0 "r>"   : p_r>   r> r> swap >r ;
 
 # extended 'primitives':
-:data d_>=    d_r>    code :proto p_>=  p_>=      0 ">="    : p_>=     < not        ;
-:data d_<=    d_>=    code :proto p_<=  p_<=      0 "<="    : p_<=     > not        ;
-:data d_=     d_<=    code                =       0 "="
-:data d_!=    d_=     code                !=      0 "!="
-:data d_0=    d_!=    code :proto 0=      0=      0 "0="    : 0=      0 =           ;
-:data d_0!    d_0=    code :proto 0!      0!      0 "0!"    : 0!      0 !=          ;
-:data d_1+    d_0!    code :proto 1+      1+      0 "1+"    : 1+      1 +           ;
-:data d_1-    d_1+    code :proto 1-      1-      0 "1-"    : 1-      1 -           ;
-:data d_+!    d_1-    code                +!      0 "+!"
-:data d_-!    d_+!    code                -!      0 "-!"
-:data d_inc   d_-!    code                inc     0 "inc"
-:data d_dec   d_inc   code                dec     0 "dec"
-:data d_neg   d_dec   code :proto neg     neg     0 "neg"   : neg     -1 *          ;
-:data d_abs   d_neg   code                abs     0 "abs"
-:data d_min   d_abs   code                min     0 "min"
-:data d_max   d_min   code                max     0 "max"
-:data d_2dup  d_max   code :proto p_2dup  p_2dup  0 "2dup"  : p_2dup  2dup          ;
-:data d_rdrop d_2dup  code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop r> r> drop r> ;
-:data d_2drop d_rdrop code :proto p_2drop p_2drop 0 "2drop" : p_2drop 2drop         ;
-:data d_halt  d_2drop code :proto p_halt  p_halt  0 "halt"  : p_halt  halt          ;
+:data d_rdrop d_r>    code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop r> r> drop r> ;
+:data d_halt  d_rdrop code :proto p_halt  p_halt  0 "halt"  : p_halt  halt          ;
 :data d_exit  d_halt  code :proto p_exit  p_exit  0 "exit"  : p_exit  rdrop         ;
 :data d_sync  d_exit  code :proto p_sync  p_sync  0 "sync"  : p_sync  sync          ;
 :data d_keys  d_sync  code :proto p_keys  p_keys  0 "keys"  : p_keys  keys          ;
 :data d_i     d_keys  code :proto p_i     p_i     0 "i"     : p_i     j             ;
 :data d_j     d_i     code :proto p_j     p_j     0 "j"     : p_j     k             ;
 
-# high-level internals/globals
-:data d_>move    d_j        code >move     0 ">move"
-:data d_<move    d_>move    code <move     0 "<move"
-:data d_fill     d_<move    code fill      0 "fill"
-:data d_size     d_fill     code size      0 "size"
-:data d_-text    d_size     code -text     0 "-text"
-:data d_digit?   d_-text    code digit?    0 "digit?"
-:data d_white?   d_digit?   code white?    0 "white?"
-:data d_,        d_white?   code ,         0 ","
-:data d_[const]  d_,        code [const]   0 "[const]"
-:data d_[call]   d_[const]  code [call]    0 "[call]"
-:data d_[jump]   d_[call]   code [jump]    0 "[jump]"
-:data d_[jumpz]  d_[jump]   code [jumpz]   0 "[jumpz]"
-:data d_[jumpif] d_[jumpz]  code [jumpif]  0 "[jumpif]"
-:data d_[return] d_[jumpif] code [return]  0 "[return]"
-:data d_.prev    d_[return] code .prev     0 ".prev"
-:data d_.type    d_.prev    code .type     0 ".type"
-:data d_.code    d_.type    code .code     0 ".code"
-:data d_.args    d_.code    code .args     0 ".args"
-:data d_.name    d_.args    code .name     0 ".name"
-:data d_find     d_.name    code find      0 "find"
-:data d_word     d_find     code word      0 "word"
-:data d_>number? d_word     code >number?  0 ">number?"
-:data d_create   d_>number? code create    0 "create"
-:data d_does>    d_create   imm  does>     0 "does>"
-:data d_here     d_does>    def constant here  "here"
-:data d_head     d_here     def constant head  "head"
-:data d_end      d_head     def constant end   "end"
-:data d_mode     d_end      def constant mode  "mode"
-:data d_input    d_mode     def constant input "input"
-
 # core immediate words
-:data d_[     d_input imm :proto [       [       0 "["     : [       imm mode !  ;
+:data d_[     d_j     imm :proto [       [       0 "["     : [       imm mode !  ;
 :data d_]     d_[     imm :proto ]       ]       0 "]"     : ]       def mode !  ;
 :data d_:     d_]     imm :proto p_:     p_:     0 ":"     : p_:     create ]    ;
 :data d_;     d_:     imm :proto p_;     p_;     0 ";"     : p_;     [return] [  ;
 
-# console I/O
-:data d_emit     d_;        code emit   0 "emit"
-:data d_space    d_emit     code space  0 "space"
-:data d_cr       d_space    code cr     0 "cr"
-:data d_.        d_cr       code .      0 "."
-:data d_type     d_.        code type   0 "type"
-:data d_typeln   d_type     code typeln 0 "typeln"
-
 :array free-space 4096 0
 :data  last-cell  0
-:const last-def   d_typeln
+:const last-def   d_;
+:array data-stack 200  0
 
-: direct  input over size 1 + >move interpret ;
+######################################################
+##
+##  Initialization:
+##  (Wherein the compiler compiles itself)
+##
+######################################################
+
+: direct ( -- )
+	input over size 1 + >move interpret
+;
+
+: constant ( arg-addr -- val? )
+	@ mode @ def = if [const] then
+;
+
+: build-constant ( value name -- )
+	[create]
+	' constant head @ .args !
+	def        head @ .type !
+	here @     head @ .code ! ,
+;
+
+: build-word ( addr name -- )
+	[create] head @ .code !
+;
+
+: foreach ( 0 ... 'word -- )
+	>r loop i exec dup while r> 2drop
+;
+
+: init ( -- )
+	last-def   head !
+	last-cell  end  !
+	free-space here !
+
+	0
+	here  "here"
+	head  "head"
+	end   "end"
+	mode  "mode"
+	input "input"
+	' build-constant foreach
+
+	0
+	' =        "="        ' !=       "!="
+	' +!       "+!"       ' -!       "-!"
+	' inc      "inc"      ' dec      "dec"
+	' abs      "abs"      ' min      "min"
+	' max      "max"      ' >move    ">move"
+	' <move    "<move"    ' fill     "fill"
+	' size     "size"     ' -text    "text"
+	' digit?   "digit?"   ' white?   "white?"
+	' ,        ","        ' [const]  "[const]"
+	' [call]   "[call]"   ' [jump]   "[jump]"
+	' [jumpz]  "[jumpz]"  ' [jumpif] "[jumpif]"
+	' [return] "[return]" ' .prev    ".prev"
+	' .type    ".type"    ' .code    ".code"
+	' .args    ".args"    ' .name    ".name"
+	' find     "find"     ' word     "word"
+	' >number? ">number?" ' create   "create"
+	' does>    "does>"    ' emit     "emit"
+	' space    "space"    ' cr       "cr"
+	' .        "."        ' type     "type"
+	' typeln   "typeln"
+	' build-word foreach
+
+	{ drop } ' emit revector
+	": >=         < not              ;" direct
+	": <=         > not              ;" direct
+	": 0=         0 =                ;" direct
+	": 0!         0 !=               ;" direct
+	": 1+         1 +                ;" direct
+	": 1-         1 -                ;" direct
+	": neg        -1 *               ;" direct
+	": 2dup       over over          ;" direct
+	": 2drop      drop drop          ;" direct
+	": :var       create 0 , does>   ;" direct
+	": immediate  0 head @ .type !   ;" direct
+	":  if        [jumpz]            ; immediate" direct
+	": -if        [jumpif]           ; immediate" direct
+	": then       here @ swap !      ; immediate" direct
+	": loop       here @             ; immediate" direct
+	": again      [jump]             ; immediate" direct
+	": until      [jumpz]  !         ; immediate" direct
+	": while      [jumpif] !         ; immediate" direct
+	": for        17 , here @        ; immediate" direct
+	": next       31 , , 18 , 13 ,   ; immediate" direct
+	": else       -2 [jump] here @ 1 - swap here @ swap ! ; immediate" direct
+	": words head @ loop dup .name type space .prev @ dup while cr ;"  direct
+	": allot      1 - for 0 , next   ;" direct
+	": free       end @ here @ -     ;" direct
+	' emit devector
+;
 
 ######################################################
 ##
@@ -307,26 +339,7 @@
 : code-text   64 cc ! ;
 
 : main
-	last-def   head !
-	last-cell  end  !
-	free-space here !
-	
-	{ drop } ' emit revector
-
-	": immediate  0 head @ .type !   ;" direct
-	":  if        [jumpz]            ; immediate" direct
-	": -if        [jumpif]           ; immediate" direct
-	": then       here @ swap !      ; immediate" direct
-	": loop       here @             ; immediate" direct
-	": again      [jump]             ; immediate" direct
-	": until      [jumpz]  !         ; immediate" direct
-	": while      [jumpif] !         ; immediate" direct
-	": for        17 , here @        ; immediate" direct
-	": next       31 , , 18 , 13 ,   ; immediate" direct
-	": else       -2 [jump] here @ 1 - swap here @ swap ! ; immediate" direct
-	": words head @ loop dup .name type space .prev @ dup while cr ;"  direct
-	": allot      1 - for 0 , next   ;" direct
-	": free       end @ here @ -     ;" direct
+	init
 
 	' console-emit ' emit revector
 
