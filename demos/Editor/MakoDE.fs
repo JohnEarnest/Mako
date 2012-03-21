@@ -23,6 +23,23 @@
 : min      2dup > if swap then drop  ;
 : max      2dup < if swap then drop  ;
 
+:array data-stack   200 0
+:array return-stack 200 0
+
+:var restart-vector
+: abort ( -- )
+	typeln
+	data-stack   DP !
+	return-stack RP !
+	restart-vector @ exec
+	halt
+;
+
+: 1arg  DP @ data-stack       > if exit then "Stack underflow!"  typeln abort ;
+: 2arg  DP @ data-stack   1 + > if exit then "Stack underflow!"  typeln abort ;
+: 1ret  RP @ return-stack 1 + > if exit then "RStack underflow!" typeln abort ;
+: 2ret  RP @ return-stack 2 + > if exit then "RStack underflow!" typeln abort ;
+
 ######################################################
 ##
 ##  Compiler:
@@ -40,6 +57,8 @@
 :var   input-index    # index into input buffer (private)
 :array input     80 0 # input buffer
 :array word-buff 80 0 # buffer for current word (private)
+
+: :? mode @ def = ; # are we compiling?
 
 : .prev     ; # previous entry
 : .type 1 + ; # entry type
@@ -103,8 +122,6 @@
 
 : interpret ( -- )
 	0 input-index !
-	here @ old-here !
-	DP   @ old-DP   !
 	loop
 		word
 		word-buff size 1 < if  break then
@@ -115,31 +132,33 @@
 					dup .code @ swap .args @ exec
 				else
 					.code @
-					mode @ def = if [call] else exec then
+					:? if [call] else exec then
 				then
 			then
 		else
 			>number? if
-				mode @ def = if [const] then
+				:? if [const] then
 			else
-				"'"  type
-				word-buff type
-				"' ?" typeln
-				mode @ def = if
+				:? if
 					head @ .prev @ head !
 					old-here @ here !
 					old-DP   @ DP   !
 					imm mode !
 				then
-				break
+				"'"  type
+				word-buff type
+				"' ?" typeln
+				abort
 			then
 		then
 		input-index @ input + @
 	while
-	mode @ def = -if cr then
+	:? -if cr then
 ;
 
 : [create] ( name -- )
+	here @ old-here !
+	DP   @ old-DP   !
 	head @ here @ head ! , # prev
 	code , 0 , 0 ,         # type, code, args
 	1 - loop               # name
@@ -164,30 +183,30 @@
 ######################################################
 
 # core primitives:
-:data d_+    0      code :proto p_+    p_+    0 "+"    : p_+    +    ;
-:data d_-    d_+    code :proto p_-    p_-    0 "-"    : p_-    -    ;
-:data d_*    d_-    code :proto p_*    p_*    0 "*"    : p_*    *    ;
-:data d_/    d_*    code :proto p_/    p_/    0 "/"    : p_/    /    ;
-:data d_mod  d_/    code :proto p_mod  p_mod  0 "mod"  : p_mod  mod  ;
-:data d_and  d_mod  code :proto p_and  p_and  0 "and"  : p_and  and  ;
-:data d_or   d_and  code :proto p_or   p_or   0 "or"   : p_or   or   ;
-:data d_xor  d_or   code :proto p_xor  p_xor  0 "xor"  : p_xor  xor  ;
-:data d_not  d_xor  code :proto p_not  p_not  0 "not"  : p_not  not  ;
-:data d_>    d_not  code :proto p_>    p_>    0 ">"    : p_>    >    ;
-:data d_<    d_>    code :proto p_<    p_<    0 "<"    : p_<    <    ;
-:data d_@    d_<    code :proto p_@    p_@    0 "@"    : p_@    @    ;
-:data d_!    d_@    code :proto p_!    p_!    0 "!"    : p_!    !    ;
-:data d_dup  d_!    code :proto p_dup  p_dup  0 "dup"  : p_dup  dup  ;
-:data d_drop d_dup  code :proto p_drop p_drop 0 "drop" : p_drop drop ;
-:data d_swap d_drop code :proto p_swap p_swap 0 "swap" : p_swap swap ;
-:data d_over d_swap code :proto p_over p_over 0 "over" : p_over over ;
-:data d_>r   d_over code :proto p_>r   p_>r   0 ">r"   : p_>r   r> swap >r >r ;
-:data d_r>   d_>r   code :proto p_r>   p_r>   0 "r>"   : p_r>   r> r> swap >r ;
+:data d_+    0      code :proto p_+    p_+    0 "+"    : p_+    2arg +    ;
+:data d_-    d_+    code :proto p_-    p_-    0 "-"    : p_-    2arg -    ;
+:data d_*    d_-    code :proto p_*    p_*    0 "*"    : p_*    2arg *    ;
+:data d_/    d_*    code :proto p_/    p_/    0 "/"    : p_/    2arg /    ;
+:data d_mod  d_/    code :proto p_mod  p_mod  0 "mod"  : p_mod  2arg mod  ;
+:data d_and  d_mod  code :proto p_and  p_and  0 "and"  : p_and  2arg and  ;
+:data d_or   d_and  code :proto p_or   p_or   0 "or"   : p_or   2arg or   ;
+:data d_xor  d_or   code :proto p_xor  p_xor  0 "xor"  : p_xor  2arg xor  ;
+:data d_not  d_xor  code :proto p_not  p_not  0 "not"  : p_not  1arg not  ;
+:data d_>    d_not  code :proto p_>    p_>    0 ">"    : p_>    2arg >    ;
+:data d_<    d_>    code :proto p_<    p_<    0 "<"    : p_<    2arg <    ;
+:data d_@    d_<    code :proto p_@    p_@    0 "@"    : p_@    1arg @    ;
+:data d_!    d_@    code :proto p_!    p_!    0 "!"    : p_!    2arg !    ;
+:data d_dup  d_!    code :proto p_dup  p_dup  0 "dup"  : p_dup  1arg dup  ;
+:data d_drop d_dup  code :proto p_drop p_drop 0 "drop" : p_drop 1arg drop ;
+:data d_swap d_drop code :proto p_swap p_swap 0 "swap" : p_swap 2arg swap ;
+:data d_over d_swap code :proto p_over p_over 0 "over" : p_over 2arg over ;
+:data d_>r   d_over code :proto p_>r   p_>r   0 ">r"   : p_>r   1arg r> swap >r >r ;
+:data d_r>   d_>r   code :proto p_r>   p_r>   0 "r>"   : p_r>   2ret r> r> swap >r ;
 
 # extended 'primitives':
-:data d_rdrop d_r>    code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop r> r> drop r> ;
+:data d_rdrop d_r>    code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop 2ret r> r> drop r> ;
 :data d_halt  d_rdrop code :proto p_halt  p_halt  0 "halt"  : p_halt  halt          ;
-:data d_exit  d_halt  code :proto p_exit  p_exit  0 "exit"  : p_exit  rdrop         ;
+:data d_exit  d_halt  code :proto p_exit  p_exit  0 "exit"  : p_exit  1ret rdrop    ;
 :data d_sync  d_exit  code :proto p_sync  p_sync  0 "sync"  : p_sync  sync          ;
 :data d_keys  d_sync  code :proto p_keys  p_keys  0 "keys"  : p_keys  keys          ;
 :data d_i     d_keys  code :proto p_i     p_i     0 "i"     : p_i     j             ;
@@ -202,9 +221,6 @@
 :array free-space 4096 0
 :data  last-cell  0
 :const last-def   d_;
-:array data-stack 200  0
-
-: direct  input over size 1 + >move interpret ;
 
 ######################################################
 ##
@@ -218,7 +234,7 @@
 ;
 
 : constant ( arg-addr -- val? )
-	@ mode @ def = if [const] then
+	@ :? if [const] then
 ;
 
 : build-constant ( value name -- )
@@ -264,12 +280,11 @@
 	' [return] "[return]" ' .prev    ".prev"
 	' .type    ".type"    ' .code    ".code"
 	' .args    ".args"    ' .name    ".name"
-	' find     "find"     ' word     "word"
-	' >number? ">number?" ' create   "create"
+	' find     "find"     ' create   "create"
 	' does>    "does>"    ' emit     "emit"
 	' space    "space"    ' cr       "cr"
 	' .        "."        ' type     "type"
-	' typeln   "typeln"
+	' typeln   "typeln"   ' abort    "abort"
 	' build-word foreach
 
 	{ drop } ' emit revector
@@ -337,28 +352,25 @@
 	then
 ;
 
+: input-clear ( -- )
+	input 41 0 fill
+	0 cursor !
+	0 used   !
+;
+
 : plain-text -32 cc ! ;
 : code-text   64 cc ! ;
 
-: main
-	init
-
-	' console-emit ' emit revector
-
-	0 0 "MakoDE BIOS 0.1" grid-type
-	0 1 "4096k OK"        grid-type
-
-	input 41 0 fill
+: console-prompt ( -- )
+	input-clear
 	loop
 		KB @ dup -1 = if drop else
 			dup 10 = if
 				# return
-				drop mode @ def = -if cr then
+				drop :? -if cr then
 				code-text input typeln plain-text
 				interpret
-				input 41 0 fill
-				0 cursor !
-				0 used   !
+				input-clear
 			else
 				dup 8 = if
 					drop
@@ -390,4 +402,14 @@
 
 		4 for sync next
 	again
+;
+
+: main
+	init
+	' console-emit '  emit revector
+	' console-prompt restart-vector !
+
+	0 0 "MakoDE BIOS 0.2" grid-type
+	0 1 "4096k OK"        grid-type
+	console-prompt
 ;
