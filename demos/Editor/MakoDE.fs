@@ -28,7 +28,6 @@
 
 :var restart-vector
 : abort ( -- )
-	typeln
 	data-stack   DP !
 	return-stack RP !
 	restart-vector @ exec
@@ -69,9 +68,6 @@
 : ,          here @ ! here inc   ; ( val -- )
 : [const]    0 , ,               ; ( addr -- )
 : [call]     1 , ,               ; ( addr -- )
-: [jump]     2 , ,               ; ( addr -- )
-: [jumpz]    3 , -2 , here @ 1 - ; ( -- patch-addr )
-: [jumpif]   4 , -2 , here @ 1 - ; ( -- patch-addr )
 : [return]  12 ,                 ; ( -- )
 
 : find ( str-addr -- entry-addr? flag )
@@ -120,6 +116,15 @@
 :var old-here
 :var old-DP
 
+: bail-def ( -- )
+	:? if
+		head @ .prev @ head !
+		old-here @ here !
+		old-DP   @ DP   !
+		imm mode !
+	then
+;
+
 : interpret ( -- )
 	0 input-index !
 	loop
@@ -139,12 +144,7 @@
 			>number? if
 				:? if [const] then
 			else
-				:? if
-					head @ .prev @ head !
-					old-here @ here !
-					old-DP   @ DP   !
-					imm mode !
-				then
+				bail-def
 				"'"  type
 				word-buff type
 				"' ?" typeln
@@ -174,6 +174,82 @@
 : does> ( -- )
 	def head @ .type !
 	r>  head @ .args !
+;
+
+######################################################
+##
+##  Flow control primitives:
+##
+######################################################
+
+:const   if-flag  -1
+:const loop-flag  -2
+:const  for-flag  -3
+
+: bogus-jump
+	"unresolved branch!" typeln abort
+;
+
+: [jump]     2 , ,                         ; ( addr -- )
+: [jumpz]    3 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
+: [jumpif]   4 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
+
+: check-flow
+	:? if exit then
+	"can't use flow words in direct mode!" typeln
+	bail-def abort
+;
+
+: p_if    check-flow ' 1arg [call] [jumpz]        if-flag ;
+: p_-if   check-flow ' 1arg [call] [jumpif]       if-flag ;
+: p_loop  check-flow               here @       loop-flag ;
+: p_for   check-flow ' 1arg [call] 17 , here @   for-flag ;
+
+: p_then
+	check-flow
+	if-flag = if here @ swap ! exit then
+	"'then' without 'if'!" typeln
+	bail-def abort
+;
+
+
+: p_else
+	check-flow
+	if-flag = if
+		' bogus-jump [jump]
+		here @ 1 - swap here @ swap !
+		if-flag exit
+	then
+	 "'else' without 'if'!" typeln
+	bail-def abort
+;
+
+: p_again
+	check-flow
+	loop-flag = if [jump] exit then
+	"'again' without 'loop'!" typeln
+	bail-def abort
+;
+
+: p_until
+	check-flow
+	loop-flag = if ' 1arg [call] [jumpz] ! exit then
+	"'until' without 'loop'!" typeln
+	bail-def abort
+;
+
+: p_while
+	check-flow
+	loop-flag = if ' 1arg [call] [jumpif] ! exit then
+	 "'while' without 'loop'!" typeln
+	bail-def abort
+;
+
+: p_next
+	check-flow
+	for-flag = if 31 , , 18 , 13 , exit then
+	"'next' without 'for'!" typeln
+	bail-def abort
 ;
 
 ######################################################
@@ -213,10 +289,20 @@
 :data d_j     d_i     code :proto p_j     p_j     0 "j"     : p_j     k             ;
 
 # core immediate words
-:data d_[     d_j     imm :proto [       [       0 "["     : [       imm mode !  ;
-:data d_]     d_[     imm :proto ]       ]       0 "]"     : ]       def mode !  ;
-:data d_:     d_]     imm :proto p_:     p_:     0 ":"     : p_:     create ]    ;
-:data d_;     d_:     imm :proto p_;     p_;     0 ";"     : p_;     [return] [  ;
+:data d_if    d_j     imm p_if    0 "if"
+:data d_-if   d_if    imm p_-if   0 "-if"
+:data d_then  d_-if   imm p_then  0 "then"
+:data d_else  d_then  imm p_else  0 "else"
+:data d_loop  d_else  imm p_loop  0 "loop"
+:data d_again d_loop  imm p_again 0 "again"
+:data d_until d_again imm p_until 0 "until"
+:data d_while d_until imm p_while 0 "while"
+:data d_for   d_while imm p_for   0 "for"
+:data d_next  d_for   imm p_next  0 "next"
+:data d_[     d_next  imm :proto  [       [       0 "["     : [       imm mode !  ;
+:data d_]     d_[     imm :proto  ]       ]       0 "]"     : ]       def mode !  ;
+:data d_:     d_]     imm :proto  p_:     p_:     0 ":"     : p_:     create ]    ;
+:data d_;     d_:     imm :proto  p_;     p_;     0 ";"     : p_;     [return] [  ;
 
 :array free-space 4096 0
 :data  last-cell  0
@@ -274,10 +360,7 @@
 	' <move    "<move"    ' fill     "fill"
 	' size     "size"     ' -text    "text"
 	' digit?   "digit?"   ' white?   "white?"
-	' ,        ","        ' [const]  "[const]"
-	' [call]   "[call]"   ' [jump]   "[jump]"
-	' [jumpz]  "[jumpz]"  ' [jumpif] "[jumpif]"
-	' [return] "[return]" ' .prev    ".prev"
+	' ,        ","        ' .prev    ".prev"
 	' .type    ".type"    ' .code    ".code"
 	' .args    ".args"    ' .name    ".name"
 	' find     "find"     ' create   "create"
@@ -299,16 +382,6 @@
 	": 2drop      drop drop          ;" direct
 	": :var       create 0 , does>   ;" direct
 	": immediate  0 head @ .type !   ;" direct
-	":  if        [jumpz]            ; immediate" direct
-	": -if        [jumpif]           ; immediate" direct
-	": then       here @ swap !      ; immediate" direct
-	": loop       here @             ; immediate" direct
-	": again      [jump]             ; immediate" direct
-	": until      [jumpz]  !         ; immediate" direct
-	": while      [jumpif] !         ; immediate" direct
-	": for        17 , here @        ; immediate" direct
-	": next       31 , , 18 , 13 ,   ; immediate" direct
-	": else       -2 [jump] here @ 1 - swap here @ swap ! ; immediate" direct
 	": words head @ loop dup .name type space .prev @ dup while cr ;"  direct
 	": allot      1 - for 0 , next   ;" direct
 	": free       end @ here @ -     ;" direct
@@ -362,6 +435,7 @@
 : code-text   64 cc ! ;
 
 : console-prompt ( -- )
+	imm mode !
 	input-clear
 	loop
 		KB @ dup -1 = if drop else
