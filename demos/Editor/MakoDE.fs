@@ -15,14 +15,6 @@
 :include <Grid.fs>
 :include <Sprites.fs>
 
-: +!       swap over @ swap + swap ! ;
-: -!       swap over @ swap - swap ! ;
-: inc      dup @ 1 + swap !          ;
-: dec      dup @ 1 - swap !          ;
-: abs      dup 0 < if -1 * then      ;
-: min      2dup > if swap then drop  ;
-: max      2dup < if swap then drop  ;
-
 :array data-stack   200 0
 :array return-stack 200 0
 
@@ -36,8 +28,17 @@
 
 : 1arg  DP @ data-stack       > if exit then "Stack underflow!"  typeln abort ;
 : 2arg  DP @ data-stack   1 + > if exit then "Stack underflow!"  typeln abort ;
+: 3arg  DP @ data-stack   2 + > if exit then "Stack underflow!"  typeln abort ;
 : 1ret  RP @ return-stack 1 + > if exit then "RStack underflow!" typeln abort ;
 : 2ret  RP @ return-stack 2 + > if exit then "RStack underflow!" typeln abort ;
+
+: abs      1arg  dup 0 < if -1 * then      ;
+: inc      1arg  dup @ 1 + swap !          ;
+: dec      1arg  dup @ 1 - swap !          ;
+: +!       2arg  swap over @ swap + swap ! ;
+: -!       2arg  swap over @ swap - swap ! ;
+: min      2arg  2dup > if swap then drop  ;
+: max      2arg  2dup < if swap then drop  ;
 
 ######################################################
 ##
@@ -65,12 +66,12 @@
 : .args 3 + ; # argument field/address
 : .name 4 + ; # name (null-terminated)
 
-: ,          here @ ! here inc   ; ( val -- )
-: [const]    0 , ,               ; ( addr -- )
-: [call]     1 , ,               ; ( addr -- )
-: [return]  12 ,                 ; ( -- )
+: ,          1arg here @ ! here inc ; ( val -- )
+: [const]    0 , ,                  ; ( addr -- )
+: [call]     1 , ,                  ; ( addr -- )
+: [return]  12 ,                    ; ( -- )
 
-: find ( str-addr -- entry-addr? flag )
+: find ( str-addr -- entry-addr? flag ) 1arg
 	head @ loop
 		(str entry -- )
 		2dup .name -text
@@ -356,18 +357,25 @@
 	' +!       "+!"       ' -!       "-!"
 	' inc      "inc"      ' dec      "dec"
 	' abs      "abs"      ' min      "min"
-	' max      "max"      ' >move    ">move"
-	' <move    "<move"    ' fill     "fill"
-	' size     "size"     ' -text    "text"
-	' digit?   "digit?"   ' white?   "white?"
+	' max      "max"      ' abort    "abort"
 	' ,        ","        ' .prev    ".prev"
 	' .type    ".type"    ' .code    ".code"
 	' .args    ".args"    ' .name    ".name"
 	' find     "find"     ' create   "create"
-	' does>    "does>"    ' emit     "emit"
-	' space    "space"    ' cr       "cr"
-	' .        "."        ' type     "type"
-	' typeln   "typeln"   ' abort    "abort"
+	' does>    "does>"    ' cr       "cr"
+	' space    "space"
+
+	{ 3arg >move  } ">move"
+	{ 3arg <move  } "<move"
+	{ 3arg fill   } "fill"
+	{ 2arg -text  } "-text"
+	{ 1arg digit? } "digit?"
+	{ 1arg white? } "white?"
+	{ 1arg emit   } "emit"
+	{ 1arg .      } "."
+	{ 1arg type   } "type"
+	{ 1arg typeln } "typeln"
+
 	' build-word foreach
 
 	{ drop } ' emit revector
