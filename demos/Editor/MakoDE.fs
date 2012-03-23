@@ -66,10 +66,16 @@
 : .args 3 + ; # argument field/address
 : .name 4 + ; # name (null-terminated)
 
-: ,          1arg here @ ! here inc ; ( val -- )
-: [const]    0 , ,                  ; ( addr -- )
-: [call]     1 , ,                  ; ( addr -- )
-: [return]  12 ,                    ; ( -- )
+: bogus-jump   "unresolved branch!" typeln abort ;
+
+: ,          1arg here @ ! here inc        ; ( val -- )
+: [const]    0 , ,                         ; ( addr -- )
+: [call]     1 , ,                         ; ( addr -- )
+: [return]  12 ,                           ; ( -- )
+: [jump]     2 , ,                         ; ( addr -- )
+: [jumpz]    3 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
+: [jumpif]   4 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
+
 
 : find ( str-addr -- entry-addr? flag ) 1arg
 	head @ loop
@@ -81,7 +87,7 @@
 	2drop false
 ;
 
-: word ( -- )
+: word ( -- str-addr )
 	word-buff 80 0 fill
 	loop
 		input-index @ input + @
@@ -97,7 +103,7 @@
 		input-index inc
 		1 +
 	again
-	0 swap !
+	0 swap ! word-buff
 ;
 
 : >number? ( -- number? flag )
@@ -115,43 +121,68 @@
 ;
 
 :var old-here
-:var old-DP
 
 : bail-def ( -- )
 	:? if
 		head @ .prev @ head !
 		old-here @ here !
-		old-DP   @ DP   !
 		imm mode !
 	then
+;
+
+: interpret-word ( -- )
+	# skip whitespace:
+	loop
+		input-index @ input + @
+		dup    -if drop exit  then
+		white? -if      break then
+		input-index inc
+	again
+
+	# quoted string:
+	input-index @ input + @ 34 = if
+		input-index inc
+		' bogus-jump [jump] here @ 1 -
+		loop
+			input-index @ input + @
+			dup 34 = if drop break then
+			, input-index inc
+		again
+		0 , input-index inc
+		here @ over ! 1 + [const]
+		exit
+	then
+
+	# a word in the dictionary:
+	word dup size 1 < if drop exit then
+	find if
+		dup .type @ imm = if
+			.code @ exec
+		else
+			dup .type @ def = if
+				dup .code @ swap .args @ exec
+			else
+				.code @ :? if [call] else exec then
+			then
+		then
+		exit
+	then
+
+	# a number:
+	>number? if
+		:? if [const] then
+		exit
+	then
+	
+	# word not found:
+	"'"  type word-buff type "' ?" typeln
+	bail-def abort
 ;
 
 : interpret ( -- )
 	0 input-index !
 	loop
-		word
-		word-buff size 1 < if  break then
-		word-buff find
-		if
-			dup .type @ imm = if .code @ exec else
-				dup .type @ def = if
-					dup .code @ swap .args @ exec
-				else
-					.code @
-					:? if [call] else exec then
-				then
-			then
-		else
-			>number? if
-				:? if [const] then
-			else
-				bail-def
-				"'"  type
-				word-buff type
-				"' ?" typeln
-				abort
-			then
-		then
+		interpret-word
 		input-index @ input + @
 	while
 	:? -if cr then
@@ -159,7 +190,6 @@
 
 : [create] ( name -- )
 	here @ old-here !
-	DP   @ old-DP   !
 	head @ here @ head ! , # prev
 	code , 0 , 0 ,         # type, code, args
 	1 - loop               # name
@@ -168,7 +198,7 @@
 ;
 
 : create ( -- )
-	word word-buff [create]
+	word [create]
 	here @ head @ .code !
 ;
 
@@ -183,17 +213,10 @@
 ##
 ######################################################
 
-:const   if-flag  -1
-:const loop-flag  -2
-:const  for-flag  -3
-
-: bogus-jump
-	"unresolved branch!" typeln abort
-;
-
-: [jump]     2 , ,                         ; ( addr -- )
-: [jumpz]    3 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
-: [jumpif]   4 , ' bogus-jump , here @ 1 - ; ( -- patch-addr )
+:const    if-flag -1
+:const  loop-flag -2
+:const   for-flag -3
+:const curly-flag -4
 
 : check-flow
 	:? if exit then
@@ -201,10 +224,11 @@
 	bail-def abort
 ;
 
-: p_if    check-flow ' 1arg [call] [jumpz]        if-flag ;
-: p_-if   check-flow ' 1arg [call] [jumpif]       if-flag ;
-: p_loop  check-flow               here @       loop-flag ;
-: p_for   check-flow ' 1arg [call] 17 , here @   for-flag ;
+: p_if    check-flow ' 1arg [call] [jumpz]             if-flag ;
+: p_-if   check-flow ' 1arg [call] [jumpif]            if-flag ;
+: p_loop  check-flow               here @            loop-flag ;
+: p_for   check-flow ' 1arg [call] 17 , here @        for-flag ;
+: p_{     check-flow ' bogus-jump [jump] here @ 1 - curly-flag ;
 
 : p_then
 	check-flow
@@ -250,6 +274,13 @@
 	check-flow
 	for-flag = if 31 , , 18 , 13 , exit then
 	"'next' without 'for'!" typeln
+	bail-def abort
+;
+
+: p_}
+	check-flow
+	curly-flag = if [return] here @ over ! [const] exit then
+	"'}' without '{'!" typeln
 	bail-def abort
 ;
 
@@ -300,7 +331,9 @@
 :data d_while d_until imm p_while 0 "while"
 :data d_for   d_while imm p_for   0 "for"
 :data d_next  d_for   imm p_next  0 "next"
-:data d_[     d_next  imm :proto  [       [       0 "["     : [       imm mode !  ;
+:data d_{     d_next  imm p_{     0 "{"
+:data d_}     d_{     imm p_}     0 "}"
+:data d_[     d_}     imm :proto  [       [       0 "["     : [       imm mode !  ;
 :data d_]     d_[     imm :proto  ]       ]       0 "]"     : ]       def mode !  ;
 :data d_:     d_]     imm :proto  p_:     p_:     0 ":"     : p_:     create ]    ;
 :data d_;     d_:     imm :proto  p_;     p_;     0 ";"     : p_;     [return] [  ;
@@ -390,7 +423,10 @@
 	": 2drop      drop drop          ;" direct
 	": :var       create 0 , does>   ;" direct
 	": immediate  0 head @ .type !   ;" direct
-	": words head @ loop dup .name type space .prev @ dup while cr ;"  direct
+	": exec       >r                 ;" direct
+	": words  head @ loop"              direct
+	"  dup .name type space .prev @"    direct
+	"  dup while drop cr ;"             direct
 	": allot      1 - for 0 , next   ;" direct
 	": free       end @ here @ -     ;" direct
 	' emit devector
@@ -480,7 +516,7 @@
 			i used @ >= if 0 else i input + @ 32 - then
 			96 + i 29 tile-grid@ !
 		next
-		8x8 187 cursor @ 8 * 232 cursor-s >sprite
+		8x8 191 cursor @ 8 * 232 cursor-s >sprite
 
 		4 for sync next
 	again
