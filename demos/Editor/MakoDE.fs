@@ -482,7 +482,8 @@
 	imm mode !
 	input-clear
 	loop
-		KB @ dup -1 = if drop else
+		loop
+			KB @ dup -1 = if drop break then
 			dup 10 = if
 				# return
 				drop :? -if cr then
@@ -507,7 +508,7 @@
 					then
 				then
 			then
-		then
+		again
 
 		keys key-rt and if cursor @ 1 + used @ min cursor ! then
 		keys key-lf and if cursor @ 1 -      0 max cursor ! then
@@ -518,7 +519,7 @@
 		next
 		8x8 191 cursor @ 8 * 232 cursor-s >sprite
 
-		4 for sync next
+		3 for sync next
 	again
 ;
 
