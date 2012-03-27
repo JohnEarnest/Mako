@@ -207,6 +207,27 @@
 	r>  head @ .args !
 ;
 
+: lookup ( -- entry-addr )
+	word head @ loop
+		(str entry)
+		2dup .name -text
+		-if swap drop exit then
+		.prev @ dup
+	while drop
+	"'"  type type "' ?" typeln
+	bail-def abort
+;
+
+: forget ( -- )
+	lookup
+	"forgot how to '" type dup .name type "'" typeln
+	dup here ! .prev @ head !
+;
+
+: p_' ( -- )
+	lookup .code @ :? if [const] then
+;
+
 ######################################################
 ##
 ##  Flow control primitives:
@@ -236,7 +257,6 @@
 	"'then' without 'if'!" typeln
 	bail-def abort
 ;
-
 
 : p_else
 	check-flow
@@ -333,7 +353,8 @@
 :data d_next  d_for   imm p_next  0 "next"
 :data d_{     d_next  imm p_{     0 "{"
 :data d_}     d_{     imm p_}     0 "}"
-:data d_[     d_}     imm :proto  [       [       0 "["     : [       imm mode !  ;
+:data d_'     d_}     imm p_'     0 "'"
+:data d_[     d_'     imm :proto  [       [       0 "["     : [       imm mode !  ;
 :data d_]     d_[     imm :proto  ]       ]       0 "]"     : ]       def mode !  ;
 :data d_:     d_]     imm :proto  p_:     p_:     0 ":"     : p_:     create ]    ;
 :data d_;     d_:     imm :proto  p_;     p_;     0 ";"     : p_;     [return] [  ;
@@ -396,7 +417,8 @@
 	' .args    ".args"    ' .name    ".name"
 	' find     "find"     ' create   "create"
 	' does>    "does>"    ' cr       "cr"
-	' space    "space"
+	' space    "space"    ' lookup   "lookup"
+	' forget   "forget"
 
 	{ 3arg >move  } ">move"
 	{ 3arg <move  } "<move"
