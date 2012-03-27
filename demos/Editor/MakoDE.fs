@@ -234,6 +234,57 @@
 
 ######################################################
 ##
+##  The 'see' disassembler:
+##
+######################################################
+
+: param-op?  dup 5 <  swap 31 =  or  ; ( op -- flag )
+:  jump-op?  dup 2 >= swap 4  <= and ; ( op -- flag )
+
+# take every forward branch until
+# we reach a RET instruction:
+: code-range ( entry-addr -- min max )
+	.code @ dup loop
+		dup @ 12 = if break then
+		dup @ jump-op? if
+			dup 1 + @ over > if 1 + @ else 2 + then
+		else
+			dup @ param-op?  if 2 +   else 1 + then
+		then
+	again
+;
+
+:data opcodes
+	"CONST CALL  JUMP  JUMPZ JUMPN 5XXX  6XXX  7XXX "
+	"8XXX  9XXX  LOAD  STOR  RET   DROP  SWAP  DUP  "
+	"OVER  STR   RTS   ADD   SUB   MUL   DIV   MOD  "
+	"AND   OR    XOR   NOT   SGT   SLT   SYNC  NEXT "
+
+: print-op ( op -- )
+	dup 0 < over 31 > or if "???   " type . exit then
+	6 * opcodes +
+	4 for dup @ emit 1 + next drop
+;
+
+: print-word ( addr -- )
+	dup . space
+	dup @ print-op space
+	dup @ param-op? if dup 1 + @ . then
+	drop
+;
+
+: see ( -- )
+	lookup code-range swap
+	loop
+		dup print-word cr
+		dup @ param-op? if 1 + then
+		1 + 2dup >=
+	while
+	2drop
+;
+
+######################################################
+##
 ##  Flow control primitives:
 ##
 ######################################################
@@ -336,7 +387,7 @@
 :data d_r>   d_>r   code :proto p_r>   p_r>   0 "r>"   : p_r>   2ret r> r> swap >r ;
 
 # extended 'primitives':
-:data d_rdrop d_r>    code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop 2ret r> r> drop r> ;
+:data d_rdrop d_r>    code :proto p_rdrop p_rdrop 0 "rdrop" : p_rdrop 2ret r> r> drop >r ;
 :data d_halt  d_rdrop code :proto p_halt  p_halt  0 "halt"  : p_halt  halt          ;
 :data d_exit  d_halt  code :proto p_exit  p_exit  0 "exit"  : p_exit  1ret rdrop    ;
 :data d_sync  d_exit  code :proto p_sync  p_sync  0 "sync"  : p_sync  sync          ;
@@ -423,7 +474,7 @@
 	' find     "find"     ' create   "create"
 	' does>    "does>"    ' cr       "cr"
 	' space    "space"    ' lookup   "lookup"
-	' forget   "forget"
+	' forget   "forget"   ' see      "see"
 
 	{ 3arg >move  } ">move"
 	{ 3arg <move  } "<move"
