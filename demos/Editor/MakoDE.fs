@@ -73,7 +73,12 @@
 
 : bogus-jump   "unresolved branch!" typeln abort ;
 
-: ,          1arg here @ ! here inc        ; ( val -- )
+: , ( val -- )
+	1arg end @ here @ - 1 <
+	-if here @ ! here inc exit then
+	"Out of memory!" typeln abort
+;
+
 : [const]    0 , ,                         ; ( addr -- )
 : [call]     1 , ,                         ; ( addr -- )
 : [return]  12 ,                           ; ( -- )
