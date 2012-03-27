@@ -26,11 +26,16 @@
 	halt
 ;
 
-: 1arg  DP @ data-stack       > if exit then "Stack underflow!"  typeln abort ;
-: 2arg  DP @ data-stack   1 + > if exit then "Stack underflow!"  typeln abort ;
-: 3arg  DP @ data-stack   2 + > if exit then "Stack underflow!"  typeln abort ;
-: 1ret  RP @ return-stack 1 + > if exit then "RStack underflow!" typeln abort ;
-: 2ret  RP @ return-stack 2 + > if exit then "RStack underflow!" typeln abort ;
+: brk
+	KB @ 3 = -if exit then
+	"Interrupt!" typeln abort
+;
+
+: 1arg  brk DP @ data-stack       > if exit then "Stack underflow!"  typeln abort ;
+: 2arg  brk DP @ data-stack   1 + > if exit then "Stack underflow!"  typeln abort ;
+: 3arg  brk DP @ data-stack   2 + > if exit then "Stack underflow!"  typeln abort ;
+: 1ret  brk RP @ return-stack 1 + > if exit then "RStack underflow!" typeln abort ;
+: 2ret  brk RP @ return-stack 2 + > if exit then "RStack underflow!" typeln abort ;
 
 : abs      1arg  dup 0 < if -1 * then      ;
 : inc      1arg  dup @ 1 + swap !          ;
@@ -345,7 +350,7 @@
 
 : p_again
 	check-flow
-	loop-flag = if [jump] exit then
+	loop-flag = if ' brk [call] [jump] exit then
 	"'again' without 'loop'!" typeln
 	bail-def abort
 ;
@@ -555,8 +560,8 @@
 		0 lines !
 		64 ascii !
 		0 29 "[More...]" grid-type
-		loop keys key-a and sync until
-		loop keys key-a and sync while
+		loop keys key-a and brk sync until
+		loop keys key-a and brk sync while
 		loop KB @ -1 = until
 		0 29 "         " grid-type
 	then
