@@ -228,6 +228,10 @@
 	lookup .code @ :? if [const] then
 ;
 
+: p_char ( -- char )
+	word @ :? if [const] then
+;
+
 ######################################################
 ##
 ##  Flow control primitives:
@@ -354,7 +358,8 @@
 :data d_{     d_next  imm p_{     0 "{"
 :data d_}     d_{     imm p_}     0 "}"
 :data d_'     d_}     imm p_'     0 "'"
-:data d_[     d_'     imm :proto  [       [       0 "["     : [       imm mode !  ;
+:data d_char  d_'     imm p_char  0 "char"
+:data d_[     d_char  imm :proto  [       [       0 "["     : [       imm mode !  ;
 :data d_]     d_[     imm :proto  ]       ]       0 "]"     : ]       def mode !  ;
 :data d_:     d_]     imm :proto  p_:     p_:     0 ":"     : p_:     create ]    ;
 :data d_;     d_:     imm :proto  p_;     p_;     0 ";"     : p_;     [return] [  ;
@@ -467,9 +472,23 @@
 :var   used
 :var   cursor
 :var   cx
+:var   lines
 :data  cc -32
 
+: plain-text -32 cc ! ;
+: code-text   64 cc ! ;
+
 : console-newline
+	lines inc
+	lines @ 28 > if
+		0 lines !
+		64 ascii !
+		0 29 "[More...]" grid-type
+		loop keys key-a and sync until
+		loop keys key-a and sync while
+		loop KB @ -1 = until
+		0 29 "         " grid-type
+	then
 	0 cx !
 	27 for
 		0 28 i - tile-grid@
@@ -497,9 +516,6 @@
 	0 used   !
 ;
 
-: plain-text -32 cc ! ;
-: code-text   64 cc ! ;
-
 : console-prompt ( -- )
 	imm mode !
 	input-clear
@@ -510,7 +526,10 @@
 				# return
 				drop :? -if cr then
 				code-text input typeln plain-text
+				0 lines !
+				cursor-s hide
 				interpret
+				cursor-s show
 				input-clear
 			else
 				dup 8 = if
@@ -523,7 +542,7 @@
 					then
 				else
 					# insert
-					used @ 41 >= if drop else
+					used @ 40 >= if drop else
 						cursor @ input + dup dup 1 +
 						used @ cursor @ - >move !
 						cursor inc@ used inc@
@@ -541,7 +560,7 @@
 		next
 		8x8 191 cursor @ 8 * 232 cursor-s >sprite
 
-		3 for sync next
+		sync sync
 	again
 ;
 
