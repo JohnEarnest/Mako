@@ -278,6 +278,16 @@
 : print-word ( addr -- )
 	dup . space
 	dup @ print-op space
+	dup @ 1 = if
+		# print out the name of
+		# called words, if possible.
+		dup 1 + @ head @ loop
+			2dup .code @ = if
+				.name type 2drop exit
+			then
+			.prev @ dup
+		while 2drop
+	then
 	dup @ param-op? if dup 1 + @ . then
 	drop
 ;
