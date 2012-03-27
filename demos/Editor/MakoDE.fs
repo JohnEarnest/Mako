@@ -232,6 +232,15 @@
 	word @ :? if [const] then
 ;
 
+: stack ( -- )
+	"[ " type
+	DP @ data-stack loop
+		2dup <= if break then
+		dup @ . 1 +
+	again 2drop
+	"]" typeln
+;
+
 ######################################################
 ##
 ##  The 'see' disassembler:
@@ -475,6 +484,7 @@
 	' does>    "does>"    ' cr       "cr"
 	' space    "space"    ' lookup   "lookup"
 	' forget   "forget"   ' see      "see"
+	' stack    "stack"
 
 	{ 3arg >move  } ">move"
 	{ 3arg <move  } "<move"
