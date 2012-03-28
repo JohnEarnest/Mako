@@ -212,9 +212,18 @@
 	here @ head @ .code !
 ;
 
-: does> ( -- )
+: array-ref ( arg-addr -- val? )
+	:? if [const] then
+;
+
+: p_create ( -- )
+	create
+	' array-ref head @ .args !
 	def head @ .type !
-	r>  head @ .args !
+;
+
+: does> ( -- )
+	r> head @ .args !
 ;
 
 : lookup ( -- entry-addr )
@@ -323,6 +332,20 @@
 :const   for-flag -3
 :const curly-flag -4
 
+:array breaks 256 0
+:var   breakp
+
+: b@  breakp @ breaks + ;
+: >b  b@ ! breakp inc   ;
+: b>  breakp dec b@ @   ;
+
+: wend ( -- )
+	loop
+		b> dup -if drop break then
+		here @ swap !
+	again
+;
+
 : check-flow
 	:? if exit then
 	"can't use flow words in direct mode!" typeln
@@ -331,9 +354,10 @@
 
 : p_if    check-flow ' 1arg [call] [jumpz]             if-flag ;
 : p_-if   check-flow ' 1arg [call] [jumpif]            if-flag ;
-: p_loop  check-flow               here @            loop-flag ;
-: p_for   check-flow ' 1arg [call] 17 , here @        for-flag ;
+: p_loop  check-flow               0 >b  here @      loop-flag ;
+: p_for   check-flow ' 1arg [call] 17 ,  here @       for-flag ;
 : p_{     check-flow ' bogus-jump [jump] here @ 1 - curly-flag ;
+: p_break check-flow ' bogus-jump [jump] here @ 1 - >b         ;
 
 : p_then
 	check-flow
@@ -355,21 +379,21 @@
 
 : p_again
 	check-flow
-	loop-flag = if ' brk [call] [jump] exit then
+	loop-flag = if ' brk [call] [jump] wend exit then
 	"'again' without 'loop'!" typeln
 	bail-def abort
 ;
 
 : p_until
 	check-flow
-	loop-flag = if ' 1arg [call] [jumpz] ! exit then
+	loop-flag = if ' 1arg [call] [jumpz] ! wend exit then
 	"'until' without 'loop'!" typeln
 	bail-def abort
 ;
 
 : p_while
 	check-flow
-	loop-flag = if ' 1arg [call] [jumpif] ! exit then
+	loop-flag = if ' 1arg [call] [jumpif] ! wend exit then
 	 "'while' without 'loop'!" typeln
 	bail-def abort
 ;
@@ -433,7 +457,8 @@
 :data d_again d_loop  imm p_again 0 "again"
 :data d_until d_again imm p_until 0 "until"
 :data d_while d_until imm p_while 0 "while"
-:data d_for   d_while imm p_for   0 "for"
+:data d_break d_while imm p_break 0 "break"
+:data d_for   d_break imm p_for   0 "for"
 :data d_next  d_for   imm p_next  0 "next"
 :data d_{     d_next  imm p_{     0 "{"
 :data d_}     d_{     imm p_}     0 "}"
@@ -500,7 +525,7 @@
 	' ,        ","        ' .prev    ".prev"
 	' .type    ".type"    ' .code    ".code"
 	' .args    ".args"    ' .name    ".name"
-	' find     "find"     ' create   "create"
+	' find     "find"     ' p_create "create"
 	' does>    "does>"    ' cr       "cr"
 	' space    "space"    ' lookup   "lookup"
 	' forget   "forget"   ' see      "see"
