@@ -155,9 +155,11 @@ public class Maker implements MakoConstants {
 		catch(IOException e) {
 			throw new Error(e.getMessage());
 		}
-		if (!dictionary.containsKey("main")) {
-			throw new Error("No entrypoint defined!");
-		}
+
+		if      (dictionary.containsKey("main")) { rom.set(PC, dictionary.get("main")); }
+		else if ( variables.containsKey("main")) { rom.set(PC,  variables.get("main")); }
+		else { throw new Error("No entrypoint defined!"); }
+
 		if (prototypes.size() > 0) {
 			for(String s : prototypes.keySet()) {
 				System.out.println("unresolved prototype '"+s+"'");
@@ -171,7 +173,6 @@ public class Maker implements MakoConstants {
 		buildRegion("grid-tiles",     64);
 		buildRegion("sprites",      1024);
 		buildRegion("sprite-tiles",   64);
-		rom.set(PC, dictionary.get("main"));
 		rom.set(DP, variables.get("data-stack"));
 		rom.set(RP, variables.get("return-stack"));
 		rom.set(GP, variables.get("grid"));
