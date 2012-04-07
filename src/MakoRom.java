@@ -9,6 +9,10 @@ public class MakoRom implements MakoConstants {
 	private final List<Integer> data  = new ArrayList<Integer>();
 	private final List<Type>    types = new ArrayList<Type>();
 	private final Map<String, Integer> labels = new HashMap<String, Integer>();
+	private final CodeMatcher peeper = new CodeMatcher(data);
+
+	public boolean optimize = true;
+	public void showOptimizations(boolean show) { peeper.print = show; }
 
 	public enum Type { Code, Data, Array, String, Image, Unknown };
 
@@ -121,12 +125,32 @@ public class MakoRom implements MakoConstants {
 	}
 
 	public void add(int value, Type type) {
-		data.add(value);
+		if (type == Type.Code && optimize) {
+			peeper.add(value);
+		}
+		else {
+			size();
+			data.add(value);
+		}
 		types.add(type);
 	}
 
+	private void paramOp(int a, int b) {
+		if (optimize) {
+			peeper.add(a, b);
+		}
+		else {
+			add(a, Type.Code);
+			add(b, Type.Code);
+		}
+	}
+
 	public int size() {
-		return data.size();
+		int ret = peeper.mark();
+		while(types.size() < data.size()) {
+			types.add(Type.Code);
+		}
+		return ret;
 	}
 
 	public int[] toArray() {
@@ -135,12 +159,6 @@ public class MakoRom implements MakoConstants {
 			ret[x] = data.get(x);
 		}
 		return ret;
-	}
-
-	private int paramOp(int a, int b) {
-		add(a, Type.Code);
-		add(b, Type.Code);
-		return size() - 1;
 	}
 
 	public void addString(String s) {
@@ -180,12 +198,12 @@ public class MakoRom implements MakoConstants {
 		}
 	}
 
-	public int addConst(int value)  { return paramOp(OP_CONST,  value); }
-	public int addCall(int value)   { return paramOp(OP_CALL,   value); }
-	public int addJump(int value)   { return paramOp(OP_JUMP,   value); }
-	public int addJumpZ(int value)  { return paramOp(OP_JUMPZ,  value); }
-	public int addJumpIf(int value) { return paramOp(OP_JUMPIF, value); }
-	public int addNext(int value)   { return paramOp(OP_NEXT,   value); }
+	public void addConst(int value)  { paramOp(OP_CONST,  value); }
+	public void addCall(int value)   { paramOp(OP_CALL,   value); }
+	public int  addJump(int value)   { paramOp(OP_JUMP,   value); return size() - 1; }
+	public int  addJumpZ(int value)  { paramOp(OP_JUMPZ,  value); return size() - 1; }
+	public int  addJumpIf(int value) { paramOp(OP_JUMPIF, value); return size() - 1; }
+	public int  addNext(int value)   { paramOp(OP_NEXT,   value); return size() - 1; }
 
 	public void addReturn() { add(OP_RETURN, Type.Code); }
 	public void addLoad() { add(OP_LOAD, Type.Code); }

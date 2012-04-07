@@ -25,6 +25,8 @@ public class Maker implements MakoConstants {
 		boolean quiet      = pluckArg(argList, "--quiet") || pluckArg(argList, "-q");
 		boolean listing    = pluckArg(argList, "--listing") || pluckArg(argList, "-l");
 		boolean trace      = pluckArg(argList, "--trace");
+		boolean showOpt    = pluckArg(argList, "--showOpt");
+		boolean noOpt      = pluckArg(argList, "--noOpt");	
 
 		if (argList.size() == 0) {
 			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
@@ -33,11 +35,15 @@ public class Maker implements MakoConstants {
 							+ " --fuzz\t\trandomize inputs when running\n"
 							+ " --word <word>\tdisassemble given word\n"
 							+ " --symbols\twrite debugging symbols\n"
-							+ " -q/--quiet\t\tsuppress output\n");
+							+ " -q/--quiet\t\tsuppress output\n"
+							+ " --showOpt\t display peephole optimizations\n"
+							+ " --noOpt\t disable peephole optimizer\n");
 			System.exit(1);
 		}
 
 		Maker compiler = new Maker();
+		compiler.rom.showOptimizations(showOpt);
+		compiler.rom.optimize = !noOpt;
 		try { compiler.compileToken(":include", tokens("<Lang.fs>")); }
 		catch(IOException f) { throw new Error("unable to load lib/Lang.fs!"); }
 		compiler.compile(argList.get(0));
@@ -237,8 +243,8 @@ public class Maker implements MakoConstants {
 		while(tokens.size() > 0) {
 			Object token = tokens.remove();
 			if (token instanceof Integer) {
-				if (compiling) { rom.add(OP_CONST, MakoRom.Type.Code); }
-				rom.add((Integer)token, MakoRom.Type.Array);
+				if (compiling) { rom.addConst((Integer)token); }
+				else           { rom.add((Integer)token, MakoRom.Type.Array); }
 			}
 			else {
 				compileToken((String)token, tokens);
@@ -486,7 +492,8 @@ public class Maker implements MakoConstants {
 		else if (token.equals("'")) {
 			String methodName = tokens.remove().toString();
 			if (prototypes.containsKey(methodName)) {
-				prototypes.get(methodName).add(rom.addConst(-5));
+				rom.addConst(-5);
+				prototypes.get(methodName).add(rom.size() - 1);
 			}
 			else {
 				if (!dictionary.containsKey(methodName)) {
@@ -503,7 +510,7 @@ public class Maker implements MakoConstants {
 
 		else if (prototypes.containsKey(token)) {
 			int address = rom.size();
-			if (compiling) { address = rom.addCall(-5); }
+			if (compiling) { rom.addCall(-5); address = rom.size() - 1; }
 			else { rom.add(-5, MakoRom.Type.Array); }
 			prototypes.get(token).add(address);
 		}
