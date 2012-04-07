@@ -11,6 +11,7 @@
 		<delete file="MakoVM.java" />
 		<delete file="MakoRom.java" />
 		<delete file="MakoConstants.java" />
+		<delete file="CodeMatcher.java"   />
 		<delete>
 			<fileset dir="."    includes="*.class"/>
 			<fileset dir="base" includes="*.rom"/>
@@ -22,6 +23,7 @@
 		<copy  file= "../../src/MakoVM.java"        todir="." />
 		<copy  file= "../../src/MakoRom.java"       todir="." />
 		<copy  file= "../../src/MakoConstants.java" todir="." />
+		<copy  file= "../../src/CodeMatcher.java"   todir="." />
 		<java
 			classname="Maker"
 			classpath="../../build/"

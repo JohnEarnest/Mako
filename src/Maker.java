@@ -45,7 +45,7 @@ public class Maker implements MakoConstants {
 		compiler.rom.showOptimizations(showOpt);
 		compiler.rom.optimize = !noOpt;
 		try { compiler.compileToken(":include", tokens("<Lang.fs>")); }
-		catch(IOException f) { throw new Error("unable to load lib/Lang.fs!"); }
+		catch(IOException f) { System.out.println("Warning: unable to load lib/Lang.fs!"); }
 		compiler.compile(argList.get(0));
 
 		if (argList.contains("--word")) {

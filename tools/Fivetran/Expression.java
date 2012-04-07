@@ -127,9 +127,6 @@ public class Expression implements MakoConstants {
 		UnaryOp(TreeNode a, char op) {
 			this.a = a;
 			this.op = op;
-			if      (op == '-') { opcodes = new int[] { OP_CONST, -1, OP_MUL }; }
-			else if (op == '+') { opcodes = new int[] {}; }
-			else { throw new Error("Unknown unary operator '"+op+"'!"); }
 		}
 
 		TreeNode simplify() {
@@ -143,8 +140,9 @@ public class Expression implements MakoConstants {
 
 		void emit(MakoRom rom) {
 			a.emit(rom);
-			for(int o : opcodes) {
-				rom.add(o, MakoRom.Type.Code);
+			if (op == '-') {
+				rom.addConst(-1);
+				rom.addMul();
 			}
 		}
 	}
