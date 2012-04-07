@@ -10,6 +10,7 @@
 		<delete file="src/MakoVM.java" />
 		<delete file="src/MakoRom.java" />
 		<delete file="src/MakoConstants.java" />
+		<delete file="src/CodeMatcher.java" />
 	</target>
 
 	<target name="stage" depends="clean">
@@ -19,6 +20,7 @@
 		<copy  file= "../../src/MakoVM.java"        todir="src" />
 		<copy  file= "../../src/MakoRom.java"       todir="src" />
 		<copy  file= "../../src/MakoConstants.java" todir="src" />
+		<copy  file= "../../src/CodeMatcher.java"   todir="src" />
 	</target>
 
 	<target name="compile" depends="stage">

@@ -35,8 +35,10 @@ public class SPC {
 		storage.add(new Storage("sprites",      1024));
 		storage.add(new Storage("sprite_tiles",   64));
 
-		boolean run   = pluckArg(args, "--run");
-		boolean print = pluckArg(args, "--print");
+		boolean run     = pluckArg(args, "--run");
+		boolean print   = pluckArg(args, "--print");
+		boolean showOpt = pluckArg(args, "--showOpt");
+		rom.showOptimizations(showOpt);
 
 		String libPath = new File(SPC.class.getProtectionDomain()
 						.getCodeSource().getLocation().getPath()).getParent();
@@ -412,9 +414,11 @@ public class SPC {
 			rom.addConst(locals.get(name));
 			rom.addSub();
 		}
+		else if (instruction == MakoConstants.OP_CONST) {
+			rom.addConst(globals.get(name));
+		}
 		else {
-			rom.add(instruction,       MakoRom.Type.Code);
-			rom.add(globals.get(name), MakoRom.Type.Code);
+			rom.addCall(globals.get(name));
 		}
 	}
 
@@ -1085,8 +1089,8 @@ enum BinOp {
 		else if (this == Equ || this == Neq) {
 			// xor -if true else false then
 			rom.addXor();
-			rom.add(opcode,       MakoRom.Type.Code);
-			rom.add(rom.size()+5, MakoRom.Type.Code);
+			if (opcode == MakoConstants.OP_JUMPIF) { rom.addJumpIf(rom.size()+5); }
+			else                                   { rom.addJumpZ( rom.size()+5); }
 			rom.addConst(-1);
 			rom.addJump(rom.size() + 4);
 			rom.addConst(0);
