@@ -27,6 +27,9 @@ public class Mako {
 		}
 	}
 
+	public static boolean trace     = false;
+	public static boolean guardCode = false;
+
 	public static void exec(int[] rom, boolean fuzz, MakoRom traceRom) {
 		JFrame window  = new JFrame();
 		MakoPanel view = new MakoPanel(rom);
@@ -52,7 +55,7 @@ public class Mako {
 			while(view.vm.m[view.vm.m[MakoConstants.PC]] != MakoConstants.OP_SYNC) {
 				view.ticks[view.tickptr]++;
 
-				if (traceRom != null) {
+				if (trace) {
 					int pc = view.vm.m[MakoConstants.PC];
 					int op = view.vm.m[pc];
 					int  a = view.vm.m[pc+1];
@@ -67,9 +70,24 @@ public class Mako {
 					}
 				}
 
+				if (guardCode) {
+					int pc = view.vm.m[MakoConstants.PC];
+					int op   = view.vm.m[pc];
+					int addr = view.vm.m[view.vm.m[MakoConstants.DP]-1];
+					if (op == MakoConstants.OP_LOAD || op == MakoConstants.OP_STOR) {
+						if (traceRom.getType(addr) == MakoRom.Type.Code) {
+							System.out.format("Attempted to %s a code address!%n",
+								op == MakoConstants.OP_LOAD ? "read" : "modify"
+							);
+							System.out.format("PC: %d Addr: %d%n", pc, addr);
+							throw new Error("Guard violation.");
+						}
+					}
+				}
+
 				view.vm.tick();
 				if (view.vm.m[MakoConstants.PC] == -1) {
-					if (traceRom != null) { printTrace(traceCalls, traceCycles); }
+					if (trace) { printTrace(traceCalls, traceCycles); }
 					System.exit(0);
 				}
 			}

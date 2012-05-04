@@ -26,7 +26,8 @@ public class Maker implements MakoConstants {
 		boolean listing    = pluckArg(argList, "--listing") || pluckArg(argList, "-l");
 		boolean trace      = pluckArg(argList, "--trace");
 		boolean showOpt    = pluckArg(argList, "--showOpt");
-		boolean noOpt      = pluckArg(argList, "--noOpt");	
+		boolean noOpt      = pluckArg(argList, "--noOpt");
+		boolean gCode      = pluckArg(argList, "--guardCode");
 
 		if (argList.size() == 0) {
 			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
@@ -37,7 +38,8 @@ public class Maker implements MakoConstants {
 							+ " --symbols\twrite debugging symbols\n"
 							+ " -q/--quiet\t\tsuppress output\n"
 							+ " --showOpt\t display peephole optimizations\n"
-							+ " --noOpt\t disable peephole optimizer\n");
+							+ " --noOpt\t disable peephole optimizer\n"
+							+ " --guardCode\t halt if the VM attempts to read/write code words.\n");
 			System.exit(1);
 		}
 
@@ -69,7 +71,9 @@ public class Maker implements MakoConstants {
 		if (run) {
 			int[] mem = compiler.rom.toArray();
 			try {
-				Mako.exec(mem, fuzz, trace ? compiler.rom : null);
+				Mako.trace     = trace;
+				Mako.guardCode = gCode;
+				Mako.exec(mem, fuzz, compiler.rom);
 			}
 			catch(Throwable t) {
 				System.out.println("Runtime Error: ");

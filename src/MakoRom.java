@@ -105,6 +105,10 @@ public class MakoRom implements MakoConstants {
 		return data.get(address);
 	}
 
+	public Type getType(int address) {
+		return types.get(address);
+	}
+
 	public void set(int index, int value) {
 		data.set(index, value);
 	}
