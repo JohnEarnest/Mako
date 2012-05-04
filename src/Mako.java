@@ -142,9 +142,9 @@ public class Mako {
 
 	private static int arrayMax(int base, MakoRom rom) {
 		while(true) {
+			if (base + 1 >= rom.size())                       { break; }
 			if (rom.getType( base + 1) != MakoRom.Type.Array) { break; }
 			if (rom.getLabel(base + 1).length() > 0)          { break; }
-			if (base + 1 >= rom.size())                       { break; }
 			base++;
 		}
 		return base;
