@@ -27,8 +27,9 @@ public class Mako {
 		}
 	}
 
-	public static boolean trace     = false;
-	public static boolean guardCode = false;
+	public static boolean trace       = false;
+	public static boolean guardCode   = false;
+	public static boolean guardStacks = false;
 
 	public static void exec(int[] rom, boolean fuzz, MakoRom traceRom) {
 		JFrame window  = new JFrame();
@@ -42,11 +43,15 @@ public class Mako {
 		window.pack();
 
 		Random rng = new Random();
-
 		Stack<String>        traceFunc   = new Stack<String>();
 		Map<String, Integer> traceCalls  = new HashMap<String, Integer>();
 		Map<String, Integer> traceCycles = new HashMap<String, Integer>();
 		traceFunc.push("main");
+
+		int datMin = view.vm.m[MakoConstants.DP];
+		int retMin = view.vm.m[MakoConstants.RP];
+		int datMax = arrayMax(datMin, traceRom);
+		int retMax = arrayMax(retMin, traceRom);
 
 		while(true) {
 			long start = System.currentTimeMillis();
@@ -86,6 +91,22 @@ public class Mako {
 				}
 
 				view.vm.tick();
+
+				if (guardStacks) {
+					int dp = view.vm.m[MakoConstants.DP];
+					int rp = view.vm.m[MakoConstants.RP];
+					if (dp < datMin || dp > datMax) {
+						System.out.format("Data stack %sflow!%n", dp < datMin ? "under" : "over");
+						System.out.format("PC: %d (Failed on previous instruction.)%n", view.vm.m[MakoConstants.PC]);
+						throw new Error("Guard violation.");
+					}
+					if (rp < retMin || rp > retMax) {
+						System.out.format("Return stack %sflow!%n", rp < retMin ? "under" : "over");
+						System.out.format("PC: %d (Failed on previous instruction.)%n", view.vm.m[MakoConstants.PC]);
+						throw new Error("Guard violation.");
+					}
+				}
+
 				if (view.vm.m[MakoConstants.PC] == -1) {
 					if (trace) { printTrace(traceCalls, traceCycles); }
 					System.exit(0);
@@ -117,6 +138,16 @@ public class Mako {
 				catch (InterruptedException ie) {}
 			}
 		}
+	}
+
+	private static int arrayMax(int base, MakoRom rom) {
+		while(true) {
+			if (rom.getType( base + 1) != MakoRom.Type.Array) { break; }
+			if (rom.getLabel(base + 1).length() > 0)          { break; }
+			if (base + 1 >= rom.size())                       { break; }
+			base++;
+		}
+		return base;
 	}
 
 	private static void incMap(Map<String, Integer> m, String k) {

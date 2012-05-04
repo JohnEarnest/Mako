@@ -28,6 +28,7 @@ public class Maker implements MakoConstants {
 		boolean showOpt    = pluckArg(argList, "--showOpt");
 		boolean noOpt      = pluckArg(argList, "--noOpt");
 		boolean gCode      = pluckArg(argList, "--guardCode");
+		boolean gStack     = pluckArg(argList, "--guardStacks");
 
 		if (argList.size() == 0) {
 			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
@@ -39,7 +40,8 @@ public class Maker implements MakoConstants {
 							+ " -q/--quiet\t\tsuppress output\n"
 							+ " --showOpt\t display peephole optimizations\n"
 							+ " --noOpt\t disable peephole optimizer\n"
-							+ " --guardCode\t halt if the VM attempts to read/write code words.\n");
+							+ " --guardCode\t halt if the VM attempts to read/write code words.\n"
+							+ " --guardStacks\t halt on stack over/underflow.\n");
 			System.exit(1);
 		}
 
@@ -71,8 +73,9 @@ public class Maker implements MakoConstants {
 		if (run) {
 			int[] mem = compiler.rom.toArray();
 			try {
-				Mako.trace     = trace;
-				Mako.guardCode = gCode;
+				Mako.trace       = trace;
+				Mako.guardCode   = gCode;
+				Mako.guardStacks = gStack;
 				Mako.exec(mem, fuzz, compiler.rom);
 			}
 			catch(Throwable t) {
