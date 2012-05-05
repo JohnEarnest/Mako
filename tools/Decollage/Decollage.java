@@ -133,9 +133,10 @@ public class Decollage extends JPanel {
 	private final TilePanel panel;
 
 	// base
-	private final JButton  baseGT = new JButton("GT");
-	private final JButton  baseST = new JButton("ST");
-	private final JSpinner base   = new JSpinner();
+	private final JButton  baseGT  = new JButton("GT");
+	private final JButton  baseST  = new JButton("ST");
+	private final JButton  baseSel = new JButton("Selection");
+	private final JSpinner base    = new JSpinner();
 	{
 		baseGT.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -149,6 +150,13 @@ public class Decollage extends JPanel {
 		baseST.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				base.setValue(rom.get(MakoConstants.ST));
+				panel.repaint();
+			}
+		});
+
+		baseSel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				base.setValue(value(tileAddr));
 				panel.repaint();
 			}
 		});
@@ -199,13 +207,14 @@ public class Decollage extends JPanel {
 	}
 
 	// extent
-	private final JButton    extentFind = new JButton("Find");
+	private final JButton    extentCrop = new JButton("Crop");
 	private final JButton    extentAll  = new JButton("All");
 	private final JTextField extent     = new JTextField("8");
 	{
-		extentFind.addActionListener(new ActionListener() {
+		extentCrop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Not Implemented!");
+				extent.setText(""+(selected+1));
+				panel.repaint();
 			}
 		});
 
@@ -224,29 +233,15 @@ public class Decollage extends JPanel {
 	}
 
 	// tools
-	private final JButton    export   = new JButton("Export...");
-	private final JButton    replace  = new JButton("Replace...");
 	private final JTextField tileID   = new JTextField();
 	private final JTextField tileAddr = new JTextField();
 	{
-		export.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.out.println("Not Implemented!");
-			}
-		});
-
-		replace.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.out.println("Not Implemented!");
-			}
-		});
-
 		tileID.setEditable(false);
 		tileAddr.setEditable(false);
 	}
 
 	// window
-	private final JFrame window = new JFrame("Decollage");
+	private final JFrame window = new JFrame("D\u00E9collage");
 	{
 		JPanel basePanel = new JPanel();
 		basePanel.setLayout(new BoxLayout(basePanel, BoxLayout.Y_AXIS));
@@ -254,6 +249,7 @@ public class Decollage extends JPanel {
 		JPanel baseButtons = new JPanel(new FlowLayout());
 		baseButtons.add(baseGT);
 		baseButtons.add(baseST);
+		baseButtons.add(baseSel);
 		basePanel.add(baseButtons);
 		basePanel.add(labelField(base, "Address: "));
 
@@ -268,7 +264,7 @@ public class Decollage extends JPanel {
 		extentPanel.setLayout(new BoxLayout(extentPanel, BoxLayout.Y_AXIS));
 		extentPanel.setBorder(new TitledBorder(new EtchedBorder(), "Extent"));
 		JPanel extentButtons = new JPanel(new FlowLayout());
-		extentButtons.add(extentFind);
+		extentButtons.add(extentCrop);
 		extentButtons.add(extentAll);
 		extentPanel.add(extentButtons);
 		extentPanel.add(labelField(extent, "Tiles: "));
@@ -276,10 +272,6 @@ public class Decollage extends JPanel {
 		JPanel toolsPanel = new JPanel();
 		toolsPanel.setLayout(new BoxLayout(toolsPanel, BoxLayout.Y_AXIS));
 		toolsPanel.setBorder(new TitledBorder(new EtchedBorder(), "Tools"));
-		JPanel toolsButtons = new JPanel(new FlowLayout());
-		toolsButtons.add(export);
-		toolsButtons.add(replace);
-		toolsPanel.add(toolsButtons);
 		JPanel toolsFields = new JPanel(new GridLayout(2,2));
 		toolsFields.add(new JLabel("Tile ID:"));
 		toolsFields.add(tileID);
