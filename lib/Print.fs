@@ -19,7 +19,8 @@
 
 : /mod    2dup mod >r / r> ;
 : .number 10 /mod 48 + swap dup if .number else drop then emit ;
-: .       dup 0 < if 45 emit -1 * then .number space ;
+: .num    dup 0 < if 45 emit -1 * then .number ;
+: .       .num space ;
 : ?       @ . ;
 
 : type    loop dup @ dup if emit else 2drop exit then 1 + again ;

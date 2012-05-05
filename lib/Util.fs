@@ -31,6 +31,11 @@
 : ?dup     dup if dup then               ;
 : within   over >= >r <= r> and          ; ( min v max -- flag )
 
+: sgn ( n -- -1 | 0 | 1 )
+	dup  0 > 1 and
+	swap 0 < 1 and -
+;
+
 : indexof (value array -- address)
 	loop
 		2dup @ =
