@@ -3,27 +3,27 @@
 
 	To use this script, simply compile a MakoVM rom file
 	using Maker or some other tool and place it in this
-	directory. Note that it is not necessary to use the
-	"packed" export option.
+	directory.
 -->
 <project name="Mako" default="build-jar">
 
-	<target name="stage">
+	<target name="clean">
 		<delete dir="build" />
-		<mkdir  dir="build" />
-		<copy  file= "../../src/Mako.java"          todir="build" />
-		<copy  file= "../../src/MakoVM.java"        todir="build" />
-		<copy  file= "../../src/MakoConstants.java" todir="build" />
-		<copy  file= "Data.rom"                 todir="build" />
+		<delete dir="dist" />
+	</target>
+
+	<target name="stage" depends="clean">
+		<mkdir dir="build" />
+		<copy file= "Data.rom" todir="build" />
 	</target>
 
 	<target name="compile" depends="stage">
-		<javac	srcdir="."
-				destdir="build"
-				debug="on"
-				debuglevel="lines,vars,source"
-				includeantruntime="false"
-				deprecation="on"
+		<javac	srcdir="src"
+			destdir="build"
+			debug="on"
+			debuglevel="lines,vars,source"
+			includeantruntime="false"
+			deprecation="on"
 		/>
 	</target>
 
@@ -34,5 +34,4 @@
 			</manifest>
 		</jar>
 	</target>
-
 </project>
