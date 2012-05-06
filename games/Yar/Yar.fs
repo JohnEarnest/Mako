@@ -43,6 +43,79 @@
 
 ######################################################
 ##
+##  Audio kernel and sound effects:
+##
+######################################################
+
+:var ia   # registers for background noise
+:var ib
+:var it
+:var sfx  # sound effect function pointer
+:var sft  # sound effect timer
+:var sf1  # sound effect register 1
+
+: period ( n -- )
+	it @ -if
+		ib @ ia ! dup it !
+		RN @ 64 mod ib !
+	then
+	drop it dec@
+;
+
+:proto not-neutral
+:var atimer
+: tick ( -- )
+	atimer inc@
+	atimer @ 16 > if 0 atimer ! sync exit then
+	136 for
+		not-neutral if
+			8 period ib @ ia @ - 7 it @ - * 8 / ia @ +
+		else
+			4 period ib @ ia @ - 3 it @ - * 4 / ia @ +
+		then
+		sfx @ if
+			sft dec@
+			sfx @ exec 2 * + 3 /
+			sft @ -if 0 sfx ! then
+		then
+		AU !
+	next
+	sync
+;
+
+: play-buzz ( -- )
+	{
+		RN @ 32 mod if RN @ 2 mod sf1 +@ then
+		sf1 @ 45 mod
+	} sfx ! 2000 sft !
+;
+
+: play-beep ( -- )
+	{
+		sft @ 100 mod -if sf1 dec@ then
+		sft @ sf1 @ swap over mod swap 64 swap / *
+	} sfx ! 2000 sft ! 30 sf1 !
+;
+
+: play-bang ( -- )
+	{
+		sft @ 100 mod -if sf1 dec@ then
+		62 sft @ over mod swap 64 swap / *
+		RN @ sf1 @ mod + 2 /
+	} sfx ! 4000 sft ! 50 sf1 !
+;
+
+: play-laser ( -- )
+	{
+		sft @ 100 mod -if sf1 inc@ then
+		sft @ 8 / 3 *
+		sft @ 2 / 4 * xor 64 mod
+		sf1 @ - dup 0 < if drop 0 then
+	} sfx ! 6000 sft ! 0 sf1 !
+;
+
+######################################################
+##
 ##  The neutral zone and the Qotile's shield:
 ##
 ######################################################
@@ -134,6 +207,7 @@
 : hit-shield? ( sprite -- flag )
 	dup in-shield? -if drop false exit then
 	hit-cell@ dup @ if
+		play-bang
 		dup 1 - off
 		dup 1 + off
 		dup 8 - off
@@ -157,6 +231,7 @@
 	loop
 		ysprite in-shield?  -if exit then
 		ysprite hit-cell@ @ -if exit then
+		play-buzz
 		-8 ysprite +px
 	again
 ;
@@ -197,7 +272,7 @@
 			i j 14 + tile-grid@ !
 		next
 	next
-	5 for sync next cls
+	5 for tick next cls
 ;
 
 : score-screen ( -- )
@@ -206,33 +281,34 @@
 	-16 ascii !
 	30 10 score @ draw-number
 	30 12 lives @ draw-number
-	loop sync keys key-a and while
-	loop sync keys key-a and until
+	loop tick keys key-a and while
+	loop tick keys key-a and until
 	cls level
 ;
 
 : boom ( -- )
-	10 for sync next
+	10 for tick next
 	1
 	loop dup boomscreen 1 + dup 14 < while
 	loop dup boomscreen 1 - dup      while
 	drop
-	30 for sync next
+	30 for tick next
 	levelno inc@
 	score-screen
 ;
 
 : die ( -- )
+	play-bang
 	lives dec@
 	lives @ 0 < if
 		4 lives   !
 		0 score   !
 		0 levelno !
 	then
-	 8 ysprite tile! 10 for sync next
-	12 ysprite tile! 10 for sync next
-	13 ysprite tile! 10 for sync next
-	   ysprite hide  30 for sync next
+	 8 ysprite tile! 10 for tick next
+	12 ysprite tile! 10 for tick next
+	13 ysprite tile! 10 for tick next
+	   ysprite hide  30 for tick next
 	score-screen
 ;
 
@@ -309,6 +385,7 @@
 		bsprite px 320 >    if 0 bsprite sprite@ !                then
 	else
 		keys key-a and not-neutral and if
+			play-beep
 			16x16 11
 			ysprite px 8 +
 			ysprite py
@@ -362,6 +439,7 @@
 			zsprite >sprite
 
 			keys key-a and if
+				play-laser
 				zfire on
 				0 charge !
 			then
@@ -386,7 +464,7 @@
 	swirl @ if
 		swirl @ 1 = if
 			stimer dec@
-			stimer @ 0 < if 2 swirl ! then
+			stimer @ 0 < if 2 swirl ! play-laser then
 			ysprite py qsprite py - sgn sdir !
 		else
 			    -6 qsprite +px
@@ -440,6 +518,6 @@
 		zorlon
 		qotile
 		missile
-		sync
+		tick
 	again
 ;
