@@ -307,6 +307,10 @@ Mako uses a single, contiguous addressing space for memory. The first dozen or s
 
 `CO` is a (possibly) bidirectional debug port. Writing a value to this address should print the corresponding ASCII character to stdout. Some implementations may also support reading from this register to grab input from stdin. The `Print.fs` and `String.fs` standard library files contain useful definitions for printing values and reading values with the debug port, respectively. When it doesn't make sense, or for simplicity, MakoVM implementations may choose to do nothing when this register is manipulated- as the name would suggest, it's mainly for debugging.
 
+`AU` is an 8-bit, unsigned, mono, 8khz pipeline to the DSP, facilitating crude music and sound effects. Writing to this address will enqueue a sample which will be played at the VM's nearest convenience. Implementations may (and really probably should) supply their own buffering. Implementations are free to ignore the `AU` register if sound cannot be conveniently provided. `Game/Blip.fs` has several helpful code examples and utility routines for dealing with sound.
+
+`KB` provides access to typed keyboard input. As the VM runs, keyboard characters are buffered in a FIFO queue. Reading from KB will pop the next ASCII character out of this queue, or return a -1 if no more characters are buffered. Characters will always reflect the modifiers depressed when the key is typed- for example, shift+A will result in a capital A (ASCII 65) and ctrl+C will result in ASCII 3. Implementations which cannot provide keyboard input capabilities should always return -1 when reading from this address.
+
 The Grid
 --------
 
