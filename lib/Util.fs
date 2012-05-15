@@ -12,6 +12,8 @@
 : 0!            if true  else false then ;
 : on       true  swap !                  ;
 : off      false swap !                  ;
+: 2inc     1 + swap 1 + swap             ; ( a b -- a+1 b+1 )
+: 2dec     1 - swap 1 - swap             ; ( a b -- a-1 b-1 )
 : inc@     dup @ 1 + swap !              ;
 : dec@     dup @ 1 - swap !              ;
 : toggle   dup @ not swap !              ;
