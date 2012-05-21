@@ -3,6 +3,8 @@ import java.io.*;
 
 public class Maker implements MakoConstants {
 
+	private static boolean guardShadow = false;
+
 	private Map<String, Integer> dictionary = new TreeMap<String, Integer>();
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
 	private Map<String, Integer> constants = new TreeMap<String, Integer>();
@@ -29,6 +31,8 @@ public class Maker implements MakoConstants {
 		boolean noOpt      = pluckArg(argList, "--noOpt");
 		boolean gCode      = pluckArg(argList, "--guardCode");
 		boolean gStack     = pluckArg(argList, "--guardStacks");
+		guardShadow        = pluckArg(argList, "--guardShadow");
+		
 
 		if (argList.size() == 0) {
 			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
@@ -41,7 +45,9 @@ public class Maker implements MakoConstants {
 							+ " --showOpt\t display peephole optimizations\n"
 							+ " --noOpt\t disable peephole optimizer\n"
 							+ " --guardCode\t halt if the VM attempts to read/write code words.\n"
-							+ " --guardStacks\t halt on stack over/underflow.\n");
+							+ " --guardStacks\t halt on stack over/underflow.\n"
+							+ " --guardShadow\t compiler warnings when names are reused.\n"
+			);
 			System.exit(1);
 		}
 
@@ -265,22 +271,12 @@ public class Maker implements MakoConstants {
 		if (token.equals(":")) {
 			compiling = true;
 			wordName = tokens.remove().toString();
-			dictionary.put(wordName, rom.size());
-			if (prototypes.containsKey(wordName)) {
-				for(Integer a : prototypes.remove(wordName)) {
-					rom.set(a, rom.size());
-				}
-			}
+			defineWord(wordName, rom.size());
 		}
 		else if (token.equals(":vector")) {
 			compiling = true;
 			wordName = tokens.remove().toString();
-			dictionary.put(wordName, rom.size());
-			if (prototypes.containsKey(wordName)) {
-				for(Integer a : prototypes.remove(wordName)) {
-					rom.set(a, rom.size());
-				}
-			}
+			defineWord(wordName, rom.size());
 			rom.addJump(rom.size()+2);
 		}
 		else if (token.equals(";")) {
@@ -299,18 +295,20 @@ public class Maker implements MakoConstants {
 			rom.addConst(addr+1);
 		}
 		else if (token.equals(":var")) {
-			variables.put(tokens.remove().toString(), rom.size());
+			String name = tokens.remove().toString();
+			defineVariable(name, rom.size());
 			rom.add(0, MakoRom.Type.Data);
 		}
 		else if (token.equals(":array")) {
 			String name = tokens.remove().toString();
 			int count = getConstant(tokens.remove());
 			int value = getConstant(tokens.remove());
-			variables.put(name, rom.size());
+			defineVariable(name, rom.size());
 			for(int x = 0; x < count; x++) { rom.add(value, MakoRom.Type.Array); }
 		}
 		else if (token.equals(":data")) {
-			variables.put(tokens.remove().toString(), rom.size());
+			String name = tokens.remove().toString();
+			defineVariable(name, rom.size());
 		}
 		else if (token.equals(":table")) {
 			String tableName = tokens.remove().toString();
@@ -329,11 +327,11 @@ public class Maker implements MakoConstants {
 					}
 				}
 			}
-			variables.put(tableName, rom.size());
+			defineVariable(tableName, rom.size());
 			for(Integer i : tableEntries) {
 				rom.add(i, MakoRom.Type.Data); // CHANGE TO ARRAY TYPE AFTER TESTING!!!!!!
 			}
-			constants.put(tableName + "-size", tableEntries.size());
+			defineConstant(tableName + "-size", tableEntries.size());
 		}
 		else if (token.startsWith("\"")) {
 			if (compiling) {
@@ -349,7 +347,7 @@ public class Maker implements MakoConstants {
 		else if (token.equals(":const")) {
 			String constName = tokens.remove().toString();
 			Object constValue = tokens.remove();
-			constants.put(constName, getConstant(constValue));
+			defineConstant(constName, getConstant(constValue));
 		}
 		else if (token.equals(":image")) {
 			String imageName = tokens.remove().toString();
@@ -357,7 +355,7 @@ public class Maker implements MakoConstants {
 				currentPath.peek(),
 				new File(unquote(tokens.remove().toString())).getName()
 			).toString();
-			variables.put(imageName, rom.size());
+			defineVariable(imageName, rom.size());
 			int tileWidth  = getConstant(tokens.remove());
 			int tileHeight = getConstant(tokens.remove());
 			rom.addImage(fileName, tileWidth, tileHeight);
@@ -540,6 +538,37 @@ public class Maker implements MakoConstants {
 		else {
 			throw new Error("Unknown word '"+token+"'");
 		}
+	}
+
+	private void defineConstant(String name, int value) {
+		clearDef(name);
+		constants.put(name, value);
+	}
+
+	private void defineVariable(String name, int value) {
+		clearDef(name);
+		variables.put(name, value);
+	}
+
+	private void defineWord(String name, int value) {
+		clearDef(name);
+		dictionary.put(name, value);
+		if (prototypes.containsKey(name)) {
+			for(Integer a : prototypes.remove(name)) {
+				rom.set(a, rom.size());
+			}
+		}
+	}
+
+	private void clearDef(String name) {
+		if (guardShadow) {
+			if ( constants.containsKey(name)) { System.out.format("shadowed constant '%s'%n", name); }
+			if ( variables.containsKey(name)) { System.out.format("shadowed variable '%s'%n", name); }
+			if (dictionary.containsKey(name)) { System.out.format(    "shadowed word '%s'%n", name); }
+		}
+		constants.remove(name);
+		variables.remove(name);
+		dictionary.remove(name);
 	}
 
 	private int getConstant(Object o) {
