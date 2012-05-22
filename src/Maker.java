@@ -7,7 +7,6 @@ public class Maker implements MakoConstants {
 
 	private Map<String, Integer> dictionary = new TreeMap<String, Integer>();
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
-	private Map<String, Integer> constants = new TreeMap<String, Integer>();
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
 	private MakoRom rom = new MakoRom();
 	private boolean compiling = false;
@@ -32,7 +31,6 @@ public class Maker implements MakoConstants {
 		boolean gCode      = pluckArg(argList, "--guardCode");
 		boolean gStack     = pluckArg(argList, "--guardStacks");
 		guardShadow        = pluckArg(argList, "--guardShadow");
-		
 
 		if (argList.size() == 0) {
 			System.out.println("usage: java -jar Maker.jar [options] file [output]\n"
@@ -121,33 +119,33 @@ public class Maker implements MakoConstants {
 
 	public Maker() {
 		buildRegion("registers", RESERVED_HEADER);
-		variables.put("PC", PC);
-		variables.put("DP", DP);
-		variables.put("RP", RP);
-		variables.put("GP", GP);
-		variables.put("GT", GT);
-		variables.put("SP", SP);
-		variables.put("ST", ST);
-		variables.put("GS", GS);
-		variables.put("SX", SX);
-		variables.put("SY", SY);
-		variables.put("CL", CL);
-		variables.put("RN", RN);
-		variables.put("KY", KY);
-		variables.put("CO", CO); // character-out (debug)
-		variables.put("AU", AU);
-		variables.put("KB", KB);
+		defineVariable("PC", PC);
+		defineVariable("DP", DP);
+		defineVariable("RP", RP);
+		defineVariable("GP", GP);
+		defineVariable("GT", GT);
+		defineVariable("SP", SP);
+		defineVariable("ST", ST);
+		defineVariable("GS", GS);
+		defineVariable("SX", SX);
+		defineVariable("SY", SY);
+		defineVariable("CL", CL);
+		defineVariable("RN", RN);
+		defineVariable("KY", KY);
+		defineVariable("CO", CO); // character-out (debug)
+		defineVariable("AU", AU);
+		defineVariable("KB", KB);
 
-		constants.put("key-up", KEY_UP);
-		constants.put("key-rt", KEY_RT);
-		constants.put("key-dn", KEY_DN);
-		constants.put("key-lf", KEY_LF);
-		constants.put("key-a",  KEY_A);
-		constants.put("key-b",  KEY_B);
+		defineConstant("key-up", KEY_UP);
+		defineConstant("key-rt", KEY_RT);
+		defineConstant("key-dn", KEY_DN);
+		defineConstant("key-lf", KEY_LF);
+		defineConstant("key-a",  KEY_A);
+		defineConstant("key-b",  KEY_B);
 
-		constants.put("sprite-mirror-horiz", H_MIRROR_MASK);
-		constants.put("sprite-mirror-vert",  V_MIRROR_MASK);
-		constants.put("grid-z",              GRID_Z_MASK);
+		defineConstant("sprite-mirror-horiz", H_MIRROR_MASK);
+		defineConstant("sprite-mirror-vert",  V_MIRROR_MASK);
+		defineConstant("grid-z",              GRID_Z_MASK);
 
 		// sprite size constants:
 		for(int x = 0; x < 8; x++) {
@@ -155,14 +153,14 @@ public class Maker implements MakoConstants {
 				int w = (x + 1) * 8;
 				int h = (y + 1) * 8;
 				int v = ((x << 8) & 0x0F00) | ((y << 12) & 0xF000) | 1;
-				constants.put(String.format("%dx%d", w, h), v);
+				defineConstant(String.format("%dx%d", w, h), v);
 			}
 		}
 
-		constants.put("grid-skip", 0);
-		constants.put("scroll-x", 0);
-		constants.put("scroll-y", 0);
-		constants.put("clear-color", 0xFF000000);
+		defineConstant("grid-skip", 0);
+		defineConstant("scroll-x", 0);
+		defineConstant("scroll-y", 0);
+		defineConstant("clear-color", 0xFF000000);
 	}
 
 	public MakoRom compile(String filename) {
@@ -195,38 +193,20 @@ public class Maker implements MakoConstants {
 		rom.set(DP, variables.get("data-stack"));
 		rom.set(RP, variables.get("return-stack"));
 		rom.set(GP, variables.get("grid"));
-		if (variables.containsKey("grid-tiles")) {
-			rom.set(GT, variables.get("grid-tiles"));
-		}
-		else {
-			rom.set(GT, constants.get("grid-tiles"));
-		}
+		rom.set(GT, variables.get("grid-tiles"));
 		rom.set(SP, variables.get("sprites"));
-		if (variables.containsKey("sprite-tiles")) {
-			rom.set(ST, variables.get("sprite-tiles"));
-		}
-		else {
-			rom.set(ST, constants.get("sprite-tiles"));
-		}
-		rom.set(GS, constants.get("grid-skip"));
-		rom.set(SX, constants.get("scroll-x"));
-		rom.set(SY, constants.get("scroll-y"));
-		rom.set(CL, constants.get("clear-color"));
-
-		// export debug symbols:
-		for(Map.Entry<String, Integer> entry : variables.entrySet()) {
-			rom.label(entry.getKey(), entry.getValue());
-		}
-		for(Map.Entry<String, Integer> entry : dictionary.entrySet()) {
-			rom.label(entry.getKey(), entry.getValue());
-		}
+		rom.set(ST, variables.get("sprite-tiles"));
+		rom.set(GS, variables.get("grid-skip"));
+		rom.set(SX, variables.get("scroll-x"));
+		rom.set(SY, variables.get("scroll-y"));
+		rom.set(CL, variables.get("clear-color"));
 
 		return rom;
 	}
 
 	private void buildRegion(String name, int size) {
-		if (!variables.containsKey(name) && !constants.containsKey(name)) {
-			variables.put(name, rom.size());
+		if (!variables.containsKey(name)) {
+			defineVariable(name, rom.size());
 			for(int x = 0; x < size; x++) { rom.add(0, MakoRom.Type.Array); }
 		}
 	}
@@ -520,11 +500,6 @@ public class Maker implements MakoConstants {
 			else { rom.add(-5, MakoRom.Type.Array); }
 			prototypes.get(token).add(address);
 		}
-		else if (constants.containsKey(token)) {
-			int address = constants.get(token);
-			if (compiling) { rom.addConst(address); }
-			else { rom.add(address, MakoRom.Type.Array); }
-		}
 		else if (variables.containsKey(token)) {
 			int address = variables.get(token);
 			if (compiling) { rom.addConst(address); }
@@ -542,16 +517,18 @@ public class Maker implements MakoConstants {
 
 	private void defineConstant(String name, int value) {
 		clearDef(name);
-		constants.put(name, value);
+		variables.put(name, value);
 	}
 
 	private void defineVariable(String name, int value) {
 		clearDef(name);
+		rom.label(name, value);
 		variables.put(name, value);
 	}
 
 	private void defineWord(String name, int value) {
 		clearDef(name);
+		rom.label(name, value);
 		dictionary.put(name, value);
 		if (prototypes.containsKey(name)) {
 			for(Integer a : prototypes.remove(name)) {
@@ -562,18 +539,15 @@ public class Maker implements MakoConstants {
 
 	private void clearDef(String name) {
 		if (guardShadow) {
-			if ( constants.containsKey(name)) { System.out.format("shadowed constant '%s'%n", name); }
-			if ( variables.containsKey(name)) { System.out.format("shadowed variable '%s'%n", name); }
-			if (dictionary.containsKey(name)) { System.out.format(    "shadowed word '%s'%n", name); }
+			if ( variables.containsKey(name)) { System.out.format("shadowed value '%s'%n", name); }
+			if (dictionary.containsKey(name)) { System.out.format("shadowed word '%s'%n",  name); }
 		}
-		constants.remove(name);
 		variables.remove(name);
 		dictionary.remove(name);
 	}
 
 	private int getConstant(Object o) {
 		if (o instanceof Integer) { return (Integer)o; }
-		if ( constants.containsKey(o.toString())) { return  constants.get(o.toString()); }
 		if ( variables.containsKey(o.toString())) { return  variables.get(o.toString()); }
 		if (dictionary.containsKey(o.toString())) { return dictionary.get(o.toString()); }
 		throw new Error("Unknown constant '"+o+"'");
