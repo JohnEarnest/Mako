@@ -64,6 +64,10 @@ public class CodeMatcher implements MakoConstants {
 	}
 
 	public void add(int op, int arg) {
+		if (op == -1) {
+			addSeq(Ops.DelayConst, arg);
+			return;
+		}
 		for(Ops o : Ops.values()) {
 			if (o.opcode == op) { addSeq(o, arg); return; }
 		}
@@ -243,7 +247,9 @@ public class CodeMatcher implements MakoConstants {
 		Not(   OP_NOT,    1, false),
 		SGT(   OP_SGT,    1, false),
 		SLT(   OP_SLT,    1, false),
-		Sync(  OP_SYNC,   1, false);
+		Sync(  OP_SYNC,   1, false),
+
+		DelayConst( OP_CONST, 2, false);
 	
 		final int opcode;
 		final int size;

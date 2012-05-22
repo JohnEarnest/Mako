@@ -8,6 +8,7 @@ public class Maker implements MakoConstants {
 	private Map<String, Integer> dictionary = new TreeMap<String, Integer>();
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
+	private Map<String, List<Integer>> references = new HashMap<String, List<Integer>>();
 	private MakoRom rom = new MakoRom();
 	private boolean compiling = false;
 	private String wordName = null;
@@ -177,9 +178,12 @@ public class Maker implements MakoConstants {
 		else if ( variables.containsKey("main")) { rom.set(PC,  variables.get("main")); }
 		else { throw new Error("No entrypoint defined!"); }
 
-		if (prototypes.size() > 0) {
+		if (prototypes.size() > 0 || references.size() > 0) {
 			for(String s : prototypes.keySet()) {
 				System.out.println("unresolved prototype '"+s+"'");
+			}
+			for(String s : references.keySet()) {
+				System.out.println("unresolved reference '"+s+"'");
 			}
 			throw new Error();
 		}
@@ -362,6 +366,10 @@ public class Maker implements MakoConstants {
 			String wordName = tokens.remove().toString();
 			prototypes.put(wordName, new ArrayList<Integer>());
 		}
+		else if (token.equals(":ref")) {
+			String varName = tokens.remove().toString();
+			references.put(varName, new ArrayList<Integer>());
+		}
 
 		// branching constructs
 		else if (token.equals("if")) {
@@ -500,6 +508,12 @@ public class Maker implements MakoConstants {
 			else { rom.add(-5, MakoRom.Type.Array); }
 			prototypes.get(token).add(address);
 		}
+		else if (references.containsKey(token)) {
+			int address = rom.size();
+			if (compiling) { rom.addDelayConst(-6); address = rom.size() - 1; }
+			else { rom.add(-6, MakoRom.Type.Array); }
+			references.get(token).add(address);
+		}
 		else if (variables.containsKey(token)) {
 			int address = variables.get(token);
 			if (compiling) { rom.addConst(address); }
@@ -524,6 +538,11 @@ public class Maker implements MakoConstants {
 		clearDef(name);
 		rom.label(name, value);
 		variables.put(name, value);
+		if (references.containsKey(name)) {
+			for(Integer a : references.remove(name)) {
+				rom.set(a, rom.size());
+			}
+		}
 	}
 
 	private void defineWord(String name, int value) {

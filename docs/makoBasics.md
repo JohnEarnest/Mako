@@ -393,6 +393,8 @@ Maker is a single-pass compiler, so everything must be defined before it can be 
 	: defined-first   defined-later 2 - ;
 	: defined-later   42 78 +           ;
 
+Data may also require forward references. `:ref` works just like `:proto`, but is used to refer to and is satisfied by variables and variable-like definitions such as `:array`, `:data` or `:table`.
+
 Finally, `:vector` is identical to `:` but starts a word definition with a preamble that makes it possible to _revector_ the word later, dynamically changing the behavior of calls to the word. See the standard library file `Vector.fs` for support code, examples and a more detailed explanation.
 
 Forth Philosophy

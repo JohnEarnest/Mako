@@ -144,6 +144,7 @@ public class MakoRom implements MakoConstants {
 			peeper.add(a, b);
 		}
 		else {
+			if (a == -1) { a = OP_CONST; }
 			add(a, Type.Code);
 			add(b, Type.Code);
 		}
@@ -208,6 +209,13 @@ public class MakoRom implements MakoConstants {
 	public int  addJumpZ(int value)  { paramOp(OP_JUMPZ,  value); return size() - 1; }
 	public int  addJumpIf(int value) { paramOp(OP_JUMPIF, value); return size() - 1; }
 	public int  addNext(int value)   { paramOp(OP_NEXT,   value); return size() - 1; }
+
+	// inject a "delayed constant" which will not
+	// be pattern-matched by the optimizer, allowing
+	// the value to be manipulated later.
+	public void addDelayConst(int value) {
+		paramOp(-1, value);
+	}
 
 	public void addReturn() { add(OP_RETURN, Type.Code); }
 	public void addLoad() { add(OP_LOAD, Type.Code); }
