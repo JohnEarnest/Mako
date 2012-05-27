@@ -141,6 +141,7 @@ public class Mako {
 	}
 
 	private static int arrayMax(int base, MakoRom rom) {
+		if (rom == null) { return base; }
 		while(true) {
 			if (base + 1 >= rom.size())                       { break; }
 			if (rom.getType( base + 1) != MakoRom.Type.Array) { break; }
