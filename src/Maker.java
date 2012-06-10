@@ -27,6 +27,7 @@ public class Maker implements MakoConstants {
 		boolean quiet      = pluckArg(argList, "--quiet") || pluckArg(argList, "-q");
 		boolean listing    = pluckArg(argList, "--listing") || pluckArg(argList, "-l");
 		boolean trace      = pluckArg(argList, "--trace");
+		boolean traceLive  = pluckArg(argList, "--traceLive");
 		boolean showOpt    = pluckArg(argList, "--showOpt");
 		boolean noOpt      = pluckArg(argList, "--noOpt");
 		boolean gCode      = pluckArg(argList, "--guardCode");
@@ -79,6 +80,7 @@ public class Maker implements MakoConstants {
 			int[] mem = compiler.rom.toArray();
 			try {
 				Mako.trace       = trace;
+				Mako.traceLive   = traceLive;
 				Mako.guardCode   = gCode;
 				Mako.guardStacks = gStack;
 				Mako.exec(mem, fuzz, compiler.rom);
@@ -262,6 +264,7 @@ public class Maker implements MakoConstants {
 			wordName = tokens.remove().toString();
 			defineWord(wordName, rom.size());
 			rom.addJump(rom.size()+2);
+			rom.setType(rom.size()-1, MakoRom.Type.Data);
 		}
 		else if (token.equals(";")) {
 			compiling = false;
@@ -364,11 +367,15 @@ public class Maker implements MakoConstants {
 		}
 		else if (token.equals(":proto")) {
 			String wordName = tokens.remove().toString();
-			prototypes.put(wordName, new ArrayList<Integer>());
+			if (!prototypes.containsKey(wordName)) {
+				prototypes.put(wordName, new ArrayList<Integer>());
+			}
 		}
 		else if (token.equals(":ref")) {
 			String varName = tokens.remove().toString();
-			references.put(varName, new ArrayList<Integer>());
+			if (!references.containsKey(varName)) {
+				references.put(varName, new ArrayList<Integer>());
+			}
 		}
 
 		// branching constructs

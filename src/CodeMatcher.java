@@ -180,6 +180,10 @@ public class CodeMatcher implements MakoConstants {
 		if (null != (r = match("tail call", Ops.Ret, Ops.Call, A))) {
 			addSeq(Ops.Jump, r.get(A));
 		}
+		if (null != (r = match("drop false", Ops.Const, 0, Ops.Drop))) {
+			addSeq(Ops.Dup);
+			addSeq(Ops.Xor);
+		}
 	}
 
 	private Map<Object, Integer> match(String name, Object... pattern) {

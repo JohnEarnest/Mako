@@ -28,6 +28,7 @@ public class Mako {
 	}
 
 	public static boolean trace       = false;
+	public static boolean traceLive   = false;
 	public static boolean guardCode   = false;
 	public static boolean guardStacks = false;
 
@@ -72,6 +73,20 @@ public class Mako {
 					}
 					if (op == MakoConstants.OP_RETURN) {
 						traceFunc.pop();
+					}
+				}
+
+				if (traceLive) {
+					int pc = view.vm.m[MakoConstants.PC];
+					int op = view.vm.m[pc];
+					int  a = view.vm.m[pc+1];
+					int ra = view.vm.m[view.vm.m[MakoConstants.RP]-1];
+
+					if (op == MakoConstants.OP_CALL) {
+						System.out.format("%-16s@%05d:\t( %s )%n", traceRom.getLabel(a), a, traceStack(datMin, retMin, rom));
+					}
+					if (op == MakoConstants.OP_RETURN) {
+						System.out.format("RET              %05d:\t( %s )%n", ra, traceStack(datMin, retMin, rom));
 					}
 				}
 
@@ -192,6 +207,18 @@ public class Mako {
 		);
 		System.out.println();
 	}
+
+	private static String traceStack(int datMin, int retMin, int[] rom) {
+		String dstack = "";
+		for(int x = rom[MakoConstants.DP] - 1; x >= datMin; x--) {
+			dstack = rom[x] + " " + dstack;
+		}
+		String rstack = "";
+		for(int x = rom[MakoConstants.RP] - 1; x >= retMin; x--) {
+			rstack = rstack + " " + rom[x];
+		}
+		return String.format("%20s|%-30s", dstack, rstack);
+	}
 }
 
 class MakoPanel extends JPanel implements KeyListener, MakoConstants {
@@ -270,6 +297,14 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 		}
 		if (k.getKeyCode() == KeyEvent.VK_F5) {
 			showTicks = !showTicks;
+		}
+		if (k.getKeyCode() == KeyEvent.VK_F7) {
+			System.out.println("!");
+			Mako.traceLive = !Mako.traceLive;
+		}
+		if (k.getKeyCode() == KeyEvent.VK_F8) {
+			System.out.println("Interrupted!");
+			vm.m[MakoConstants.PC] = Integer.MAX_VALUE;
 		}
 		if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }
 	}
