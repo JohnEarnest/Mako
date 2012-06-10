@@ -610,6 +610,10 @@
 		console-newline
 		drop exit
 	else
+		# capture ludicrous characters
+		# and turn 'em into happy little boxes.
+		dup 0 < over 128 > or if drop 94 then
+
 		cc @ + cx @ 28 tile-grid@ !
 		cx inc cx @ 39 >
 		if console-newline then
