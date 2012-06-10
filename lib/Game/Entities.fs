@@ -86,7 +86,8 @@
 : spawn-rel ( delta-x delta-y id tile 'func -- id )
 	alloc >r
 	i kind ! i tile!
-	spawn-size @ sprite@ ! >r
+	spawn-size @ i sprite@ !
+	>r
 	i  py + j py!
 	r> px + i px!
 	r>
@@ -217,7 +218,7 @@
 	0 > -6 and 7 + then
 ;
 
-:vector distance ( a b -- )
+:vector distance ( a b -- dist )
 	# yields distance^2 by default
 	over px over px - dup * >r
 	     py swap py - dup * r> +
