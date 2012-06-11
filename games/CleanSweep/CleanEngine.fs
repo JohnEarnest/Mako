@@ -220,11 +220,10 @@
 ##
 ######################################################
 
-: spawn-npc ( tile-x tile-y frame 'logic 'trigger -- )
+: spawn-npc ( tile-x tile-y frame 'logic 'trigger -- id )
 	>r spawn
 	r>   over trigger !
 	true over solid   !
-	drop
 ;
 
 : face-player ( id -- )
