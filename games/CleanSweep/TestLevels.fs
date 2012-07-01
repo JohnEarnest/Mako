@@ -198,6 +198,7 @@
 
 : init-down-hallway
 	0 GS ! grid-down-hallway GP !
+	21 16 spawn-puddle
 ;
 
 : main-down-hallway
@@ -224,14 +225,14 @@
 	 -1  -1  -1  -1  -1  -1  -1  40  40  40  40  40  40  40  40 1073741864 1073741864 1073741864 1073741864 1073741864 1073741864 1073741864 1073741864 1073741864 1073741864  40  40  40  40  40  40  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
 	 -1  -1  -1  -1  -1  -1  -1  40  40  10  10  10  10  10 134 1073741952 1073741953 1073741959 1073741958 1073741952 1073741953 1073741959 1073741958 1073741952 1073741953 135  10  10  10  10  10  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
 	 -1  -1  -1  -1  -1  -1  -1  40  40  10  10  10  10  10  10  10 134 1073741952 1073741953 135 134 1073741952 1073741953 135  10  10  10  10  10  10  10  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  10  10  10  10  10  10  10  10  60  60  60  60  60  60  10  10  10  10  10  10  10  10  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  60  60  60  60  60  60  60  76 149 150 150 150 150 151  59  60  60  60  60  60  60  60  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40 149 150 150 151 149 150 150 151 149  88  89  89  90 151 149 150 150 151 149 150 150 151  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  89  90  88  89  89  90  88  89  90  88  89  90  88  89  89  90  88  89  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  88  73  89  90  88  89  73  90  18  18  18  18  18  18  88  73  89  90  88  73  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  73  90  88  89  73  90  18   2   2   2   2   2  88  73  73  90  88  29  73  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  72  73  73  74  72  73  73  74  18   2   2   2   2   0  72  73  73  74  72  73  73  74  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
-	 -1  -1  -1  -1  -1  -1  -1  40  40  18  18  18  18  18  18  18  18  18   2   2   0   0   0  36  18  18  18  18  18  18  18  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  60  60  60  60  60 127  10  10 127  60  60  60  60 127  10  10 127  60  60  60  60  60  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40 149 150 150 150 151  75  60  60  76 149 150 150 150  75  60  60  76 149 150 150 150 151  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  89  89  90  18  18  18  18  88  89  89  90  18  18  18  18  88  89  89  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  88  73  89  89  90  18   8   8  18  88  90  88  90  18   8   8  18  88  73  73  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  73  73  90  18   8   8   0  36  18  18  18  18   8   8   0  88  29  29  73  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  72  73  73  73  74  18   0   0   0   2   2   2   2   2   0   0   0  72  73  73  73  74  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  18  18  18  18  18  18   0   0   0   2   2   2   2   0   0   0   0  36  18  18  18  18  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
+	 -1  -1  -1  -1  -1  -1  -1  40  40  18  18   0   0   0   0   0   0   0   2   2   0   0   0   0   0   0   0   0   0   0   0  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
 	 -1  -1  -1  -1  -1  -1  -1  40  40 1073741973 1073741974 1073741974 1073741975 1073741973 1073741974 1073741974 1073741975   2   2   2   0   0   0 1073741973 1073741974 1073741974 1073741975 1073741973 1073741974 1073741974 1073741975  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
 	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  89  90  88  89  89  90   2   2   2   0   0   0  88  89  89  90  88  89  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
 	 -1  -1  -1  -1  -1  -1  -1  40  40  88  89  73  90  88  29  89  90   2   2   2   2   2   2  88  73  89  90  88  89  89  90  40  40  -1  -1  -1  -1  -1  -1  -1  -1 
@@ -259,7 +260,7 @@
 	i timer inc@
 	i timer @ 8 mod -if
 		i prev @ bob-delta + @
-		dup 0 < if 61 else 60 then i tile!
+		dup 0 < if 60 else 59 then i tile!
 		i +py
 		i prev @ 1 + 14 mod i prev !
 	then
@@ -269,9 +270,9 @@
 : follow ( id -- )
 	>r
 	i px 16 - player @ px over 32 + within if
-		62 i tile!
+		61 i tile!
 	else
-		63 i tile!
+		62 i tile!
 		player @ px i px < if
 			i face-left
 		else
@@ -281,16 +282,69 @@
 	rdrop
 ;
 
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+:var follower
+: access ( id -- )
+	>r
+	' follow instance follower !
+	63 follower @ tile!
+	dialog-open
+	dialog[
+		"<Greetings, Comrade."
+		"Would you like me to brief you on"
+		"available cleaning equipment?>"
+	]-ask
+	if
+		62 follower @ tile!
+		player   @ face-left
+		follower @ face-left
+		dialog[
+			"<To the left are dessicant powder"
+			"canisters. They can be used to soak"
+			"up spills, but leaves a residue.>"
+		]-text
+		player   @ face-right
+		follower @ face-right
+		dialog[
+			"<To the right are absorbent mats."
+			"Place them in areas of high foot-"
+			"traffic to stop the spread of dirt.>"
+		]-text
+	else
+		61 follower @ tile!
+		dialog[ "<Very well, then, Comrade.>" ]-text
+	then
+	
+	63 follower @ tile!
+	dialog[ "<Good cleaning to you!>" ]-text
+	dialog-close
+	rdrop
+;
+
+: spawn-items ( -- )
+	' powder any? -if
+		15 7 spawn-powder
+	then
+	' mat any? -if
+		23 7 spawn-mat
+	then
+;
+
 : init-closet
+	' spawn-items ' resupply revector
+	spawn-items
+
 	0 GS ! grid-closet GP !
 	19 16 spawn-scrubby
 	48x16 19 20 spawn-exit-door
 
-	15 3 61 ' bob 0 spawn-npc 10 swap timer !
-	23 3 61 ' bob 0 spawn-npc  2 swap prev  !
-	17 3 60 ' bob 0 spawn-npc  3 swap prev  !
-	21 3 60 ' bob 0 spawn-npc  7 swap prev  !
-	19 4 62 ' follow 0 spawn-npc drop
+	15 3 60 ' bob 0 spawn-npc 10 swap timer !
+	23 3 60 ' bob 0 spawn-npc  2 swap prev  !
+	17 3 59 ' bob 0 spawn-npc  3 swap prev  !
+	21 3 59 ' bob 0 spawn-npc  7 swap prev  !
+	19 4 61 ' follow 0 spawn-npc drop
+	19 6 0 { drop } ' access spawn-npc hide
 ;
 
 : main-closet

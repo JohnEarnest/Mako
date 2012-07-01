@@ -232,7 +232,7 @@
 ;
 
 : c-npc? ( a b -- flag )
-	over py over py  6 - >=        >r
+	over py over py 14 - >=        >r
 	over py over py  6 + <  r> and >r
 	over px over px 14 - >= r> and >r
 	over px over px 14 + <  r> and >r
@@ -458,6 +458,60 @@
 
 	rdrop
 ;
+
+: evaporate ( id -- )
+	>r
+	i timer @ if
+		i timer dec@
+		55 i tile!
+		i timer @ 10 > if 54 i tile! then
+		i timer @ 20 > if 53 i tile! then
+	else
+		i free
+	then
+	rdrop
+;
+
+: puddle ( id -- )
+	# puddles have no logic of their own.
+	# this stub is here so we can identify
+	# them by type name.
+	drop
+;
+
+: spawn-puddle ( tile-x tile-y -- )
+	53 ' puddle 0 spawn-npc drop
+;
+
+:var   item-carried
+:const item-powder 1
+:const item-mat    2
+
+:vector resupply ( -- ) ;
+
+: powder drop ; ( id -- )
+: mat    drop ; ( id -- )
+
+: spawn-powder ( tile-x tile-y -- )
+	44 ' powder {
+		"Picked up dessicant powder!" alert
+		item-powder item-carried ! free
+		resupply
+	} spawn-npc drop
+;
+
+: spawn-mat ( tile-x tile-y -- )
+	45 ' mat {
+		"Picked up absorbent mat!" alert
+		item-mat item-carried ! free resupply
+	} spawn-npc drop
+;
+
+######################################################
+##
+##  Doors
+##
+######################################################
 
 # an outer routine driving
 # these actions (think) leaves
@@ -687,9 +741,71 @@
 	rdrop
 ;
 
+: mat? ( tile -- flag )
+	144 over 146 within >r
+	160 swap 162 within r> or
+;
+
+: on-mat? ( npc-id -- flag )
+	>r
+	i px  1 + i py 22 + mat?
+	i px  8 + i py 22 + mat? or
+	i px 14 + i py 22 + mat? or
+	i px  1 + i py 31 + mat? or
+	i px  8 + i py 31 + mat? or
+	i px 14 + i py 31 + mat? or
+	rdrop
+;
+
+: >mat? ( tile -- flag )
+	dup grid-z and if
+		drop false
+	else
+		16 mod 7 <
+	then
+;
+
+: lay-mat ( mat-tile ox oy -- )
+	player @ py + swap
+	player @ px + swap pixel-grid@
+	dup @ >mat? if ! else 2drop then
+;
+
+: base-action ( id -- )
+	item-carried @ item-powder = if
+		"USED powder" typeln
+		activated on item-carried off drop exit
+	then
+	item-carried @ item-mat    = if
+		0 player @ tile!
+		# would've been possible to do
+		# with loops and such, but this
+		# approach is *so much* easier:
+
+		player @ sprite@ @ sprite-mirror-horiz and if
+			# facing right
+			144  16 16   160  16 24
+			145  24 16   161  24 24
+			146  32 16   162  32 24
+		else
+			# facing left
+			146  -8 16   162  -8 24
+			145 -16 16   161 -16 24
+			144 -24 16   160 -24 24
+		then
+		2 for lay-mat lay-mat 5 for tick next next
+		activated on item-carried off drop exit
+	then
+	do-transform
+;
+
 : scrubby ( id -- )
 	>r
-	0 i tile!
+
+	0
+	item-carried @ item-powder = if drop 48 then
+	item-carried @ item-mat    = if drop 50 then
+	i tile!
 
 	keys 15 and if
 		keys 15 and keys-dir + @
@@ -697,7 +813,8 @@
 
 		p-bounce dec@
 		p-bounce @ -10 < if 10 p-bounce ! then
-		p-bounce @ 0 > if 1 else 0 then i tile!
+		i tile 1 not and p-bounce @ 0 > 1 and or i tile!
+
 		keys key-rt and if i face-right then
 		keys key-lf and if i face-left  then
 
@@ -736,7 +853,7 @@
 				found-trigger @ exec
 				activated on
 			else
-				i do-transform
+				i base-action
 			then
 		then
 	then

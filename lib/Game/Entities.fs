@@ -115,7 +115,7 @@
 ;
 
 : count+          drop swap 1 + swap            ;
-: count           0 swap ' count+ whoever       ; ( 'filter -- )
+: count           0 swap ' count+ whoever       ; ( 'filter -- n )
 : always          drop true                     ;
 : think           ' always ' apply-kind whoever ; ( -- )
 : clear-entities  ' always ' free whoever       ; ( -- )
@@ -125,6 +125,24 @@
 		i over exec if drop r> true exit then
 	next
 	drop false
+;
+
+: any? ( 'kind -- flag )
+	ent-max 1 - for
+		i kind @ over xor -if
+			drop rdrop true exit
+		then
+	next
+	drop false
+;
+
+: instance ( 'kind -- id )
+	ent-max 1 - for
+		i kind @ over xor -if
+			drop r> exit
+		then
+	next
+	drop bogus-ent
 ;
 
 # positive if a>b, negative if a<b.
