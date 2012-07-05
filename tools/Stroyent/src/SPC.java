@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
 // The Stroyent Processing Compiler
 
@@ -141,12 +142,15 @@ public class SPC {
 			}
 			else if (cursor.match("include")) {
 				if (cursor.match("<")) {
-					String libPath = new File(SPC.class.getProtectionDomain()
-						.getCodeSource().getLocation().getPath()).getParent();
-					currentPath.push(libPath + "/../lib/");
-					compileFile(cursor.parseName() + ".snt");
-					currentPath.pop();
-					cursor.expect('>');
+					try {
+						String libPath = URLDecoder.decode(new File(SPC.class.getProtectionDomain()
+							.getCodeSource().getLocation().getPath()).getParent(), "UTF-8");
+						currentPath.push(libPath + "/../lib/");
+						compileFile(cursor.parseName() + ".snt");
+						currentPath.pop();
+						cursor.expect('>');
+					}
+					catch(UnsupportedEncodingException e) { e.printStackTrace(); }
 				}
 				else {
 					compileFile(cursor.parseString());
