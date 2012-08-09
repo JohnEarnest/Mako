@@ -39,46 +39,9 @@
 	again
 ;
 
-: digit?  dup 48 >= swap 57 <= and ;
-: white?  dup 9 = over 10 = or swap 32 = or ;
-
-:vector key CO @ ;
-
-# read first non-whitespace char from stdin.
-: >char ( -- char )
-	key loop
-		dup white? -if break then
-		drop key
-	again
-;
-
-# read a signed/unsigned integer from stdin.
-: >number ( -- n )
-	>char dup 45 xor
-	-if drop -1 0 key else 1 swap 0 swap then
-	loop
-		dup digit? -if drop break then
-		48 - swap 10 * + key
-	again *
-;
-
-# read a whitespace-terminated word from stdin.
-: >word ( addr len -- )
-	>char swap
-	2 - for
-		dup white?
-		if r> 2drop 0 swap ! exit then
-		over ! 1 + key
-	next
-	drop 0 swap !
-;
-
-# read a line from stdin.
-: >line ( addr len -- )
-	2 - for
-		key dup 10 xor
-		-if r> 2drop 0 swap ! exit then
-		over ! 1 +
-	next
-	0 swap !
-;
+: to-num   48 -                              ; ( char -- n )
+: to-lower 32 or                             ; ( char -- char )
+: to-upper 32 not and                        ; ( char -- char )
+: white?   dup 9 = over 10 = or swap 32 = or ; ( char -- flag )
+: letter?  to-lower dup 96 > swap 123 < and  ; ( char -- flag )
+: digit?            dup 47 > swap  58 < and  ; ( char -- flag )

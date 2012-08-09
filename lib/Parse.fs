@@ -110,18 +110,10 @@
 ##
 ##  Basic Parsing Words:
 ##
-##  A series of handy predicates and equivalents
-##  which operate on the head of the input stream
-##  for brevity.
+##  A series of handy predicates which operate on
+##  the head of the input stream.
 ##
 ######################################################
-
-: to-num   48 -                              ; ( char -- n )
-: to-lower 32 or                             ; ( char -- char )
-: to-upper 32 not and                        ; ( char -- char )
-: white?   dup 9 = over 10 = or swap 32 = or ; ( char -- flag )
-: letter?  to-lower dup 96 > swap 123 < and  ; ( char -- flag )
-: digit?            dup 47 > swap  58 < and  ; ( char -- flag )
 
 : space?   curr white?  ; ( -- flag )
 : name?    curr letter? ; ( -- flag )
@@ -142,6 +134,7 @@
 ##  input>  - read into a specified buffer as long as pred is satisfied.
 ##  accept> - read into pad as long as a pred is satisfied and trim.
 ##  token>  - accept> (letter)(letter|digit)*.
+##  line>   - read into a specified buffer until a newline.
 ##  
 ######################################################
 
@@ -212,4 +205,8 @@
 : token> ( -- string )
 	name? -if "Name expected." fail then
 	{ name? numeral? or } accept>
+;
+
+: line> ( addr len -- )
+	{ newline? not } input> skip
 ;
