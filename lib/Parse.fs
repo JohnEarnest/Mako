@@ -116,7 +116,7 @@
 ##
 ######################################################
 
-: d>num    48 -                              ; ( char -- n )
+: to-num   48 -                              ; ( char -- n )
 : to-lower 32 or                             ; ( char -- char )
 : to-upper 32 not and                        ; ( char -- char )
 : white?   dup 9 = over 10 = or swap 32 = or ; ( char -- flag )
@@ -137,10 +137,11 @@
 ##  starts? - return true if input begins with a string.
 ##  match?  - like starts? but accept the string on a match.
 ##  expect  - like match? but errors on failure.
-##  number> - read an unsigned integer
-##  signed> - read a signed integer
-##  accept> - read as long as a pred is satisfied (stored in pad)
-##  token>  - accept> (letter)(letter|digit)* (stored in pad)
+##  number> - read an unsigned integer.
+##  signed> - read a signed integer.
+##  input>  - read into a specified buffer as long as pred is satisfied.
+##  accept> - read into pad as long as a pred is satisfied and trim.
+##  token>  - accept> (letter)(letter|digit)*.
 ##  
 ######################################################
 
@@ -181,7 +182,7 @@
 : number> ( -- n )
 	numeral? -if "Numeral expected." fail then
 	0 loop
-		10 * getc d>num +
+		10 * getc to-num +
 		numeral?
 	while trim
 ;
@@ -191,29 +192,21 @@
 	number> *
 ;
 
-:var   padi
-:array pad pad-size 0
-0 # note the null padding
-
-# >pad ensures that we never overflow
-# the size of the input pad as we read.
-# accept> will ensure the pad always ends
-# with a proper null-terminator:
-
-: >pad ( char -- )
-	padi @ pad + !
-	padi @ 1 + dup
-	pad-size > if drop pad-size then
-	padi !
+: input> ( addr len pred -- )
+	>r loop
+		dup 1 > -if break then
+		i exec  -if break then
+		over getc swap !
+		1 - swap 1 + swap
+	again
+	r> 2drop
+	0 swap !
 ;
 
-: accept> ( pred -- string )
-	0 padi !
-	loop
-		getc >pad
-		dup exec
-	while trim
-	drop 0 >pad pad
+:array pad pad-size 0
+
+: accept> ( pred -- )
+	>r pad pad-size r> input> trim pad
 ;
 
 : token> ( -- string )
