@@ -6,6 +6,7 @@ FIXTURES="
 	testVector.fs
 	testEntities.fs
 	testPair.fs
+	testParse.fs
 "
 
 # This script uses the CPAN module App::Prove
