@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import java.net.*;
 
 public class Maker implements MakoConstants {
 
@@ -352,8 +353,8 @@ public class Maker implements MakoConstants {
 			if (srcName.startsWith("<")) {
 				// I highly suspect this is a brittle solution- I need
 				// to test this on different machine configurations.
-				String libPath = new File(Maker.class.getProtectionDomain()
-					.getCodeSource().getLocation().getPath()).getParent();
+				String libPath = URLDecoder.decode(new File(Maker.class.getProtectionDomain()
+					.getCodeSource().getLocation().getPath()).getParent(), "UTF-8");
 
 				currentPath.push(libPath + "/../lib/");
 				String fileName = srcName.substring(1, srcName.length() - 1);
