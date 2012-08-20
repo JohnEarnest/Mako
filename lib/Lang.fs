@@ -18,4 +18,4 @@
 
 : =     xor -if true  else false then ;
 : !=    xor -if false else true  then ;
-#: exec  r> drop >r ;
+: exec  >r ;

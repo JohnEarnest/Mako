@@ -503,13 +503,6 @@ public class Maker implements MakoConstants {
 				rom.addConst(dictionary.get(methodName));
 			}
 		}
-		else if (token.equals("exec")) {
-			rom.addConst(rom.size() + 4);
-			rom.addStor();   // hooray for self-modifying code!
-			rom.addCall(-4);
-			rom.setType(rom.size()-1, MakoRom.Type.Data);
-		}
-
 		else if (prototypes.containsKey(token)) {
 			int address = rom.size();
 			if (compiling) { rom.addCall(-5); address = rom.size() - 1; }
