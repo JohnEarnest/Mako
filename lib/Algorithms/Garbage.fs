@@ -34,7 +34,7 @@
 ##
 ######################################################
 
-:const heap-size 10
+:const heap-size 500
 :array heap1 heap-size 0
 :array heap2 heap-size 0
 :proto managed-begin
@@ -128,6 +128,7 @@
 ##
 ######################################################
 
+(
 : managed-begin ;
 :var A
 :var B
@@ -145,7 +146,7 @@
 	next r> 1 + >ptr
 ;
 
-: .array ( ptr -- )
+: .array
 	"[ " type
 	dup ps 1 - for
 		dup p@ .
@@ -171,3 +172,4 @@
 	A @ p@ .array cr
 	A @ ptr> . cr
 ;
+)

@@ -46,6 +46,7 @@
 ##
 ######################################################
 
+(
 :data hello "Hello, World!"
 
 :data main
@@ -69,3 +70,4 @@
 	CONST	1
 	ADD
 	JUMP	print
+)
