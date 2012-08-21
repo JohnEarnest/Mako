@@ -7,6 +7,7 @@ FIXTURES="
 	testEntities.fs
 	testPair.fs
 	testParse.fs
+	testCurry.fs
 "
 
 # This script uses the CPAN module App::Prove

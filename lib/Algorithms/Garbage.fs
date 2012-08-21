@@ -11,11 +11,12 @@
 ##  as they may allow memory to be accidentally
 ##  reclaimed.
 ##
+##  This system requires <Print.fs> and a constant
+##  named 'heap-size' defined.
+##
 ##  John Earnest
 ##
 ######################################################
-
-:include <Print.fs>
 
 :const ptr-mask 0x60000000
 :const ptr-bits 0x9fffffff
@@ -34,7 +35,6 @@
 ##
 ######################################################
 
-:const heap-size 500
 :array heap1 heap-size 0
 :array heap2 heap-size 0
 :proto managed-begin
@@ -52,9 +52,9 @@
 : broken?  ps 0 < ; ( ptr -- flag )
 
 : >move ( src dst len -- )
-	"move src: " type >r over . r>
-	     "dst: " type over .
-	     "len: " type dup  . cr
+	#"move src: " type >r over . r>
+	#     "dst: " type over .
+	#     "len: " type dup  . cr
 
 	1 - for
 		over i + @ over i + !
@@ -90,7 +90,7 @@
 ;
 
 : gc ( -- )
-	"collecting garbage..." typeln
+	#"collecting garbage..." typeln
 
 	DP @   data-max !
 	RP @ return-max !
