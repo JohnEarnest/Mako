@@ -8,6 +8,7 @@ FIXTURES="
 	testPair.fs
 	testParse.fs
 	testCurry.fs
+	testLazy.fs
 "
 
 # This script uses the CPAN module App::Prove
