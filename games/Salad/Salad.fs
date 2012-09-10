@@ -39,7 +39,7 @@
 : tick ( -- )
 	atimer dec
 	atimer @ -if 17 atimer ! sync exit then
-	136 for
+	143 for
 		sfx @ if
 			sft dec
 			sfx @ exec
