@@ -35,11 +35,8 @@
 :var sfa  # sound effect register A
 :var sfb  # sound effect register B
 
-:data atimer 17
 : tick ( -- )
-	atimer dec
-	atimer @ -if 17 atimer ! sync exit then
-	143 for
+	140 for
 		sfx @ if
 			sft dec
 			sfx @ exec
