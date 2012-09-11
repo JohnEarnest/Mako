@@ -192,10 +192,10 @@
 	init-sound
 
 	loop
-		200 for
-			play
+		140 for
+			play 2 /
 			view @ if
-				128 for
+				64 for
 					j 92 + # x
 					i 56 + # y
 					pixel

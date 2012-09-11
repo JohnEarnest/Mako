@@ -63,11 +63,8 @@
 ;
 
 :proto not-neutral
-:var atimer
 : tick ( -- )
-	atimer inc@
-	atimer @ 16 > if 0 atimer ! sync exit then
-	136 for
+	140 for
 		not-neutral if
 			8 period ib @ ia @ - 7 it @ - * 8 / ia @ +
 		else

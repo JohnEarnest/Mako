@@ -9,7 +9,7 @@ public class MakoVM implements MakoConstants {
 	public int keys = 0;
 
 	private SourceDataLine soundLine = null;
-	private final byte[] abuffer = new byte[8040];
+	private final byte[] abuffer = new byte[8000];
 	private int apointer = 0;
 
 	public final java.util.Queue<Integer> keyQueue = new java.util.LinkedList<Integer>();
@@ -17,7 +17,7 @@ public class MakoVM implements MakoConstants {
 	public MakoVM(int[] m) {
 		this.m = m;
 		try {
-			AudioFormat format = new AudioFormat(8040f, 8, 1, false, false);
+			AudioFormat format = new AudioFormat(8000f, 8, 1, false, false);
 			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 			soundLine = (SourceDataLine)AudioSystem.getLine(info);
 			soundLine.open(format, 670);

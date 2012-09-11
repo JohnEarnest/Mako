@@ -66,15 +66,15 @@
 : main
 	0 note !
 	loop
-		2000 for
-			#' square   voice ! i note @ lead    + @ exec
-			#' sawtooth voice ! i note @ harmony + @ exec
-			#+
-			' square   voice ! i note @ moon  + @ exec
-			' sawtooth voice ! i note @ moon2 + @ exec
-			or
+		1000 for
+			' square   voice ! i note @ lead    + @ exec
+			' sawtooth voice ! i note @ harmony + @ exec +
+			' square   voice ! i note @ moon    + @ exec +
+			' sawtooth voice ! i note @ moon2   + @ exec + 4 /
+			#or
 			AU !
 		next
 		note @ 1 + 16 mod note !
+		sync
 	again
 ;
