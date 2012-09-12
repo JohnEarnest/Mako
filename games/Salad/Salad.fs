@@ -544,7 +544,9 @@
 	 -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1 
 
 :const gear         0
-:const spin        13 
+:const spin        13
+:const nuke        33
+:const mushroom    34 
 :const top-base     1
 :const icon-base   14
 :const cursor-base 26
@@ -559,7 +561,11 @@
 :var   direction
 
 : random-salad ( -- id )
-	RN @ 13 mod
+	RN @ 25 mod -if
+		nuke
+	else
+		RN @ 13 mod
+	then
 ;
 
 : double? ( id -- flag )
@@ -571,7 +577,7 @@
 ;
 
 : valid? ( id -- flag )
-	dup 0 > swap 13 < and
+	dup nuke = dup 0 > swap 13 < and or
 ;
 
 : match? ( a b -- flag )
@@ -780,7 +786,15 @@
 	2dup here @ match? -if 2drop exit then # non-matching tile
 
 	dup visited + on
-	dup here @ 1 - icon-base + over icons + tile!
+	dup here @ nuke = if
+		mushroom over icons + tile!
+		9 for
+			dup 10 mod i         10 * + icons + mushroom swap tile!
+			i          over 10 / 10 * + icons + mushroom swap tile!
+		next
+	else
+		dup here @ 1 - icon-base + over icons + tile!
+	then
 	
 	dup         9 > if 2dup 10 - region-clear then # up
 	dup        90 < if 2dup 10 + region-clear then # down
@@ -793,7 +807,6 @@
 	false
 	99 for
 		clear-visited
-
 		i dup here @ swap region-size 3 > if
 			play-buzz
 			clear-visited
@@ -807,11 +820,18 @@
 : total-points ( -- )
 	99 for
 		i ico @ 32 = -if
-			10 i here @ double? if 2 * then dup
-			score @ + score !
-			time  @ + time  !
+			i here @ nuke = if
+				time @ 600 -
+				dup 0 < if drop 0 then
+				time !
+			else
+				10 i here @ double? if 2 * then dup
+				score @ + score !
+				time  @ + time  !
+			then
+			i ico @ mushroom = if random-salad else 32 then
+			   i here !
 			32 i ico  !
-			32 i here !
 		then
 	next
 	hud
