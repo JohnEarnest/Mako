@@ -9,7 +9,7 @@ public class MakoVM implements MakoConstants {
 	public int keys = 0;
 
 	private SourceDataLine soundLine = null;
-	private final byte[] abuffer = new byte[1000];
+	private final byte[] abuffer = new byte[8000];
 	private int apointer = 0;
 
 	public final java.util.Queue<Integer> keyQueue = new java.util.LinkedList<Integer>();
@@ -20,7 +20,7 @@ public class MakoVM implements MakoConstants {
 			AudioFormat format = new AudioFormat(8000f, 8, 1, false, false);
 			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 			soundLine = (SourceDataLine)AudioSystem.getLine(info);
-			soundLine.open(format, 32000);
+			soundLine.open(format, 670);
 			soundLine.start();
 		}
 		catch(IllegalArgumentException e) { System.out.println("Unable to initialize sound."); }
@@ -92,12 +92,9 @@ public class MakoVM implements MakoConstants {
 
 	private void stor(int addr, int value) {
 		if (addr == CO) { System.out.print((char)value); return; }
-		if (addr == AU && soundLine != null) {
-			abuffer[apointer++] = (byte)value;
-			apointer %= abuffer.length;
-			if (apointer == 0) {
-				soundLine.write(abuffer, 0, abuffer.length);
-			}
+		if (addr == AU) {
+			abuffer[apointer] = (byte)value;
+			if (apointer < abuffer.length - 1) { apointer++; }
 		}
 		m[addr] = value;
 	}
@@ -160,5 +157,10 @@ public class MakoVM implements MakoConstants {
 			drawSprite(tile, status, px - scrollx, py - scrolly);
 		}
 		drawGrid(true, scrollx, scrolly);
+
+		if (soundLine != null && apointer > 0) {
+			soundLine.write(abuffer, 0, apointer);
+			apointer = 0;
+		}
 	}
 }
