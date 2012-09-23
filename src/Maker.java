@@ -10,7 +10,7 @@ public class Maker implements MakoConstants {
 	private Map<String, Integer> variables = new TreeMap<String, Integer>();
 	private Map<String, List<Integer>> prototypes = new HashMap<String, List<Integer>>();
 	private Map<String, List<Integer>> references = new HashMap<String, List<Integer>>();
-	private MakoRom rom = new MakoRom();
+	private MakoRom rom;
 	private boolean compiling = false;
 	private String wordName = null;
 	private Stack<Integer> branchStack = new Stack<Integer>();
@@ -121,7 +121,23 @@ public class Maker implements MakoConstants {
 		return false;
 	}
 
+	public Maker(MakoRom rom) {
+		this.rom = rom;
+
+		// sprite size constants:
+		for(int x = 0; x < 8; x++) {
+			for(int y = 0; y < 8; y++) {
+				int w = (x + 1) * 8;
+				int h = (y + 1) * 8;
+				int v = ((x << 8) & 0x0F00) | ((y << 12) & 0xF000) | 1;
+				defineConstant(String.format("%dx%d", w, h), v);
+			}
+		}
+	}
+
 	public Maker() {
+		this(new MakoRom());
+
 		buildRegion("registers", RESERVED_HEADER);
 		defineVariable("PC", PC);
 		defineVariable("DP", DP);
@@ -136,35 +152,9 @@ public class Maker implements MakoConstants {
 		defineVariable("CL", CL);
 		defineVariable("RN", RN);
 		defineVariable("KY", KY);
-		defineVariable("CO", CO); // character-out (debug)
+		defineVariable("CO", CO);
 		defineVariable("AU", AU);
 		defineVariable("KB", KB);
-
-		defineConstant("key-up", KEY_UP);
-		defineConstant("key-rt", KEY_RT);
-		defineConstant("key-dn", KEY_DN);
-		defineConstant("key-lf", KEY_LF);
-		defineConstant("key-a",  KEY_A);
-		defineConstant("key-b",  KEY_B);
-
-		defineConstant("sprite-mirror-horiz", H_MIRROR_MASK);
-		defineConstant("sprite-mirror-vert",  V_MIRROR_MASK);
-		defineConstant("grid-z",              GRID_Z_MASK);
-
-		// sprite size constants:
-		for(int x = 0; x < 8; x++) {
-			for(int y = 0; y < 8; y++) {
-				int w = (x + 1) * 8;
-				int h = (y + 1) * 8;
-				int v = ((x << 8) & 0x0F00) | ((y << 12) & 0xF000) | 1;
-				defineConstant(String.format("%dx%d", w, h), v);
-			}
-		}
-
-		defineConstant("grid-skip", 0);
-		defineConstant("scroll-x", 0);
-		defineConstant("scroll-y", 0);
-		defineConstant("clear-color", 0xFF000000);
 	}
 
 	public MakoRom compile(String filename) {
@@ -237,8 +227,11 @@ public class Maker implements MakoConstants {
 		while ((read = in.read(buffer)) >= 0) {
 			contents.append(buffer, 0, read);
 		}
-		String source = contents.toString();
+		compileFragment(contents.toString());
+		currentPath.pop();
+	}
 
+	private void compileFragment(String source) throws IOException {
 		Queue<Object> tokens = tokens(source);
 		while(tokens.size() > 0) {
 			Object token = tokens.remove();
@@ -250,7 +243,6 @@ public class Maker implements MakoConstants {
 				compileToken((String)token, tokens);
 			}
 		}
-		currentPath.pop();
 	}
 
 	private void compileToken(String token, Queue<Object> tokens) throws IOException {
