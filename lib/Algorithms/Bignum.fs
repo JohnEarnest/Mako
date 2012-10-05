@@ -18,8 +18,6 @@
 : pair    2 alloc dup >r ptr> swap over 1 + ! ! r> ; ( first rest -- pair )
 : first   ptr>     @                               ; ( pair -- first )
 : rest    ptr> 1 + @                               ; ( pair --  rest )
-: first!  ptr>     !                               ; ( value pair -- )
-: rest!   ptr> 1 + !                               ; ( value pair -- )
 :  split  dup first swap  rest                     ; ( pair -- first rest )
 : -split  dup  rest swap first                     ; ( pair -- rest first )
 

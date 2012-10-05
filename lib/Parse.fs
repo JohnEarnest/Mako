@@ -31,12 +31,12 @@
 ######################################################
 
 :data line 1
-:var  char
+:data char 1
 
 : advance ( char -- )
 	10 = if
 		line inc
-		0 char !
+		1 char !
 	else
 		char inc
 	then
@@ -50,7 +50,7 @@
 	halt
 ;
 
-:vector read  CO @ dup advance ; ( -- char )
+:vector read  CO @ ; ( -- char )
 
 :var text-src
 : read-text ( -- char )
@@ -87,10 +87,10 @@
 :var b # tail
 :var s # size
 
-: q+   dup @ 1 + qs mod swap ! ; ( addr -- )
-: >q   a @ q + !  a q+  s inc  ; ( char -- )
-: q>   b @ q + @  b q+  s dec  ; ( -- char )
-: clear-q   0 a ! 0 b ! 0 s !  ; ( -- )
+: q+   dup @ 1 + qs mod swap !            ; ( addr -- )
+: >q   a @ q + !  a q+  s inc             ; ( char -- )
+: q>   b @ q + @  b q+  s dec dup advance ; ( -- char )
+: clear-q   0 a ! 0 b ! 0 s !             ; ( -- )
 
 : xq ( index -- char )
 	s @ over <= if
