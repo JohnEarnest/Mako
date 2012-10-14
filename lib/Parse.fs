@@ -42,7 +42,7 @@
 	then
 ;
 
-: fail ( string -- )
+:vector fail ( string -- )
 	type
 	" (line " type line @ .num
 	", char " type char @ .num
@@ -198,7 +198,7 @@
 
 :array pad pad-size 0
 
-: accept> ( pred -- )
+: accept> ( pred -- string )
 	>r pad pad-size r> input> trim pad
 ;
 
