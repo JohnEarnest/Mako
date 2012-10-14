@@ -271,25 +271,41 @@
 	">"  match? if jit-expr SGT >code                   exit then
 ;
 
+: jit-print ( -- )
+	loop
+		jit-expr
+		' basic-print jit-call
+		"," match?
+	while
+	";" match? -if
+		' cr jit-call
+	then
+;
+
+: jit-input ( -- )
+	loop
+		' basic-input jit-call
+		jit-var
+		STOR >code
+		"," match?
+	while
+;
+
+: jit-let ( -- )
+	jit-var
+	"=" expect
+	jit-expr
+	SWAP >code
+	STOR >code
+;
+
 : jit-line ( -- )
 	"print" match? if
-		loop
-			jit-expr
-			' basic-print jit-call
-			"," match?
-		while
-		";" match? -if
-			' cr jit-call
-		then
+		jit-print
 		exit
 	then
 	"input" match? if
-		loop
-			' basic-input jit-call
-			jit-var
-			STOR >code
-			"," match?
-		while
+		jit-input
 		exit
 	then
 	"goto" match? if
@@ -313,12 +329,7 @@
 	then
 
 	"let" starts? if "let" match? drop then
-	# implicitly a 'let'
-	jit-var
-	"=" expect
-	jit-expr
-	SWAP >code
-	STOR >code
+	jit-let
 ;
 
 :array jit-lines  512 0
@@ -330,12 +341,10 @@
 	lines inc
 ;
 
-: patch-goto ( patch-addr line-no -- )
+: goto-addr ( line-no -- addr )
 	lines @ 1 - for
 		i jit-lines + @ over = if
-			drop
-			i jit-addrs + @ swap !
-			rdrop exit
+			drop r> jit-addrs + @ exit
 		then
 	next
 	"No line numbered " type . "" abort
@@ -359,7 +368,7 @@
 	again
 	loop
 		gotos> dup -if drop break then
-		gotos> patch-goto
+		gotos> goto-addr swap !
 	again
 	RETURN >code
 	jit-heap
@@ -543,6 +552,47 @@
 ##
 ######################################################
 
+: eval ( proc -- )
+	true compiling !
+	jit-heap jit-head !
+	exec
+	RETURN >code
+	false compiling !
+	jit-heap exec
+;
+
+: statement ( -- )
+	"print" match? if
+		' jit-print eval
+		exit
+	then
+	"input" match? if
+		' jit-input eval
+		exit
+	then
+	"goto" match? if
+		number>
+		jit drop
+		" " >read trim
+		goto-addr exec
+		exit
+	then
+	"if" match? if
+		' jit-expr eval
+		"then" expect
+		if
+			statement
+		then
+		exit
+	then
+	"end" match? if
+		# do nothing
+		exit
+	then
+	"let" starts? if "let" match? drop then
+	' jit-let eval
+;
+
 : command ( -- )
 	eof? if
 		exit
@@ -550,6 +600,7 @@
 	"new" match? if
 		25 for 0 i jit-vars + ! next
 		0 program-lines !
+		"ready." typeln
 		exit
 	then
 	"list" match? if
@@ -569,10 +620,22 @@
 		exec
 		exit
 	then
-	"bye" match? if
-		halt
+	"help" match? if
+		"help  - list available commands"      typeln
+		"new   - reset the interpreter"        typeln
+		"list  - display program code"         typeln
+		"run   - execute the program"          typeln
+		cr
+		"print - write values to display"      typeln
+		"input - read values into variables"   typeln
+		"goto  - jump to a specified line"     typeln
+		"if    - conditional branch"           typeln
+		"end   - stop the program"             typeln
+		"let   - assign a value to a variable" typeln
+		cr
+		exit
 	then
-	"Unknown Command?" abort
+	statement
 ;
 
 : repl ( -- )
