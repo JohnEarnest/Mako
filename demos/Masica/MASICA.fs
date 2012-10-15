@@ -160,12 +160,17 @@
 ##
 ######################################################
 
+: basic-cap ( n -- n )
+	ptr-bits and
+	dup 0x80000000 and if ptr-mask or then
+;
+
 :proto readline
 
 : basic-input ( -- value )
 	eof? if readline >read trim then
 	numeral? if
-		signed>
+		signed> basic-cap
 	else
 		{ eof? not } accept> skip trim
 		stralloc
@@ -295,6 +300,7 @@
 	jit-var
 	"=" expect
 	jit-expr
+	' basic-cap jit-call
 	SWAP >code
 	STOR >code
 ;
