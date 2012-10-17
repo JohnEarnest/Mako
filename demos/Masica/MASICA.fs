@@ -172,6 +172,8 @@
 : int?   TYPE_INT  = -if "Integer expected." abort then ; ( type -- )
 : str?   TYPE_STR  = -if "String expected."  abort then ; ( type -- )
 
+: /0?    dup 0 = if "Cannot divide by zero." abort then ; ( n -- n )
+
 : basic-@ ( varno -- val type )
 	dup var-types + @ dup TYPE_STR = if
 		swap var-dynamic
@@ -204,21 +206,21 @@
 	basic= swap not swap
 ;
 
-: basic-+  int?  swap int?  +   TYPE_INT  ; ( a ta b ta -- a+b  INT  )
-: basic--  int?  swap int?  -   TYPE_INT  ; ( a ta b tb -- a-b  INT  )
-: basic-*  int?  swap int?  *   TYPE_INT  ; ( a ta b tb -- a*b  INT  )
-: basic-/  int?  swap int?  /   TYPE_INT  ; ( a ta b tb -- a/b  INT  )
-: basic-%  int?  swap int?  mod TYPE_INT  ; ( a ta b tb -- a%b  INT  )
-: basic-<  int?  swap int?  <   TYPE_BOOL ; ( a ta b tb -- a<b  BOOL )
-: basic->  int?  swap int?  >   TYPE_BOOL ; ( a ta b tb -- a>b  BOOL )
-: basic-<= int?  swap int?  <=  TYPE_BOOL ; ( a ta b tb -- a<=b BOOL )
-: basic->= int?  swap int?  >=  TYPE_BOOL ; ( a ta b tb -- a>=b BOOL )
-: basic-&  bool? swap bool? and TYPE_BOOL ; ( a ta b tb -- a&b  BOOL )
-: basic-|  bool? swap bool? or  TYPE_BOOL ; ( a ta b tb -- a|b  BOOL )
+: basic-+  int?  swap int?      +   TYPE_INT  ; ( a ta b ta -- a+b  INT  )
+: basic--  int?  swap int?      -   TYPE_INT  ; ( a ta b tb -- a-b  INT  )
+: basic-*  int?  swap int?      *   TYPE_INT  ; ( a ta b tb -- a*b  INT  )
+: basic-/  int?  swap int?  /0? /   TYPE_INT  ; ( a ta b tb -- a/b  INT  )
+: basic-%  int?  swap int?  /0? mod TYPE_INT  ; ( a ta b tb -- a%b  INT  )
+: basic-<  int?  swap int?      <   TYPE_BOOL ; ( a ta b tb -- a<b  BOOL )
+: basic->  int?  swap int?      >   TYPE_BOOL ; ( a ta b tb -- a>b  BOOL )
+: basic-<= int?  swap int?      <=  TYPE_BOOL ; ( a ta b tb -- a<=b BOOL )
+: basic->= int?  swap int?      >=  TYPE_BOOL ; ( a ta b tb -- a>=b BOOL )
+: basic-&  bool? swap bool?     and TYPE_BOOL ; ( a ta b tb -- a&b  BOOL )
+: basic-|  bool? swap bool?     or  TYPE_BOOL ; ( a ta b tb -- a|b  BOOL )
 
-: basic-not  bool? not          TYPE_BOOL ; ( val type -- ~val BOOL )
-: basic-neg  int? -1 *          TYPE_INT  ; ( val type -- -val INT  )
-: basic-rnd  int? RN @ swap mod TYPE_INT  ; ( max+1 type -- num INT )
+: basic-not  bool? not              TYPE_BOOL ; ( val type -- ~val BOOL )
+: basic-neg  int? -1 *              TYPE_INT  ; ( val type -- -val INT  )
+: basic-rnd  int? RN @ swap /0? mod TYPE_INT  ; ( max+1 type -- num INT )
 
 ######################################################
 ##
