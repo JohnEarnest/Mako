@@ -41,11 +41,11 @@
 
 :var restart-vector
 
-:var compiling
+:var showline
 :var lineno
 
 : abort ( string -- )
-	compiling @ if
+	showline @ if
 		"line " type
 		lineno @ .num
 		": " type
@@ -59,7 +59,10 @@
 ;
 
 : brk ( -- )
-	KB @ 3 = if "BREAK" abort then
+	KB @ 3 = if
+		false showline !
+		"BREAK" abort
+	then
 ;
 
 : expect ( string -- )
@@ -415,7 +418,7 @@
 ;
 
 : jit ( -- entrypoint )
-	true compiling !
+	true showline !
 	jit-heap  jit-head !
 	jit-gotos    gotos !
 	0 >gotos
@@ -427,6 +430,13 @@
 		dup first rest ptr> >read
 		number> dup lineno !
 		jit-head @ >lines
+
+		# update line number while
+		# executing code for error messages:
+		lineno @ jit-const
+		lineno   jit-const
+		STOR >code
+
 		jit-line
 		rest
 	again
@@ -436,7 +446,7 @@
 	again
 	RETURN >code
 	jit-heap
-	false compiling !
+	false showline !
 ;
 
 ######################################################
@@ -617,11 +627,10 @@
 ######################################################
 
 : eval ( proc -- )
-	true compiling !
+	false showline !
 	jit-heap jit-head !
 	exec
 	RETURN >code
-	false compiling !
 	jit-heap exec
 ;
 
@@ -638,7 +647,10 @@
 		number>
 		jit drop
 		" " >read trim
-		goto-addr exec
+		goto-addr
+		true showline !
+		exec
+		false showline !
 		exit
 	then
 	"if" match? if
@@ -690,7 +702,9 @@
 	"run" match? if
 		jit
 		" " >read trim
+		true showline !
 		exec
+		false showline !
 		exit
 	then
 	"help" match? if
