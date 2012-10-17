@@ -82,7 +82,7 @@
 :include <Algorithms/Garbage.fs>
 
 : managed-begin ;
-:array jit-vars   26 0
+:array var-dynamic 26 0
 :array jit-heap 4096 0
 :var   program-lines # ((line-no . string) . next)
 : managed-end ;
@@ -151,6 +151,74 @@
 
 ######################################################
 ##
+##  Dynamic primitive wrappers:
+##
+##  This is how we apply different definitions based
+##  on the operand types at play.
+##
+######################################################
+
+:array var-types   26 0
+:array var-values  26 0
+
+:const TYPE_BOOL 0
+:const TYPE_INT  1
+:const TYPE_STR  2
+
+: bool?  TYPE_BOOL = -if "Boolean expected." abort then ; ( type -- )
+: int?   TYPE_INT  = -if "Integer expected." abort then ; ( type -- )
+: str?   TYPE_STR  = -if "String expected."  abort then ; ( type -- )
+
+: basic-@ ( varno -- val type )
+	dup var-types + @ dup TYPE_STR = if
+		swap var-dynamic
+	else
+		swap var-values
+	then
+	+ @ swap
+;
+
+: basic-! ( val type varno -- )
+	2dup var-types + !
+	swap TYPE_STR = if
+		var-dynamic
+	else
+		var-values
+	then
+	+ !
+;
+
+: basic= ( a ta b tb -- flag BOOL )
+	>r over r> = -if "Type mismatch!" abort then
+	swap TYPE_STR = if
+		ptr> swap ptr> -text 0 = TYPE_STR
+	else
+		=
+	then
+;
+
+: basic<> ( a ta b tb -- flag BOOL )
+	basic= swap not swap
+;
+
+: basic-+  int?  swap int?  +   TYPE_INT  ; ( a ta b ta -- a+b  INT  )
+: basic--  int?  swap int?  -   TYPE_INT  ; ( a ta b tb -- a-b  INT  )
+: basic-*  int?  swap int?  *   TYPE_INT  ; ( a ta b tb -- a*b  INT  )
+: basic-/  int?  swap int?  /   TYPE_INT  ; ( a ta b tb -- a/b  INT  )
+: basic-%  int?  swap int?  mod TYPE_INT  ; ( a ta b tb -- a%b  INT  )
+: basic-<  int?  swap int?  <   TYPE_BOOL ; ( a ta b tb -- a<b  BOOL )
+: basic->  int?  swap int?  >   TYPE_BOOL ; ( a ta b tb -- a>b  BOOL )
+: basic-<= int?  swap int?  <=  TYPE_BOOL ; ( a ta b tb -- a<=b BOOL )
+: basic->= int?  swap int?  >=  TYPE_BOOL ; ( a ta b tb -- a>=b BOOL )
+: basic-&  bool? swap bool? and TYPE_BOOL ; ( a ta b tb -- a&b  BOOL )
+: basic-|  bool? swap bool? or  TYPE_BOOL ; ( a ta b tb -- a|b  BOOL )
+
+: basic-not  bool? not          TYPE_BOOL ; ( val type -- ~val BOOL )
+: basic-neg  int? -1 *          TYPE_INT  ; ( val type -- -val INT  )
+: basic-rnd  int? RN @ swap mod TYPE_INT  ; ( max+1 type -- num INT )
+
+######################################################
+##
 ##  BASIC Library:
 ##
 ##  These are a number of routines that are used
@@ -160,41 +228,26 @@
 ##
 ######################################################
 
-: basic-cap ( n -- n )
-	ptr-bits and
-	dup 0x80000000 and if ptr-mask or then
-;
-
 :proto readline
 
-: basic-input ( -- value )
+: basic-input ( -- val type )
 	eof? if readline >read trim then
 	numeral? if
-		signed> basic-cap
+		signed> TYPE_INT
 	else
 		{ eof? not } accept> skip trim
-		stralloc
+		stralloc TYPE_STR
 	then
 ;
 
-: basic-print ( value -- )
-	dup p? if
-		ptr> type
-	else
-		.
-	then
+: basic-print ( val type -- )
+	dup TYPE_STR  = if drop ptr> type                          exit then
+	dup TYPE_BOOL = if drop if "true " else "false " then type exit then
+	drop .
 ;
 
 : basic-goto ( addr -- )
 	brk r> drop >r
-;
-
-: basic= ( a b -- flag )
-	over p? over p? and if
-		ptr> swap ptr> -text 0 =
-	else
-		=
-	then
 ;
 
 ######################################################
@@ -225,20 +278,24 @@
 : jit-var ( -- )
 	name? -if "Syntax Error?" abort then
 	getc trim to-lower "a" @ -
-	jit-vars + jit-const
+	jit-const
 ;
 
 :proto jit-expr
 :const quote 34
 
 :vector primary ( -- )
-	"(" match?   if jit-expr ")" expect exit then
-	numeral?     if number> jit-const   exit then
-	name?        if jit-var LOAD >code  exit then
-	curr quote = if
+	"true"  match? if true  jit-const TYPE_BOOL jit-const exit then
+	"false" match? if false jit-const TYPE_BOOL jit-const exit then
+	"rnd("  match? if jit-expr ")" expect ' basic-rnd jit-call exit then
+	"(" match?     if jit-expr ")" expect exit then
+	numeral?       if number> jit-const TYPE_INT jit-const exit then
+	name?          if jit-var     ' basic-@ jit-call       exit then
+	curr quote =   if
 		skip
 		{ curr quote != eof? not and }
 		accept> stralloc jit-const
+		TYPE_STR jit-const
 		skip trim
 		exit
 	then
@@ -246,34 +303,34 @@
 ;
 
 : unary ( -- )
-	"-"   match? if unary -1 jit-const MUL >code exit then
-	"not" match? if unary              NOT >code exit then
+	"-"   match? if unary ' basic-neg jit-call exit then
+	"not" match? if unary ' basic-not jit-call exit then
 	primary
 ;
 
 : multiplicative ( -- )
 	unary
-	"*"   match? if multiplicative MUL >code exit then
-	"/"   match? if multiplicative DIV >code exit then
-	"%"   match? if multiplicative MOD >code exit then
-	"and" match? if multiplicative AND >code exit then
+	"*"   match? if multiplicative ' basic-* jit-call exit then
+	"/"   match? if multiplicative ' basic-/ jit-call exit then
+	"%"   match? if multiplicative ' basic-% jit-call exit then
+	"and" match? if multiplicative ' basic-& jit-call exit then
 ;
 
 : additive ( -- )
 	multiplicative
-	"+"  match? if additive ADD >code exit then
-	"-"  match? if additive SUB >code exit then
-	"or" match? if additive OR  >code exit then
+	"+"  match? if additive ' basic-+ jit-call exit then
+	"-"  match? if additive ' basic-- jit-call exit then
+	"or" match? if additive ' basic-| jit-call exit then
 ;
 
 : jit-expr ( -- )
 	additive
-	"<>" match? if jit-expr ' basic= jit-call NOT >code exit then
-	"="  match? if jit-expr ' basic= jit-call           exit then
-	"<=" match? if jit-expr SGT >code         NOT >code exit then
-	">=" match? if jit-expr SLT >code         NOT >code exit then
-	"<"  match? if jit-expr SLT >code                   exit then
-	">"  match? if jit-expr SGT >code                   exit then
+	"<>" match? if jit-expr ' basic<>  jit-call exit then
+	"="  match? if jit-expr ' basic=   jit-call exit then
+	"<=" match? if jit-expr ' basic-<= jit-call exit then
+	">=" match? if jit-expr ' basic->= jit-call exit then
+	"<"  match? if jit-expr ' basic-<  jit-call exit then
+	">"  match? if jit-expr ' basic->  jit-call exit then
 ;
 
 : jit-print ( -- )
@@ -291,18 +348,18 @@
 	loop
 		' basic-input jit-call
 		jit-var
-		STOR >code
+		' basic-! jit-call
 		"," match?
 	while
 ;
 
 : jit-let ( -- )
 	jit-var
+	STR >code
 	"=" expect
 	jit-expr
-	' basic-cap jit-call
-	SWAP >code
-	STOR >code
+	RTS >code
+	' basic-! jit-call
 ;
 
 : jit-line ( -- )
@@ -324,6 +381,7 @@
 	"if" match? if
 		jit-expr
 		"then" expect
+		' bool? jit-call
 		JUMPZ >code jit-head @ -1 >code
 		jit-line
 		jit-head @ swap !
@@ -586,6 +644,7 @@
 	"if" match? if
 		' jit-expr eval
 		"then" expect
+		bool?
 		if
 			statement
 		then
@@ -599,13 +658,21 @@
 	' jit-let eval
 ;
 
+: init ( -- )
+	25 for
+		TYPE_INT i var-types   + !
+		       0 i var-values  + !
+		       0 i var-dynamic + !
+	next
+	0 program-lines !
+;
+
 : command ( -- )
 	eof? if
 		exit
 	then
 	"new" match? if
-		25 for 0 i jit-vars + ! next
-		0 program-lines !
+		init
 		"ready." typeln
 		exit
 	then
@@ -660,6 +727,7 @@
 
 : main ( -- )
 	gc-init
+	init
 	intro
 
 	1 1 "MASICA BIOS 0.1" grid-type
