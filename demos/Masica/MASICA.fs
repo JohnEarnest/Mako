@@ -194,7 +194,13 @@
 ;
 
 : basic-== ( a ta b tb -- flag BOOL )
-	>r over r> = -if "Type mismatch!" abort then
+	>r over r> = -if
+		# different types can be compared without
+		# a type error, but they cannot be equal.
+		drop 2drop
+		false TYPE_BOOL
+		exit
+	then
 	swap TYPE_STR = if
 		ptr> swap ptr> -text 0 =
 	else
@@ -281,6 +287,10 @@
 : jit-call   CALL  >code >code               ; ( addr -- )
 : jit-const  CONST >code >code               ; ( val -- )
 
+: finish ( -- )
+	trim eof? -if "Syntax Error?" abort then
+;
+
 : jit-var ( -- )
 	name? -if "Syntax Error?" abort then
 	getc trim to-lower "a" @ -
@@ -348,6 +358,7 @@
 	";" match? -if
 		' cr jit-call
 	then
+	finish
 ;
 
 : jit-input ( -- )
@@ -357,6 +368,7 @@
 		' basic-! jit-call
 		"," match?
 	while
+	finish
 ;
 
 : jit-let ( -- )
@@ -366,6 +378,7 @@
 	jit-expr
 	RTS >code
 	' basic-! jit-call
+	finish
 ;
 
 : jit-line ( -- )
@@ -382,6 +395,7 @@
 		jit-head @ 1 + >gotos
 		-1 jit-const
 		' basic-goto jit-call
+		finish
 		exit
 	then
 	"if" match? if
@@ -395,6 +409,7 @@
 	then
 	"end" match? if
 		RETURN >code
+		finish
 		exit
 	then
 
@@ -421,6 +436,7 @@
 ;
 
 : jit ( -- entrypoint )
+	program-lines @ -if "No program entered." abort then
 	true showline !
 	jit-heap  jit-head !
 	jit-gotos    gotos !
@@ -648,8 +664,9 @@
 	then
 	"goto" match? if
 		number>
-		jit drop
+		finish
 		" " >read trim
+		jit drop
 		goto-addr
 		true showline !
 		exec
@@ -667,6 +684,7 @@
 	then
 	"end" match? if
 		# do nothing
+		finish
 		exit
 	then
 	"let" starts? if "let" match? drop then
@@ -687,11 +705,13 @@
 		exit
 	then
 	"new" match? if
+		finish
 		init
 		"ready." typeln
 		exit
 	then
 	"list" match? if
+		finish
 		program-lines @ -if exit then
 		program-lines @ loop
 			dup first rest nil? if
@@ -703,6 +723,7 @@
 		exit
 	then
 	"run" match? if
+		finish
 		jit
 		" " >read trim
 		true showline !
@@ -711,6 +732,7 @@
 		exit
 	then
 	"help" match? if
+		finish
 		"help  - list available commands"      typeln
 		"new   - reset the interpreter"        typeln
 		"list  - display program code"         typeln
