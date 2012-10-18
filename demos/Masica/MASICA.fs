@@ -15,7 +15,7 @@
 ##  Expressions can be composed from the following
 ##  operators, which perform integer arithmetic:
 ##
-##    + - * / % and or not = <> > < >= <=
+##    + - * / % and or not == != > < >= <=
 ##
 ##  John Earnest
 ##
@@ -81,12 +81,12 @@
 ##
 ######################################################
 
-:const heap-size 4096
+:const heap-size 65536
 :include <Algorithms/Garbage.fs>
 
 : managed-begin ;
 :array var-dynamic 26 0
-:array jit-heap 4096 0
+:array jit-heap heap-size 0
 :var   program-lines # ((line-no . string) . next)
 : managed-end ;
 
@@ -193,17 +193,18 @@
 	+ !
 ;
 
-: basic= ( a ta b tb -- flag BOOL )
+: basic-== ( a ta b tb -- flag BOOL )
 	>r over r> = -if "Type mismatch!" abort then
 	swap TYPE_STR = if
-		ptr> swap ptr> -text 0 = TYPE_STR
+		ptr> swap ptr> -text 0 =
 	else
 		=
 	then
+	TYPE_BOOL
 ;
 
-: basic<> ( a ta b tb -- flag BOOL )
-	basic= swap not swap
+: basic-!= ( a ta b tb -- flag BOOL )
+	basic-== swap not swap
 ;
 
 : basic-+  int?  swap int?      +   TYPE_INT  ; ( a ta b ta -- a+b  INT  )
@@ -330,8 +331,8 @@
 
 : jit-expr ( -- )
 	additive
-	"<>" match? if jit-expr ' basic<>  jit-call exit then
-	"="  match? if jit-expr ' basic=   jit-call exit then
+	"!=" match? if jit-expr ' basic-!= jit-call exit then
+	"==" match? if jit-expr ' basic-== jit-call exit then
 	"<=" match? if jit-expr ' basic-<= jit-call exit then
 	">=" match? if jit-expr ' basic->= jit-call exit then
 	"<"  match? if jit-expr ' basic-<  jit-call exit then
@@ -606,8 +607,8 @@
 			then
 		again
 
-		keys key-rt and if cursor @ 1 + used @ min cursor ! then
-		keys key-lf and if cursor @ 1 -      0 max cursor ! then
+		keys key-rt and if cursor @ 1 + used @ min cursor ! sync sync then
+		keys key-lf and if cursor @ 1 -      0 max cursor ! sync sync then
 
 		39 for
 			i used @ >= if 0 else i input + @ 32 - then
@@ -747,7 +748,7 @@
 	intro
 
 	1 1 "MASICA BIOS 0.1" grid-type
-	1 2 "4096k OK"        grid-type
+	1 2 "128k OK"         grid-type
 
 	' console-emit ' emit revector
 	' abort        ' fail revector
