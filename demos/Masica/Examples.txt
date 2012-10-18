@@ -22,7 +22,7 @@ Die roller:
 
 Guess the number:
 
-	10 a = rnd(100)+1
+	10 n = rnd(100)+1
 	20 print "What's your guess? ";
 	30 input g
 	40 if n <  g then print "Too High!"
