@@ -1,0 +1,48 @@
+Obligatory:
+
+	10 print "Hello, World!"
+	20 goto 10
+
+Fibs (thanks, avpx):
+
+	0 x = 0
+	1 y = 1
+	2 z = x + y
+	3 x = y
+	4 y = z
+	5 print y
+	6 goto 2
+
+Die roller:
+
+	10 c = 10
+	20 print rnd(6)+1;
+	30 c = c - 1
+	40 if c > 0 then goto 20
+
+Guess the number:
+
+	10 a = rnd(100)+1
+	20 print "What's your guess? ";
+	30 input g
+	40 if n <  g then print "Too High!"
+	50 if n >  g then print "Too Low!"
+	60 if n != g then goto 20
+	70 print "Correct!"
+
+A simple text-based Lunar Lander game:
+
+	10 a = 100 + rnd(20)
+	11 v = rnd(5)
+	12 f = 80 + rnd(10)
+	20 print "a: ",a,"v: ",v,"f: ",f
+	30 print "thrust? ";
+	40 input t
+	50 if t > f  then t = 0
+	60 if t > 30 then t = 30
+	70 f = f - t
+	80 v = v + 4 - t
+	90 a = a - v
+	100 if a >  0 then goto 20
+	110 if v >  5 then print "CRASH!"
+	120 if v <= 5 then print "success!"
