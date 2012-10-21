@@ -46,3 +46,18 @@ A simple text-based Lunar Lander game:
 	100 if a >  0 then goto 20
 	110 if v >  5 then print "CRASH!"
 	120 if v <= 5 then print "success!"
+
+Submarine Hunt:
+
+	10 x = rnd(10)
+	11 y = rnd(10)
+	20 x = (x+rnd(3)-1)%10
+	21 y = (y+rnd(3)-1)%10
+	30 print "fire at?"
+	40 input a, b
+	50 d = min(abs(a-x),abs(b-y))
+	60 if d == 0 then goto 100
+	70 if d >  3 then print "Missed."
+	80 if d <= 3 then print "Close: ", d
+	90 goto 20
+	100 print "hit!"
