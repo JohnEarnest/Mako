@@ -100,12 +100,19 @@
 :  split  dup first swap  rest                     ; ( pair -- first rest )
 : -split  dup  rest swap first                     ; ( pair -- rest first )
 
+:const max-line 500000
+
 : insert-line ( string line-no -- )
+
+	dup 0 < over max-line >= or if
+		2drop
+		"Invalid line number." abort
+	then
 
 	# no root
 	program-lines @ -if
 		swap pair
-		500000 nil pair
+		max-line nil pair
 		nil pair
 		pair
 		program-lines !
@@ -143,6 +150,55 @@
 			break
 		then
 		rest
+	again
+;
+
+: remove-line ( number -- )
+	program-lines @ -if
+		drop "No such line number." abort
+	then
+	
+	# = first element
+	program-lines @ first first over = if
+		drop
+		program-lines @ rest
+		program-lines !
+
+		# clear the chain entirely if we
+		# are removing the first element:
+		program-lines @ first first max-line = if
+			0 program-lines !
+		then
+		exit
+	then
+
+	# otherwise, find predecessor
+	program-lines @ loop
+		( line root )
+		2dup rest first first = if
+			dup rest rest swap rest!
+			drop exit
+		then
+		dup rest first first max-line = if
+			2drop "No such line number." abort
+		then
+		rest
+	again
+;
+
+: get-line ( number -- str )
+	program-lines @ -if
+		drop "No such line number." abort
+	then
+	program-lines @ loop
+		2dup first first = if
+			swap drop
+			first rest ptr>
+			exit
+		then
+		dup first first max-line = if
+			2drop "No such line number." abort
+		then
 	again
 ;
 
@@ -229,6 +285,8 @@
 : basic-neg  int? -1 *              TYPE_INT  ; ( val type -- -val INT  )
 : basic-rnd  int? RN @ swap /0? mod TYPE_INT  ; ( max+1 type -- num INT )
 
+: basic-num  swap drop TYPE_INT =   TYPE_BOOL ; ( val type -- flag BOOL )
+
 ######################################################
 ##
 ##  BASIC Library:
@@ -243,8 +301,8 @@
 :proto readline
 
 : basic-input ( -- val type )
-	eof? if readline >read trim then
-	numeral? if
+	eof? if false readline >read trim then
+	numeral? "-" @ curr = or if
 		signed> TYPE_INT
 	else
 		{ eof? not } accept> skip trim
@@ -304,6 +362,7 @@
 	"true"  match? if true  jit-const TYPE_BOOL jit-const exit then
 	"false" match? if false jit-const TYPE_BOOL jit-const exit then
 	"rnd("  match? if jit-expr ")" expect ' basic-rnd jit-call exit then
+	"num("  match? if jit-expr ")" expect ' basic-num jit-call exit then
 	"(" match?     if jit-expr ")" expect exit then
 	numeral?       if number> jit-const TYPE_INT jit-const exit then
 	name?          if jit-var     ' basic-@ jit-call       exit then
@@ -432,7 +491,7 @@
 			drop r> jit-addrs + @ exit
 		then
 	next
-	"No line numbered " type . "" abort
+	drop "No such line number." abort
 ;
 
 : jit ( -- entrypoint )
@@ -589,12 +648,22 @@
 	console-grid  GP !
 ;
 
-: readline ( -- )
+: readline ( string? flag -- str )
 	input-clear
+	if
+		dup size used !
+		input over size >move
+	then
 	cursor-s show
 	loop
 		loop
 			KB @ dup -1 = if drop break then
+			dup 3 = if
+				drop
+				cursor-s hide
+				input-clear
+				"BREAK" abort
+			then
 			dup 10 = if
 				# return
 				drop
@@ -700,6 +769,8 @@
 	0 program-lines !
 ;
 
+:proto repl-line
+
 : command ( -- )
 	eof? if
 		exit
@@ -712,7 +783,9 @@
 	then
 	"list" match? if
 		finish
-		program-lines @ -if exit then
+		program-lines @ -if
+			"No program entered." abort
+		then
 		program-lines @ loop
 			dup first rest nil? if
 				drop break
@@ -731,12 +804,24 @@
 		false showline !
 		exit
 	then
+	"edit" match? if
+		number> finish
+		get-line true readline
+		repl-line
+		exit
+	then
+	"erase" match? if
+		number> finish remove-line
+		exit
+	then
 	"help" match? if
 		finish
 		"help  - list available commands"      typeln
 		"new   - reset the interpreter"        typeln
 		"list  - display program code"         typeln
 		"run   - execute the program"          typeln
+		"edit  - modify a line of code"        typeln
+		"erase - delete a line of code"        typeln
 		cr
 		"print - write values to display"      typeln
 		"input - read values into variables"   typeln
@@ -750,18 +835,19 @@
 	statement
 ;
 
+: repl-line ( str -- )
+	dup >read trim
+	numeral? if
+		dup stralloc
+		number> insert-line
+	else
+		command
+	then
+	drop
+;
+
 : repl ( -- )
-	loop
-		readline
-		dup >read trim
-		numeral? if
-			dup stralloc
-			number> insert-line
-		else
-			command
-		then
-		drop
-	again
+	loop false readline repl-line again
 ;
 
 : main ( -- )
