@@ -327,6 +327,20 @@
 	mod TYPE_INT
 ;
 
+: basic-abs ( val type -- val INT )
+	int? dup 0 < if -1 * then TYPE_INT
+;
+
+: basic-min ( a ta b tb -- val INT )
+	int? swap int?
+	2dup > if swap then drop TYPE_INT
+;
+
+: basic-max ( a ta b tb -- val INT )
+	int? swap int?
+	2dup < if swap then drop TYPE_INT
+;
+
 ######################################################
 ##
 ##  BASIC Library:
@@ -398,13 +412,19 @@
 :proto jit-expr
 :const quote 34
 
+: 1arg  jit-expr ")" expect jit-call ; ( func -- )
+: 2arg  jit-expr "," expect 1arg     ; ( func -- )
+
 :vector primary ( -- )
 	"true"  match? if true  jit-const TYPE_BOOL jit-const exit then
 	"false" match? if false jit-const TYPE_BOOL jit-const exit then
-	"rnd("  match? if jit-expr ")" expect ' basic-rnd  jit-call exit then
-	"num("  match? if jit-expr ")" expect ' basic-num  jit-call exit then
-	"str("  match? if jit-expr ")" expect ' basic-str  jit-call exit then
-	"bool(" match? if jit-expr ")" expect ' basic-bool jit-call exit then
+	"rnd("  match? if ' basic-rnd  1arg exit then
+	"num("  match? if ' basic-num  1arg exit then
+	"str("  match? if ' basic-str  1arg exit then
+	"bool(" match? if ' basic-bool 1arg exit then
+	"abs("  match? if ' basic-abs  1arg exit then
+	"min("  match? if ' basic-min  2arg exit then
+	"max("  match? if ' basic-max  2arg exit then
 	"(" match?     if jit-expr ")" expect exit then
 	numeral?       if number> jit-const TYPE_INT jit-const exit then
 	name?          if jit-var     ' basic-@ jit-call       exit then
