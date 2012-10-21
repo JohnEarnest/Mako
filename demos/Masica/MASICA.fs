@@ -227,8 +227,12 @@
 : bool?  TYPE_BOOL = -if "Boolean expected." abort then ; ( type -- )
 : int?   TYPE_INT  = -if "Integer expected." abort then ; ( type -- )
 : str?   TYPE_STR  = -if "String expected."  abort then ; ( type -- )
-
 : /0?    dup 0 = if "Cannot divide by zero." abort then ; ( n -- n )
+
+: both? ( a ta b tb -- a b t )
+	>r over r> = -if "Type mismatch." abort then
+	swap
+;
 
 : basic-@ ( varno -- val type )
 	dup var-types + @ dup TYPE_STR = if
@@ -265,27 +269,63 @@
 	TYPE_BOOL
 ;
 
-: basic-!= ( a ta b tb -- flag BOOL )
-	basic-== swap not swap
+: basic-< ( a ta b tb -- a<b BOOL )
+	both?
+	TYPE_STR = if
+		ptr> swap ptr> -text 0 >
+	else
+		<
+	then
+	TYPE_BOOL
 ;
 
-: basic-+  int?  swap int?      +   TYPE_INT  ; ( a ta b ta -- a+b  INT  )
-: basic--  int?  swap int?      -   TYPE_INT  ; ( a ta b tb -- a-b  INT  )
-: basic-*  int?  swap int?      *   TYPE_INT  ; ( a ta b tb -- a*b  INT  )
-: basic-/  int?  swap int?  /0? /   TYPE_INT  ; ( a ta b tb -- a/b  INT  )
-: basic-%  int?  swap int?  /0? mod TYPE_INT  ; ( a ta b tb -- a%b  INT  )
-: basic-<  int?  swap int?      <   TYPE_BOOL ; ( a ta b tb -- a<b  BOOL )
-: basic->  int?  swap int?      >   TYPE_BOOL ; ( a ta b tb -- a>b  BOOL )
-: basic-<= int?  swap int?      <=  TYPE_BOOL ; ( a ta b tb -- a<=b BOOL )
-: basic->= int?  swap int?      >=  TYPE_BOOL ; ( a ta b tb -- a>=b BOOL )
-: basic-&  bool? swap bool?     and TYPE_BOOL ; ( a ta b tb -- a&b  BOOL )
-: basic-|  bool? swap bool?     or  TYPE_BOOL ; ( a ta b tb -- a|b  BOOL )
+: basic-> ( a ta b tb -- a>b BOOL )
+	both?
+	TYPE_STR = if
+		ptr> swap ptr> -text 0 <
+	else
+		>
+	then
+	TYPE_BOOL
+;
 
-: basic-not  bool? not              TYPE_BOOL ; ( val type -- ~val BOOL )
-: basic-neg  int? -1 *              TYPE_INT  ; ( val type -- -val INT  )
-: basic-rnd  int? RN @ swap /0? mod TYPE_INT  ; ( max+1 type -- num INT )
+: basic-!= basic-== swap not swap ; ( a ta b tb -- flag BOOL )
+: basic-<= basic->  swap not swap ; ( a ta b tb -- a<=b BOOL )
+: basic->= basic-<  swap not swap ; ( a ta b tb -- a>=b BOOL )
 
-: basic-num  swap drop TYPE_INT =   TYPE_BOOL ; ( val type -- flag BOOL )
+: basic-+ ( a ta b ta -- a+b INT | a concat b STR )
+	both?
+	TYPE_STR = if
+		over ptr> size
+		over ptr> size + 1 + alloc >r
+		over ptr>                i ptr>   over size     >move
+		dup  ptr> over ptr> size i ptr> + over size 1 + >move
+		2drop
+		r> TYPE_STR
+	else
+		+ TYPE_INT
+	then
+;
+
+: basic--   int?  swap int?     -   TYPE_INT  ; ( a ta b tb -- a-b  INT  )
+: basic-*   int?  swap int?     *   TYPE_INT  ; ( a ta b tb -- a*b  INT  )
+: basic-/   int?  swap int? /0? /   TYPE_INT  ; ( a ta b tb -- a/b  INT  )
+: basic-%   int?  swap int? /0? mod TYPE_INT  ; ( a ta b tb -- a%b  INT  )
+
+: basic-&   bool? swap bool?    and TYPE_BOOL ; ( a ta b tb -- a&b  BOOL )
+: basic-|   bool? swap bool?    or  TYPE_BOOL ; ( a ta b tb -- a|b  BOOL )
+: basic-not bool? not               TYPE_BOOL ; ( val type -- ~val BOOL )
+: basic-neg int? -1 *               TYPE_INT  ; ( val type -- -val INT  )
+
+: basic-num  swap drop TYPE_INT  =  TYPE_BOOL ; ( val type -- flag BOOL )
+: basic-str  swap drop TYPE_STR  =  TYPE_BOOL ; ( val type -- flag BOOL )
+: basic-bool swap drop TYPE_BOOL =  TYPE_BOOL ; ( val type -- flag BOOL )
+
+: basic-rnd ( max+1 type -- num INT )
+	int? RN @ swap 
+	dup 1 < if "Invalid maximum for rnd()." abort then
+	mod TYPE_INT
+;
 
 ######################################################
 ##
@@ -361,8 +401,10 @@
 :vector primary ( -- )
 	"true"  match? if true  jit-const TYPE_BOOL jit-const exit then
 	"false" match? if false jit-const TYPE_BOOL jit-const exit then
-	"rnd("  match? if jit-expr ")" expect ' basic-rnd jit-call exit then
-	"num("  match? if jit-expr ")" expect ' basic-num jit-call exit then
+	"rnd("  match? if jit-expr ")" expect ' basic-rnd  jit-call exit then
+	"num("  match? if jit-expr ")" expect ' basic-num  jit-call exit then
+	"str("  match? if jit-expr ")" expect ' basic-str  jit-call exit then
+	"bool(" match? if jit-expr ")" expect ' basic-bool jit-call exit then
 	"(" match?     if jit-expr ")" expect exit then
 	numeral?       if number> jit-const TYPE_INT jit-const exit then
 	name?          if jit-var     ' basic-@ jit-call       exit then
