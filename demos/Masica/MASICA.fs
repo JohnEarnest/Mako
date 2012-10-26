@@ -199,6 +199,7 @@
 		dup first first max-line = if
 			2drop "No such line number." abort
 		then
+		rest
 	again
 ;
 
