@@ -4,7 +4,7 @@ import java.util.Random;
 public class MakoVM implements MakoConstants {
 
 	private final Random rand = new Random();
-	public final int[] m;                      // main memory
+	public       int[] m;                      // main memory
 	public final int[] p = new int[320 * 240]; // pixel buffer
 	public int keys = 0;
 

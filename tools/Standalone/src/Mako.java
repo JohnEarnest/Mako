@@ -10,19 +10,37 @@ import java.awt.image.MemoryImageSource;
 public class Mako {
 
 	public static void main(String[] args) {
-		String romFile = "Data.rom";
+		exec(loadRom(Mako.class.getClassLoader().getResourceAsStream("Data.rom"), null));
+	}
 
+	private static int[] loadRom(InputStream i, int[] prev) {
 		try {
-			DataInputStream in = new DataInputStream(Mako.class.getClassLoader().getResourceAsStream(romFile));
+			DataInputStream in = new DataInputStream(i);
 			int[] rom = new int[in.available() / 4];
 			for(int x = 0; x < rom.length; x++) {
 				rom[x] = in.readInt();
 			}
-			exec(rom);
+			in.close();
+			System.out.println("Restored from save file!");
+			return rom;
 		}
 		catch(IOException ioe) {
-			System.out.println("Unable to load '"+romFile+"'.");
-			System.exit(0);
+			System.out.println("Unable to load rom!");
+			return prev;
+		}
+	}
+
+	private static void saveRom(int[] rom) {
+		try {
+			DataOutputStream out = new DataOutputStream(new FileOutputStream("Freeze.rom"));
+			for(int x : rom) {
+				out.writeInt(x);
+			}
+			out.close();
+			System.out.println("Wrote save file!");
+		}
+		catch(IOException ioe) {
+			System.out.println("Unable to save rom!");
 		}
 	}
 
@@ -39,6 +57,20 @@ public class Mako {
 		window.setVisible(true);
 
 		while(true) {
+			if (view.signal == 1) {
+				saveRom(view.vm.m);
+				view.signal = 0;
+			}
+			if (view.signal == 2) {
+				try {
+					view.vm.m = loadRom(new FileInputStream("Freeze.rom"), view.vm.m);
+				}
+				catch(FileNotFoundException e) {
+					System.out.println("No frozen rom found.");
+				}
+				view.signal = 0;
+			}
+
 			long start = System.currentTimeMillis();
 
 			while(view.vm.m[view.vm.m[MakoConstants.PC]] != MakoConstants.OP_SYNC) {
@@ -83,8 +115,9 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 	private final int h = 720;
 	private final Image buffer;
 	public final MemoryImageSource mis;
-	public final MakoVM vm;
+	public MakoVM vm;
 	public int keys  = 0;
+	public int signal = 0;
 	
 	public MakoPanel(int[] rom) {
 		vm = new MakoVM(rom);
@@ -109,6 +142,8 @@ class MakoPanel extends JPanel implements KeyListener, MakoConstants {
 	}
 
 	public void keyReleased(KeyEvent k) {
+		if (k.getKeyCode() == KeyEvent.VK_F3) { signal = 1; }
+		if (k.getKeyCode() == KeyEvent.VK_F4) { signal = 2; }
 		if (masks.containsKey(k.getKeyCode())) { keys &= (~masks.get(k.getKeyCode())); }
 	}
 
