@@ -112,11 +112,13 @@ public class Mako {
 					int rp = view.vm.m[MakoConstants.RP];
 					if (dp < datMin || dp > datMax) {
 						System.out.format("Data stack %sflow!%n", dp < datMin ? "under" : "over");
+						System.out.format("DP: %d%n", view.vm.m[MakoConstants.DP]);
 						System.out.format("PC: %d (Failed on previous instruction.)%n", view.vm.m[MakoConstants.PC]);
 						throw new Error("Guard violation.");
 					}
 					if (rp < retMin || rp > retMax) {
 						System.out.format("Return stack %sflow!%n", rp < retMin ? "under" : "over");
+						System.out.format("RP: %d%n", view.vm.m[MakoConstants.RP]);
 						System.out.format("PC: %d (Failed on previous instruction.)%n", view.vm.m[MakoConstants.PC]);
 						throw new Error("Guard violation.");
 					}
