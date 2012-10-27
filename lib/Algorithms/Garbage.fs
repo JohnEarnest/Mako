@@ -96,10 +96,10 @@
 	RP @ return-max !
 	to @ head !
 
-	  data-min      @   data-max    @ gc-scan
-	  return-min    @   return-max  @ gc-scan
-	' managed-begin   ' managed-end   gc-scan
-	
+	  data-min      @     data-max    @   gc-scan
+	  return-min    @     return-max  @   gc-scan
+	' managed-begin 1 + ' managed-end 1 - gc-scan
+
 	gc-walk
 	from @ to @ from ! to !
 ;
