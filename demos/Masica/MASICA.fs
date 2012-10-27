@@ -918,7 +918,7 @@
 	init
 	intro
 
-	1 1 "MASICA BIOS 0.1" grid-type
+	1 1 "MASICA BIOS 0.2" grid-type
 	1 2 "128k OK"         grid-type
 
 	' console-emit ' emit revector
