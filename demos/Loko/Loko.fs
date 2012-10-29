@@ -12,6 +12,9 @@
 :include <Print.fs>
 :include <String.fs>
 
+:proto logo-print
+:proto stacktrace
+
 :array data-stack   200 0
 :array return-stack 200 0
 
@@ -292,8 +295,11 @@
 ;
 
 : tail-call? ( func -- env? flag )
+	# never try to short-circuit tail calls in primitives:
+	dup .func-prim @ if drop false exit then
+
 	# we must be the last call in the current procedure:
-	env @ .env-cursor @ nil? -if drop false then
+	env @ .env-cursor @ nil? -if drop false exit then
 
 	# we must find an identical func record
 	# higher on the environment chain:
@@ -538,9 +544,12 @@
 	# escape to the parent environment
 	# of the closest synthetic function:
 	env @ loop
-		dup .env-func @ .func-prim @ -if
-			dup .env-continue @ RP !
-			rest env ! break
+		dup .env-func @ nil? -if
+			dup .env-func @ .func-prim @ -if
+				dup .env-continue @ RP !
+				rest env !
+				break
+			then
 		then
 		rest
 	again
@@ -764,23 +773,69 @@
 
 ######################################################
 ##
+##  Stack Trace Utility:
+##
+######################################################
+
+: envlist-findval ( word root -- entry | nil )
+	first loop
+		dup nil? if nip break then
+		2dup rest rest = if
+			nip rest break
+		then
+		first
+	again
+;
+
+: func-name ( func -- word | nil )
+	global-env @ loop
+		dup nil? if nip break then
+		2dup envlist-findval
+		dup nil? -if nip nip first break then
+		drop rest
+	again
+;
+
+: .args ( env func -- env )
+	.func-args @ loop
+		dup nil? if drop break then
+		dup first dup
+		logo-print " -> " type
+		>r over r> swap
+		envlist-find rest logo-print space 
+		rest
+	again
+;
+
+: stacktrace ( -- )
+	"stack trace:" typeln
+	env @ loop
+		dup nil? if drop break then
+		dup .env-func @ nil? -if
+			dup .env-func @ dup func-name
+			( func word? )
+			dup nil? if drop dup then
+			tab logo-print
+			# print the arglist
+			tab .args cr
+		else
+			tab "[]" typeln
+		then
+		rest
+	again
+	cr
+;
+
+######################################################
+##
 ##  Entrypoint and REPL:
 ##
 ######################################################
 
 : run  >read parse eval ; ( str -- )
 
-: stacktrace ( -- )
-	"stack trace:" typeln
-	env @ loop
-		dup .env-func @ nil? if drop break then
-		dup .env-func @ tab logo-print cr
-		rest
-	again
-	cr
-;
-
 : repl ( -- )
+	global-env @ env !
 	loop
 		false readline run
 	again
@@ -826,6 +881,9 @@
 		]
 	end" run
 
+	"to sq repeat 4 [ forward 100 right 90 ] end" run
+	"to spin sq right 10 end"                     run
+	"showturtle repeat 36 [spin]"                 run
 	"sierpinski" run
 	
 	"" abort
