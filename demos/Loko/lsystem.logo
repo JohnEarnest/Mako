@@ -1,0 +1,26 @@
+to f :x
+	if (:x = 0) [ forward 7 stop ]
+	f (:x - 1) left  120
+	g (:x - 1) right 120
+	f (:x - 1) right 120
+	g (:x - 1) left  120
+	f (:x - 1)
+end
+
+to g :x
+	setcolor random 255
+	if (:x = 0) [ forward 7 stop ]
+	g (:x - 1)
+	g (:x - 1)
+end
+
+to sierpinski
+	showturtle
+	repeat 6 [
+		f 4 left 120
+		g 4 left 120
+		g 4 left  60
+	]
+end
+
+sierpinski
