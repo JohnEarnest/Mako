@@ -113,7 +113,7 @@
 ##
 ##  The types VAR and CALL are not datatypes per se,
 ##  but rather alternate forms of WORD emitted by
-##  the list parser to identify : and non-" prefixes,
+##  the list parser to identify : and non-' prefixes,
 ##  respectively.
 ##
 ######################################################
@@ -158,8 +158,21 @@
 	r> KIND_NUM over kind!
 ;
 
+: .list-data ptr> 1 + ; ( ptr -- addr ) # a cons-list of tokens
+: .list-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
+: .list-env  ptr> 3 + ; ( ptr -- addr ) # a bound environment
+
 : >list ( cons-list -- ptr )
-	KIND_LIST swap pair
+	4 alloc >r
+	KIND_LIST i kind!
+	nil i .list-args !
+	nil i .list-env  !
+	    i .list-data !
+	r>
+;
+
+: list> ( ptr -- cons-list )
+	.list-data @
 ;
 
 : word= ( p1 p2 -- flag )
@@ -170,11 +183,12 @@
 :proto logo=
 
 : list= ( list list -- flag )
+	list> swap list>
 	loop
-		rest swap rest
 		over nil?  over nil?  and    if 2drop true  break then
 		over nil?  over nil?  or     if 2drop false break then
 		over first over first logo= -if 2drop false break then
+		rest swap rest
 	again
 ;
 
@@ -186,10 +200,9 @@
 	word=
 ;
 
-: .func-prim ptr> 1 + ; ( ptr -- addr ) # a boolean flag
-: .func-code ptr> 2 + ; ( ptr -- addr ) # an address or a list of tokens
+: .func-code ptr> 1 + ; ( ptr -- addr ) # an address or a list of tokens
+: .func-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
 : .func-src  ptr> 3 + ; ( ptr -- addr ) # a cons-list of source text
-: .func-args ptr> 4 + ; ( ptr -- addr ) # a cons-list of word names
 
 : check-func ( word func -- func )
 	dup nil? if
@@ -204,17 +217,16 @@
 	nip
 ;
 
-: >prim ( proc arghead -- func )
-	5 alloc >r
+: prim? ( func -- flag )
+	.func-code @ p? not
+;
+
+: >func ( code arghead -- func )
+	4 alloc >r
 	KIND_FUNC i kind!
-	true i .func-prim !
 	i .func-args !
 	i .func-code !
 	r>
-;
-
-: >synth ( codehead arghead -- func )
-	>prim false over .func-prim !
 ;
 
 ######################################################
@@ -296,7 +308,7 @@
 
 : tail-call? ( func -- env? flag )
 	# never try to short-circuit tail calls in primitives:
-	dup .func-prim @ if drop false exit then
+	dup prim? if drop false exit then
 
 	# we must be the last call in the current procedure:
 	env @ .env-cursor @ nil? -if drop false exit then
@@ -329,7 +341,7 @@
 		env-make
 		rest
 	again
-	dup .func-prim @ if
+	dup prim? if
 		.func-code @ exec
 	else
 		.func-code @ eval
@@ -360,7 +372,7 @@
 ;
 
 : eval ( list -- )
-	rest env @ .env-cursor !
+	list> env @ .env-cursor !
 	loop
 		cursor-next
 		dup nil? if drop break then
@@ -435,12 +447,12 @@
 		colon curr = -if break then
 		skip token> >word swap pair
 	again
-	parse swap >synth
+	parse swap >func
 	swap global-make
 ;
 
 : parse ( -- list )
-	KIND_LIST nil pair dup
+	nil >list dup
 	loop
 		( head tail )
 		"to"  match? if parse-to        then
@@ -471,7 +483,7 @@
 		over nil? if 2drop r> rest break then
 		swap @ nil pair swap over swap rest!
 	again
-	>r swap r> >prim
+	>r swap r> >func
 	swap >word global-make
 ;
  
@@ -486,7 +498,7 @@
 	dup word? if "'" type word> type exit then
 	dup var?  if ":" type word> type exit then
 	dup list? if
-		"[ " type rest loop
+		"[ " type list> loop
 			dup nil? if drop break then
 			-split logo-print space
 		again
@@ -495,7 +507,7 @@
 	dup func? if
 		"lambda " type
 		dup .func-args @ >list logo-print space
-		dup .func-prim @ if
+		dup prim? if
 			"primitive @" type .func-code @ .
 		else
 			.func-code @ logo-print
@@ -505,8 +517,22 @@
 	.num "?" type
 ;
 
+: logo-item ( list index -- val )
+	dup 0 < if 2drop nil >list exit then
+	dup 0 > if
+		swap list> swap
+		1 - for
+			dup nil? if rdrop >list exit then
+			rest
+		next
+	else
+		drop list>
+	then
+	dup nil? if >list else first then
+;
+
 : logo-member ( val list -- list' )
-	rest loop
+	list> loop
 		dup nil? if 2drop nil break then
 		2dup first logo= if nip break then
 		rest
@@ -514,16 +540,16 @@
 ;
 
 : logo-last ( list -- val )
-	dup rest nil? if drop nil >list exit then
-	rest loop
+	dup list> nil? if drop nil >list exit then
+	list> loop
 		dup rest nil? if first break then
 		rest
 	again
 ;
 
 : logo-butlast ( list -- list' )
-	dup rest nil? if drop nil >list exit then
-	rest nil >list dup >r loop
+	dup list> nil? if drop nil >list exit then
+	list> nil >list dup >r loop
 		over rest nil? if 2drop break then
 		swap split >r nil pair
 		over rest! rest r> swap
@@ -532,7 +558,7 @@
 ;
 
 : logo-lput ( val list -- list' )
-	rest nil >list dup >r loop
+	list> nil >list dup >r loop
 		over nil? if nip swap nil pair swap rest! break then
 		swap split >r nil pair
 		over rest! rest r> swap
@@ -545,7 +571,7 @@
 	# of the closest synthetic function:
 	env @ loop
 		dup .env-func @ nil? -if
-			dup .env-func @ .func-prim @ -if
+			dup .env-func @ prim? -if
 				dup .env-continue @ RP !
 				rest env !
 				break
@@ -558,21 +584,10 @@
 :include <Sprites.fs>
 :include "Turtle.fs"
 
-: wait ( -- )
-	sync sync
-;
-
-: pos ( -- list )
-	posx >num posy >num nil pair pair >list
-;
-
-: setpos ( list -- )
-	rest split first num> posy! num> posx!
-;
-
-: setcolor ( int -- )
-	256 mod 256 * 0xFF000000 or linecolor !
-;
+: wait      sync sync                               ; ( -- )
+: pos       posx >num posy >num nil pair pair >list ; ( -- list )
+: setpos    list> split first num> posy! num> posx! ; ( list -- )
+: setcolor  256 mod 256 * 0xFF000000 or linecolor ! ; ( int -- )
 
 : prims-init ( -- )
 	"arg1"  >word A !
@@ -603,14 +618,14 @@
 	{ A n -1 * >num               } "negate"     [ A   ]-prim
 
 	# list manipulation
-	{ A v rest first              } "first"      [ A   ]-prim
-	{ A v rest rest >list         } "butfirst"   [ A   ]-prim
-	{ A v B v rest pair >list     } "fput"       [ A B ]-prim
+	{ A v list> first             } "first"      [ A   ]-prim
+	{ A v list> rest >list        } "butfirst"   [ A   ]-prim
+	{ A v B v list> pair >list    } "fput"       [ A B ]-prim
 	{ A v B v nil pair pair >list } "list"       [ A B ]-prim
-	{ B v A n for rest next first } "item"       [ A B ]-prim
+	{ B v A n logo-item           } "item"       [ A B ]-prim
 	{ A v B v logo= >bool         } "equal"      [ A B ]-prim
 	{ A v B v logo-member         } "member"     [ A B ]-prim
-	{ A v rest list-size >num     } "size"       [ A   ]-prim
+	{ A v list> list-size >num    } "size"       [ A   ]-prim
 	{ A v logo-last               } "last"       [ A   ]-prim
 	{ A v logo-butlast            } "butlast"    [ A   ]-prim
 	{ A v B v logo-lput           } "lput"       [ A B ]-prim
