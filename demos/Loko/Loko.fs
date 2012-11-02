@@ -118,7 +118,6 @@
 ##
 ######################################################
 
-:const KIND_FUNC 0 # function definition
 :const KIND_VAR  1 # variable reference
 :const KIND_CALL 2 # function invocation
 :const KIND_LIST 3 # stored as a cons-pair chain
@@ -127,14 +126,11 @@
 
 : kind!  p!               ; ( kind ptr -- )
 : kind   p@               ; ( ptr -- kind )
-: func?  kind KIND_FUNC = ; ( ptr -- flag )
 : var?   kind KIND_VAR  = ; ( ptr -- flag )
 : call?  kind KIND_CALL = ; ( ptr -- flag )
 : list?  kind KIND_LIST = ; ( ptr -- flag )
 : word?  kind KIND_WORD = ; ( ptr -- flag )
 : num?   kind KIND_NUM  = ; ( ptr -- flag )
-
-: word>  ptr> 1 + ; ( ptr -- str )
 
 : >word ( str -- ptr )
 	dup size 2 + alloc dup >r
@@ -162,6 +158,8 @@
 : .list-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
 : .list-env  ptr> 3 + ; ( ptr -- addr ) # a bound environment
 
+: prim? .list-data @ p? not ; ( func -- flag )
+
 : >list ( cons-list -- ptr )
 	4 alloc >r
 	KIND_LIST i kind!
@@ -171,9 +169,13 @@
 	r>
 ;
 
-: list> ( ptr -- cons-list )
-	.list-data @
+: >func ( code args -- ptr )
+	swap >list
+	swap over .list-args !
 ;
+
+: word>  ptr> 1 +     ; ( ptr -- str )
+: list>  .list-data @ ; ( ptr -- cons-list )
 
 : word= ( p1 p2 -- flag )
 	2dup = if 2drop true exit then
@@ -200,33 +202,17 @@
 	word=
 ;
 
-: .func-code ptr> 1 + ; ( ptr -- addr ) # an address or a list of tokens
-: .func-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
-: .func-src  ptr> 3 + ; ( ptr -- addr ) # a cons-list of source text
-
-: check-func ( word func -- func )
+: check-func ( word list -- list )
 	dup nil? if
 		drop "I don't know how to " type
 		word> type "." abort
 	then
-	dup func? -if
+	dup list? -if
 		drop word> type
 		" is not a procedure." abort
 		halt
 	then
 	nip
-;
-
-: prim? ( func -- flag )
-	.func-code @ p? not
-;
-
-: >func ( code arghead -- func )
-	4 alloc >r
-	KIND_FUNC i kind!
-	i .func-args !
-	i .func-code !
-	r>
 ;
 
 ######################################################
@@ -306,7 +292,7 @@
 	env @ .env-cursor !
 ;
 
-: tail-call? ( func -- env? flag )
+: tail-call? ( list -- env? flag )
 	# never try to short-circuit tail calls in primitives:
 	dup prim? if drop false exit then
 
@@ -333,18 +319,18 @@
 
 :proto eval
 
-: call ( ... a2 a1 a0 func -- ret? )
+: call ( ... a2 a1 a0 list -- ret? )
 	brk
-	dup .func-args @ loop
+	dup .list-args @ loop
 		dup nil? if drop break then
 		dup first >r >r swap r> swap r>
 		env-make
 		rest
 	again
 	dup prim? if
-		.func-code @ exec
+		list> exec
 	else
-		.func-code @ eval
+		eval
 	then
 ;
 
@@ -355,7 +341,7 @@
 	dup list? if    exit then
 	dup env-get check-func
 
-	dup >r .func-args @ list-size {
+	dup >r .list-args @ list-size {
 		cursor-next
 		eval-token
 	} repeat
@@ -447,7 +433,7 @@
 		colon curr = -if break then
 		skip token> >word swap pair
 	again
-	parse swap >func
+	parse list> swap >func
 	swap global-make
 ;
 
@@ -498,23 +484,23 @@
 	dup word? if "'" type word> type exit then
 	dup var?  if ":" type word> type exit then
 	dup list? if
-		"[ " type list> loop
-			dup nil? if drop break then
-			-split logo-print space
-		again
-		"]" type exit
-	then
-	dup func? if
-		"lambda " type
-		dup .func-args @ >list logo-print space
 		dup prim? if
-			"primitive @" type .func-code @ .
+			"primitive @" type list> .
 		else
-			.func-code @ logo-print
-		then
-		exit
+			# possibly expand this to print
+			# the arglist if it exists:
+			"[ " type list> loop
+				dup nil? if drop break then
+				-split logo-print space
+			again
+			"]" type
+		then exit
 	then
-	.num "?" type
+	dup p? if
+		"@" type ptr> .num
+	else
+		.num "?" type
+	then
 ;
 
 : logo-item ( list index -- val )
@@ -812,7 +798,7 @@
 ;
 
 : .args ( env func -- env )
-	.func-args @ loop
+	.list-args @ loop
 		dup nil? if drop break then
 		dup first dup
 		logo-print " -> " type
@@ -864,10 +850,21 @@
 	showturtle
 	hideturtle
 
+	"print [ 1 2 3]" run
+
+	"to ifthen :cond :t :f
+		if :cond [ t stop ]
+		f
+	end" run
+	
+	"ifthen (1 < 2) [ print [yep]] [print [nope]]" run
+
+	halt
+
 	1 1 "Welcome to Loko" grid-type
 	1 2 "128k OK"         grid-type
 
-	' console-emit ' emit revector
+	#' console-emit ' emit revector
 	' abort        ' fail revector
 	' repl          restart-vector !
 	#repl
@@ -880,6 +877,8 @@
 		g (:x - 1) left  120
 		f (:x - 1)
 	end" run
+
+	"f" >word env-get logo-print cr
 
 	"to g :x
 		if (:x = 0) [ forward 7 stop ]
@@ -898,6 +897,7 @@
 
 	"to sq repeat 4 [ forward 100 right 90 ] end" run
 	"to spin sq right 10 end"                     run
+
 	"showturtle repeat 36 [spin]"                 run
 	"sierpinski" run
 	
