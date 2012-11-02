@@ -13,7 +13,9 @@
 
 :const clearcolor 0xFF002200
 :array screenbuffer 81920 clearcolor (320x256 pixel buffer)
+
 :image turtle-sprites "turtles.png" 32 32
+:image cursor          "cursor.png"  8  8
 
 : pixel ( x y -- address )
 	2dup 64 / 5 * swap 64 / + 4096 *
@@ -142,7 +144,7 @@
 
 : plot ( x y -- )
 	over dup 0 < swap 319 > or if 2drop exit then
-	dup  dup 0 < swap 239 > or if 2drop exit then
+	dup  dup 0 < swap 231 > or if 2drop exit then
 	pixel linecolor @ swap !
 ;
 
@@ -202,6 +204,11 @@
 : clearscreen ( -- )
 	 81919 for
 		clearcolor i screenbuffer + !
+	next
+	7 for
+		319 for
+			0x00000000 i j 232 + pixel !
+		next
 	next
 ;
 

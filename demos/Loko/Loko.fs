@@ -102,6 +102,13 @@
 	over rest pair swap rest!
 ;
 
+: list-reverse ( list -- tsil )
+	nil swap loop
+		dup nil? if drop break then
+		split >r swap pair r>
+	again
+;
+
 ######################################################
 ##
 ##  Type System:
@@ -156,15 +163,17 @@
 
 : .list-data ptr> 1 + ; ( ptr -- addr ) # a cons-list of tokens
 : .list-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
-: .list-env  ptr> 3 + ; ( ptr -- addr ) # a bound environment
 
-: prim? .list-data @ p? not ; ( func -- flag )
+: prim? ( func -- flag )
+	.list-data @ dup
+	nil? if drop false exit then
+	p? not
+;
 
 : >list ( cons-list -- ptr )
-	4 alloc >r
+	3 alloc >r
 	KIND_LIST i kind!
 	nil i .list-args !
-	nil i .list-env  !
 	    i .list-data !
 	r>
 ;
@@ -266,11 +275,17 @@
 
 : env-get ( word -- val | nil )
 	env @ loop
-		dup nil? if nip break then
+		dup nil? if break then
 		2dup envlist-find
-		dup nil? -if nip nip rest break then
+		dup nil? -if nip rest break then
 		drop rest
 	again
+	dup nil? if
+		drop logo-print
+		" has no value." abort
+	else
+		nip
+	then
 ;
 
 : env-make ( val word -- )
@@ -318,6 +333,7 @@
 ######################################################
 
 :proto eval
+:proto eval-token
 
 : call ( ... a2 a1 a0 list -- ret? )
 	brk
@@ -334,19 +350,12 @@
 	then
 ;
 
-: eval-token ( ptr -- )
-	dup var?  if env-get then
-	dup num?  if    exit then
-	dup word? if    exit then
-	dup list? if    exit then
-	dup env-get check-func
-
+: eval-func ( list -- )
 	dup >r .list-args @ list-size {
 		cursor-next
 		eval-token
-	} repeat
-
-	r> dup tail-call? if
+	} repeat r>
+	dup tail-call? if
 		dup .env-continue @ RP !
 		env !
 	else
@@ -355,6 +364,14 @@
 		RP @ env @ .env-continue !
 	then
 	call env-pop
+;
+
+: eval-token ( ptr -- )
+	dup var?  if env-get then
+	dup num?  if    exit then
+	dup word? if    exit then
+	dup list? if    exit then
+	dup env-get check-func eval-func
 ;
 
 : eval ( list -- )
@@ -393,7 +410,7 @@
 	colon curr = if skip token> >var  exit then
 	name?        if      token> >call exit then
 	numeral?     if number> >num      exit then
-	"invalid token" typeln halt
+	"The character '" type curr emit "' is not valid." abort
 ;
 
 :proto infix
@@ -481,14 +498,12 @@
 : logo-print ( val -- )
 	dup num?  if          num>  .num exit then
 	dup call? if          word> type exit then
-	dup word? if "'" type word> type exit then
 	dup var?  if ":" type word> type exit then
+	dup word? if "'" type word> type exit then
 	dup list? if
 		dup prim? if
 			"primitive @" type list> .
 		else
-			# possibly expand this to print
-			# the arglist if it exists:
 			"[ " type list> loop
 				dup nil? if drop break then
 				-split logo-print space
@@ -501,6 +516,18 @@
 	else
 		.num "?" type
 	then
+;
+
+: logo-printraw ( val -- )
+	dup num?  if num> .num exit then
+	dup call? if word> type exit then
+	dup var?  if word> type exit then
+	dup word? if word> type exit then
+	dup prim? if "p" type list> . exit then
+	list> loop
+		dup nil? if drop break then
+		-split logo-printraw space
+	again
 ;
 
 : logo-item ( list index -- val )
@@ -567,6 +594,20 @@
 	again
 ;
 
+: logo-bind ( arglist body -- list )
+	list> swap list> list-reverse >func
+;
+
+: logo-words ( -- )
+	"global definitions: " typeln
+	global-env @ first loop
+		dup nil? if drop break then
+		dup rest first logo-print space
+		first
+	again
+	cr
+;
+
 :include <Sprites.fs>
 :include "Turtle.fs"
 
@@ -575,33 +616,46 @@
 : setpos    list> split first num> posy! num> posx! ; ( list -- )
 : setcolor  256 mod 256 * 0xFF000000 or linecolor ! ; ( int -- )
 
+:proto readline
+
 : prims-init ( -- )
 	"arg1"  >word A !
 	"arg2"  >word B !
 	"true"  >word logo-t !
 	"false" >word logo-f !
 
-	# input and output
-	{ A v logo-print cr           } "print"      [ A   ]-prim
-	{ B v A v global-make         } "make"       [ A B ]-prim
-	{ B v A v env-make            } "local"      [ A B ]-prim
-	{     logo-stop               } "stop"       [     ]-prim
-	{ A v logo-stop               } "output"     [ A   ]-prim
+	# misc
+	{ A v logo-printraw cr           } "print"      [ A   ]-prim
+	{ A v logo-print    cr           } "printlist"  [ A   ]-prim
+	{ false readline >read parse     } "readlist"   [ A   ]-prim
+	{ B v A v global-make            } "make"       [ A B ]-prim
+	{ B v A v env-make               } "local"      [ A B ]-prim
+	{     logo-stop                  } "stop"       [     ]-prim
+	{ A v logo-stop                  } "output"     [ A   ]-prim
+	{ A v B v logo-bind              } "bind"       [ A B ]-prim
+	{ logo-words                     } "words"      [     ]-prim
+	{ stacktrace                     } "trace"      [     ]-prim
+	{ A v true?  if B v eval then    } "if"         [ A B ]-prim
+	{ A v true? -if B v eval then    } "unless"     [ A B ]-prim
+	{ A n { B v eval } repeat        } "repeat"     [ A B ]-prim
+	{ A v env-pop eval-func env-push } "run"        [ A   ]-prim
 
-	# math and flow control
+	# math
 	{ A n B n +   >num            } "sum"        [ A B ]-prim
 	{ A n B n -   >num            } "difference" [ A B ]-prim
 	{ A n B n *   >num            } "product"    [ A B ]-prim
 	{ A n B n /   >num            } "quotient"   [ A B ]-prim
 	{ A n B n mod >num            } "remainder"  [ A B ]-prim
 	{ RN @ A n mod >num           } "random"     [ A   ]-prim
-	{ A v true?  if B v eval then } "if"         [ A B ]-prim
-	{ A v true? -if B v eval then } "unless"     [ A B ]-prim
-	{ A n { B v eval } repeat     } "repeat"     [ A B ]-prim
-	{ A v eval                    } "run"        [ A   ]-prim
 	{ A n B n < >bool             } "less"       [ A B ]-prim
 	{ A n B n > >bool             } "greater"    [ A B ]-prim
 	{ A n -1 * >num               } "negate"     [ A   ]-prim
+
+	# type predicates
+	{ A v word?           >bool   } "wordp"      [ A   ]-prim
+	{ A v list?           >bool   } "listp"      [ A   ]-prim
+	{ A v  num?           >bool   } "nump"       [ A   ]-prim
+	{ A v nil >list logo= >bool   } "empty"      [ A   ]-prim
 
 	# list manipulation
 	{ A v list> first             } "first"      [ A   ]-prim
@@ -712,9 +766,9 @@
 	next
 	39 for
 		i used @ >= if 0 else i input + @ 32 - then
-		96 + grid-z or i 29 tile-grid@ !
+		96 + i 29 tile-grid@ !
 	next
-	8x8 191 cursor @ 8 * 232 cursor-s >sprite
+	8x8 1792 cursor @ 8 * 232 cursor-s >sprite
 ;
 
 : readline ( string? flag -- str )
@@ -849,22 +903,42 @@
 	clearcolor CL !
 	showturtle
 	hideturtle
+	clearscreen
 
-	"print [ 1 2 3]" run
-
-	"to ifthen :cond :t :f
+	"to ifelse :cond :t :f
 		if :cond [ t stop ]
 		f
 	end" run
 	
-	"ifthen (1 < 2) [ print [yep]] [print [nope]]" run
+	#"ifelse (1 < 2) [ print [yep]] [print [nope]]" run
 
-	halt
+	"to each :proc :items
+		if empty :items [ stop ]
+		proc first :items
+		each :proc butfirst :items
+	end" run
+
+	#"each :print [ 1 2 3 4 5 ]" run
+	#"each bind[x][print :x print [yeahhh]] [1 2 3]" run
+
+	"to doeachindex :proc :index :items
+        if empty :items [ stop ]
+        proc :index first :items
+        doeachindex :proc (:index + 1) butfirst :items
+	end" run
+	"to  eachindex  :proc :items
+        doeachindex :proc 0 :items
+	end" run
+
+	#"eachindex bind[i x][print list :i :x][9 8 7]" run
+	#"words" run
+
+	"run bind[a b][print list :a :b] 45 54" run
 
 	1 1 "Welcome to Loko" grid-type
 	1 2 "128k OK"         grid-type
 
-	#' console-emit ' emit revector
+	' console-emit ' emit revector
 	' abort        ' fail revector
 	' repl          restart-vector !
 	#repl
@@ -877,8 +951,6 @@
 		g (:x - 1) left  120
 		f (:x - 1)
 	end" run
-
-	"f" >word env-get logo-print cr
 
 	"to g :x
 		if (:x = 0) [ forward 7 stop ]
