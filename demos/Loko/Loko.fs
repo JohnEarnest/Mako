@@ -353,6 +353,7 @@
 : eval-func ( list -- )
 	dup >r .list-args @ list-size {
 		cursor-next
+		dup nil? if "Not enough arguments!" abort then
 		eval-token
 	} repeat r>
 	dup tail-call? if
@@ -627,7 +628,7 @@
 	# misc
 	{ A v logo-printraw cr           } "print"      [ A   ]-prim
 	{ A v logo-print    cr           } "printlist"  [ A   ]-prim
-	{ false readline >read parse     } "readlist"   [ A   ]-prim
+	{ false readline >read parse     } "readlist"   [     ]-prim
 	{ B v A v global-make            } "make"       [ A B ]-prim
 	{ B v A v env-make               } "local"      [ A B ]-prim
 	{     logo-stop                  } "stop"       [     ]-prim
