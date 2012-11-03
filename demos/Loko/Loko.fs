@@ -52,6 +52,10 @@
 	KB @ 3 = if "BREAK" abort then
 ;
 
+: /0? ( n -- n )
+	dup 0 = if "Cannot divide by zero." abort then
+;
+
 ######################################################
 ##
 ##  GC and List utilities:
@@ -149,6 +153,9 @@
 : >var   >word KIND_VAR  over kind! ; ( str -- ptr )
 
 : num> ( ptr -- n )
+	dup num? -if
+		logo-print " is not a number." abort
+	then
 	ptr> dup
 	1 + @ 4 *  swap
 	2 + @      or
@@ -211,19 +218,6 @@
 	word=
 ;
 
-: check-func ( word list -- list )
-	dup nil? if
-		drop "I don't know how to " type
-		word> type "." abort
-	then
-	dup list? -if
-		drop word> type
-		" is not a procedure." abort
-		halt
-	then
-	nip
-;
-
 ######################################################
 ##
 ##  Environment Structure:
@@ -281,8 +275,7 @@
 		drop rest
 	again
 	dup nil? if
-		drop logo-print
-		" has no value." abort
+		drop logo-print " has no value." abort
 	else
 		nip
 	then
@@ -351,6 +344,7 @@
 ;
 
 : eval-func ( list -- )
+	dup list? -if logo-print " is not a procedure." abort then
 	dup >r .list-args @ list-size {
 		cursor-next
 		dup nil? if "Not enough arguments!" abort then
@@ -372,7 +366,7 @@
 	dup num?  if    exit then
 	dup word? if    exit then
 	dup list? if    exit then
-	dup env-get check-func eval-func
+	env-get eval-func
 ;
 
 : eval ( list -- )
@@ -600,10 +594,10 @@
 ;
 
 : logo-words ( -- )
-	"global definitions: " typeln
+	"global definitions: " typeln cr
 	global-env @ first loop
 		dup nil? if drop break then
-		dup rest first logo-print space
+		dup rest first logo-printraw space
 		first
 	again
 	cr
@@ -642,12 +636,12 @@
 	{ A v env-pop eval-func env-push } "run"        [ A   ]-prim
 
 	# math
-	{ A n B n +   >num            } "sum"        [ A B ]-prim
-	{ A n B n -   >num            } "difference" [ A B ]-prim
-	{ A n B n *   >num            } "product"    [ A B ]-prim
-	{ A n B n /   >num            } "quotient"   [ A B ]-prim
-	{ A n B n mod >num            } "remainder"  [ A B ]-prim
-	{ RN @ A n mod >num           } "random"     [ A   ]-prim
+	{ A n B n +        >num       } "sum"        [ A B ]-prim
+	{ A n B n -        >num       } "difference" [ A B ]-prim
+	{ A n B n *        >num       } "product"    [ A B ]-prim
+	{ A n B n  /0? /   >num       } "quotient"   [ A B ]-prim
+	{ A n B n  /0? mod >num       } "remainder"  [ A B ]-prim
+	{ RN @ A n /0? mod >num       } "random"     [ A   ]-prim
 	{ A n B n < >bool             } "less"       [ A B ]-prim
 	{ A n B n > >bool             } "greater"    [ A B ]-prim
 	{ A n -1 * >num               } "negate"     [ A   ]-prim
@@ -934,7 +928,7 @@
 	#"eachindex bind[i x][print list :i :x][9 8 7]" run
 	#"words" run
 
-	"run bind[a b][print list :a :b] 45 54" run
+	#"run bind[a b][print list :a :b] 45 54" run
 
 	1 1 "Welcome to Loko" grid-type
 	1 2 "128k OK"         grid-type
