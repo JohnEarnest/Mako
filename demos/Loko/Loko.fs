@@ -153,9 +153,7 @@
 : >var   >word KIND_VAR  over kind! ; ( str -- ptr )
 
 : num> ( ptr -- n )
-	dup num? -if
-		logo-print " is not a number." abort
-	then
+	dup num? -if logo-print " is not a number." abort then
 	ptr> dup
 	1 + @ 4 *  swap
 	2 + @      or
@@ -274,11 +272,8 @@
 		dup nil? -if nip rest break then
 		drop rest
 	again
-	dup nil? if
-		drop logo-print " has no value." abort
-	else
-		nip
-	then
+	dup nil? if drop logo-print " has no value." abort then
+	nip
 ;
 
 : env-make ( val word -- )
@@ -390,12 +385,29 @@
 
 :include <Parse.fs>
 
-:const quote 34 # "
-:const tick  39 # '
-:const minus 45 # -
-:const colon 58 # :
-:const open  91 # [
-:const close 93 # ]
+:const quote  34 # "
+:const tick   39 # '
+:const minus  45 # -
+:const colon  58 # :
+:const open   91 # [
+:const close  93 # ]
+:const period 46 # .
+:const comma  44 # ,
+:const bang   63 # ?
+:const what   33 # !
+
+: tokenchar? ( -- flag )
+	name?
+	curr period = or
+	curr comma  = or
+	curr bang   = or
+	curr what   = or
+;
+
+: token> ( -- string )
+	tokenchar? -if "Name expected." fail then
+	{ tokenchar? numeral? or } accept>
+;
 
 :proto parse
 
@@ -403,7 +415,7 @@
 	open  curr = if skip trim parse   exit then
 	tick  curr = if skip token> >word exit then
 	colon curr = if skip token> >var  exit then
-	name?        if      token> >call exit then
+	tokenchar?   if      token> >call exit then
 	numeral?     if number> >num      exit then
 	"The character '" type curr emit "' is not valid." abort
 ;
