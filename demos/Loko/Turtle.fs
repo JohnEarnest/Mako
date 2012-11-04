@@ -212,15 +212,21 @@
 	next
 ;
 
+:var turtlemode
+
 : showturtle ( -- )
+	true turtlemode !
 	init-fullscreen
 	0xFF009900 linecolor !
-	home
+	update-turtle
+	sync
 ;
 
 : hideturtle ( -- )
+	false turtlemode !
 	19 for i hide next
 	turtle-sprite hide
+	sync
 ;
 
 ######################################################

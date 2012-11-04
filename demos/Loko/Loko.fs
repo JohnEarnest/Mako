@@ -748,7 +748,6 @@
 		# capture ludicrous characters
 		# and turn 'em into happy little boxes.
 		dup 0 < over 128 > or if drop 94 then
-
 		cc @ + cx @ 28 tile-grid@ !
 		cx inc cx @ 39 >
 		if console-newline then
@@ -833,6 +832,12 @@
 	again
 ;
 
+
+# A much nicer multiline editor for working
+# with larger procedure definitions:
+
+:include "Editor.fs"
+
 ######################################################
 ##
 ##  Stack Trace Utility:
@@ -890,18 +895,94 @@
 
 ######################################################
 ##
+##  Title Screen
+##
+######################################################
+
+:image title-tiles "tiles.png" 8 8
+:data title-grid
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  1  0  0  0  0  0  0  0  2  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  3  4  0  0  0  0  0  5  6  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  4  0  0  0  5  8  6  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  4  0  5  8  8  6  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  9  0 10  8  8  6  0  0 11 12 13 14  7  0 15 16 16 16 16 17  0 11 12 18 19  0  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  9  0 10  8  8  6  0 20  8  8  8  8 21  0 10  8  8  8 22  0 20  8  8  8  8 23  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  9  0 10  8  8  6  0 24  8 25 26  8 27  0 10  8  8 22  0  0 24  8 25 26  8 28  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  9  0 10  8  8  6  0 29  8 30 31  8 32  0 10  8  8 33  0  0 29  8 30 31  8 34  0  0  0  0  0  0 
+	 0  0  0  0  0  3  7  7  9  0 10  8  8  6  0 35  8  8  8  8 36  0 10  8  8  8 33  0 35  8  8  8  8 37  0  0  0  0  0  0 
+	 0  0  0  0  0 38 39 39 40  0 41 42 42 43  0  0 44 45 46 47  7  0 41 42 42 42 42 48  0 44 45 49 50  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+	 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+
+: intro ( -- )
+	CL @ GT @ GP @ -1 GS !
+	title-tiles GT !
+	title-grid  GP !
+	0xFF00FF00  CL !
+	56 for
+		i 4 * 26 + 256 *
+		0xFF000000 or CL ! sync		
+	next
+	59 for sync next
+	0 GS ! GP ! GT ! CL !
+;
+
+######################################################
+##
 ##  Entrypoint and REPL:
 ##
 ######################################################
 
-: run  >read parse eval ; ( str -- )
+:array glue-buffer 80 0
 
 : repl ( -- )
 	global-env @ env !
 	loop
-		false readline run
+		false readline
+		dup >read
+		"to" starts? if
+			turtlemode @ dup >r
+			if hideturtle then
+			
+			dup glue-buffer over size >move
+			size glue-buffer +
+			return over !  1 +
+			return over !  1 +
+			"e" @  over !  1 +
+			"n" @  over !  1 +
+			"d" @  over !  1 +
+			0      swap !
+			glue-buffer edit
+			dup typeln >read
+
+			r> if showturtle then
+		else
+			drop
+		then
+		parse eval
 	again
 ;
+
+: run  >read parse eval ; ( str -- )
 
 : main ( -- )
 	gc-init
@@ -909,46 +990,10 @@
 	prims-init
 	clearcolor CL !
 	showturtle
+	home
 	hideturtle
 	clearscreen
-
-	"to ifelse :cond :t :f
-		if :cond [ t stop ]
-		f
-	end" run
-	
-	#"ifelse (1 < 2) [ print [yep]] [print [nope]]" run
-
-	"to each :proc :items
-		if empty :items [ stop ]
-		proc first :items
-		each :proc butfirst :items
-	end" run
-
-	#"each :print [ 1 2 3 4 5 ]" run
-	#"each bind[x][print :x print [yeahhh]] [1 2 3]" run
-
-	"to doeachindex :proc :index :items
-        if empty :items [ stop ]
-        proc :index first :items
-        doeachindex :proc (:index + 1) butfirst :items
-	end" run
-	"to  eachindex  :proc :items
-        doeachindex :proc 0 :items
-	end" run
-
-	#"eachindex bind[i x][print list :i :x][9 8 7]" run
-	#"words" run
-
-	#"run bind[a b][print list :a :b] 45 54" run
-
-	1 1 "Welcome to Loko" grid-type
-	1 2 "128k OK"         grid-type
-
-	' console-emit ' emit revector
-	' abort        ' fail revector
-	' repl          restart-vector !
-	#repl
+	intro
 
 	"to f :x
 		if (:x = 0) [ forward 7 stop ]
@@ -974,11 +1019,11 @@
 		]
 	end" run
 
-	"to sq repeat 4 [ forward 100 right 90 ] end" run
-	"to spin sq right 10 end"                     run
+	1 1 "Welcome to Loko 0.1" grid-type
+	1 2 "128k OK"             grid-type
 
-	"showturtle repeat 36 [spin]"                 run
-	"sierpinski" run
-	
-	"" abort
+	' console-emit ' emit revector
+	' abort        ' fail revector
+	' repl          restart-vector !
+	repl
 ;
