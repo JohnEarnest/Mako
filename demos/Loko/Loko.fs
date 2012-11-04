@@ -82,6 +82,7 @@
 :var   logo-f # false
 :var   A
 :var   B
+:data  last-text nil # pointer to word containing last entered proc def
 : managed-end ;
 
 : list-size ( list -- 0count )
@@ -168,6 +169,7 @@
 
 : .list-data ptr> 1 + ; ( ptr -- addr ) # a cons-list of tokens
 : .list-args ptr> 2 + ; ( ptr -- addr ) # a cons-list of word names
+: .list-text ptr> 3 + ; ( ptr -- addr ) # nil or a source string
 
 : prim? ( func -- flag )
 	.list-data @ dup
@@ -176,19 +178,25 @@
 ;
 
 : >list ( cons-list -- ptr )
-	3 alloc >r
+	4 alloc >r
 	KIND_LIST i kind!
 	nil i .list-args !
+	nil i .list-text !
 	    i .list-data !
 	r>
 ;
 
 : >func ( code args -- ptr )
 	swap >list
-	swap over .list-args !
+	swap        over .list-args !
+	last-text @ over .list-text !
 ;
 
-: word>  ptr> 1 +     ; ( ptr -- str )
+: word> ( ptr -- str )
+	#dup word? -if logo-print " is not a word." abort then
+	ptr> 1 +
+;
+
 : list>  .list-data @ ; ( ptr -- cons-list )
 
 : word= ( p1 p2 -- flag )
@@ -586,6 +594,16 @@
 	r>
 ;
 
+: logo-first ( list -- val )
+	list> dup nil? if >list exit then
+	first
+;
+
+: logo-butfirst ( list -- val )
+	list> dup nil? if >list exit then
+	rest >list
+;
+
 : logo-stop ( -- )
 	# escape to the parent environment
 	# of the closest synthetic function:
@@ -615,6 +633,30 @@
 	cr
 ;
 
+:proto edit
+:proto showturtle
+:proto hideturtle
+:ref turtlemode
+
+: logo-edit ( word -- )
+	dup word? -if "Only words can be edited." abort then
+	dup env-get
+	dup .list-text @
+	dup nil? if
+		2drop logo-print " cannot be edited." abort
+	else
+		>r 2drop r>
+	then
+	turtlemode @ dup >r
+	if hideturtle then
+	word> edit
+	dup typeln
+	dup >word last-text !
+	>read parse eval
+	nil       last-text !
+	r> if showturtle then
+;
+
 :include <Sprites.fs>
 :include "Turtle.fs"
 
@@ -641,6 +683,7 @@
 	{ A v logo-stop                  } "output"     [ A   ]-prim
 	{ A v B v logo-bind              } "bind"       [ A B ]-prim
 	{ logo-words                     } "words"      [     ]-prim
+	{ A v logo-edit                  } "edit"       [ A   ]-prim
 	{ stacktrace                     } "trace"      [     ]-prim
 	{ A v true?  if B v eval then    } "if"         [ A B ]-prim
 	{ A v true? -if B v eval then    } "unless"     [ A B ]-prim
@@ -659,14 +702,14 @@
 	{ A n -1 * >num               } "negate"     [ A   ]-prim
 
 	# type predicates
-	{ A v word?           >bool   } "wordp"      [ A   ]-prim
-	{ A v list?           >bool   } "listp"      [ A   ]-prim
-	{ A v  num?           >bool   } "nump"       [ A   ]-prim
-	{ A v nil >list logo= >bool   } "empty"      [ A   ]-prim
+	{ A v word?           >bool   } "word?"      [ A   ]-prim
+	{ A v list?           >bool   } "list?"      [ A   ]-prim
+	{ A v  num?           >bool   } "num?"       [ A   ]-prim
+	{ A v nil >list logo= >bool   } "empty?"     [ A   ]-prim
 
 	# list manipulation
-	{ A v list> first             } "first"      [ A   ]-prim
-	{ A v list> rest >list        } "butfirst"   [ A   ]-prim
+	{ A v logo-first              } "first"      [ A   ]-prim
+	{ A v logo-butfirst           } "butfirst"   [ A   ]-prim
 	{ A v B v list> pair >list    } "fput"       [ A B ]-prim
 	{ A v B v nil pair pair >list } "list"       [ A B ]-prim
 	{ B v A n logo-item           } "item"       [ A B ]-prim
@@ -962,7 +1005,6 @@
 		"to" starts? if
 			turtlemode @ dup >r
 			if hideturtle then
-			
 			dup glue-buffer over size >move
 			size glue-buffer +
 			return over !  1 +
@@ -972,13 +1014,15 @@
 			"d" @  over !  1 +
 			0      swap !
 			glue-buffer edit
-			dup typeln >read
-
+			dup typeln
+			dup >word last-text !
+			>read
 			r> if showturtle then
 		else
 			drop
 		then
 		parse eval
+		nil last-text !
 	again
 ;
 
@@ -994,6 +1038,20 @@
 	hideturtle
 	clearscreen
 	intro
+
+	# set up shorthand aliases for prims:
+	"make 'pr   :print"      run
+	"make 'pl   :printlist"  run
+	"make 'bk   :back"       run
+	"make 'fd   :forward"    run
+	"make 'rt   :right"      run
+	"make 'lt   :left"       run
+	"make 'cs   :clear"      run
+	"make 'seth :setheading" run
+	"make 'pu   :penup"      run
+	"make 'pd   :pendown"    run
+	"make 'bf   :butfirst"   run
+	"make 'bl   :butlast"    run
 
 	"to f :x
 		if (:x = 0) [ forward 7 stop ]
@@ -1020,7 +1078,7 @@
 	end" run
 
 	1 1 "Welcome to Loko 0.1" grid-type
-	1 2 "128k OK"             grid-type
+	1 2 "64k OK"              grid-type
 
 	' console-emit ' emit revector
 	' abort        ' fail revector
