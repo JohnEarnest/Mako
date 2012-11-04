@@ -15,20 +15,25 @@
 
 : save-grid ( -- )
 	grid-buffer
-	39 for
-		29 for
-			j i tile-grid@ @ over !
+	28 for
+		39 for
+			39 i -
+			28 j -
+			tile-grid@ @ over !
 			1 +
 		next
 	next
 	drop
 ;
 
-: restore-grid ( -- )
-	grid-buffer
-	39 for
-		29 for
-			dup @ j i tile-grid@ !
+: restore-grid ( offset -- )
+	40 * grid-buffer +
+	28 for
+		39 for
+			dup @
+			39 i -
+			28 j -
+			tile-grid@ !
 			1 +
 		next
 	next
@@ -53,7 +58,7 @@
 :const backspace  8
 :const return    10
 :const space     32
-:const maxlines   8
+:const maxlines  28
 
 :const text-size 1202
 :array text text-size 0
@@ -182,13 +187,13 @@
 			KB @ dup -1 = if drop break then
 			dup 3 = if
 				cursor-sprite hide
-				restore-grid
+				0 restore-grid
 				drop "BREAK" abort
 			then
 			dup return = if
 				drop cursor-line 29 = if
 					cursor-sprite hide
-					restore-grid
+					0 restore-grid
 					text exit
 				else
 					return tryinsert
@@ -216,9 +221,8 @@
 			cursor-set keydelay
 		then
 
-		restore-grid
-
 		height
+		dup restore-grid
 		dup draw-buffer
 
 		# update the cursor
