@@ -70,8 +70,8 @@
 : pair    2 alloc dup >r ptr> swap over 1 + ! ! r> ; ( first rest -- pair )
 : first   ptr>     @                               ; ( pair -- first )
 : rest    ptr> 1 + @                               ; ( pair --  rest )
-: first!  ptr>     !                               ; ( pair -- first )
-: rest!   ptr> 1 + !                               ; ( pair --  rest )
+: first!  ptr>     !                               ; ( first pair -- )
+: rest!   ptr> 1 + !                               ; ( rest pair -- )
 :  split  dup first swap  rest                     ; ( pair -- first rest )
 : -split  dup  rest swap first                     ; ( pair -- rest first )
 
@@ -533,12 +533,30 @@
 	then
 ;
 
+: logo-flatten ( list -- 'list )
+	list> nil >list dup >r
+	loop
+		over nil? if 2drop break then
+		over first dup list? if
+			logo-flatten list>
+			swap over swap rest!
+			list-last
+		else
+			nil pair
+			swap over swap rest!
+		then
+		swap rest swap
+	again
+	r>
+;
+
 : logo-printraw ( val -- )
 	dup num?  if num> .num exit then
 	dup call? if word> type exit then
 	dup var?  if word> type exit then
 	dup word? if word> type exit then
 	dup prim? if "p" type list> . exit then
+	logo-flatten
 	list> loop
 		dup nil? if drop break then
 		-split logo-printraw space
@@ -719,6 +737,7 @@
 	{ A v logo-last               } "last"       [ A   ]-prim
 	{ A v logo-butlast            } "butlast"    [ A   ]-prim
 	{ A v B v logo-lput           } "lput"       [ A B ]-prim
+	{ A v logo-flatten            } "flatten"    [ A   ]-prim
 
 	# turtle graphics
 	{ A n      draw   wait        } "forward"    [ A   ]-prim
