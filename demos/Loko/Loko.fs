@@ -421,14 +421,14 @@
 	{ tokenchar? numeral? or } accept>
 ;
 
-:proto parse
+:proto parse-in
 
 : parse-token ( -- token )
-	open  curr = if skip trim parse   exit then
-	tick  curr = if skip token> >word exit then
-	colon curr = if skip token> >var  exit then
-	tokenchar?   if      token> >call exit then
-	numeral?     if number> >num      exit then
+	open  curr = if skip trim parse-in exit then
+	tick  curr = if skip token> >word  exit then
+	colon curr = if skip token> >var   exit then
+	tokenchar?   if      token> >call  exit then
+	numeral?     if number> >num       exit then
 	"The character '" type curr emit "' is not valid." abort
 ;
 
@@ -463,27 +463,34 @@
 	rdrop
 ;
 
-: parse-to ( -- )
-	token> >word
-	nil loop
-		colon curr = -if break then
-		skip token> >word swap pair
-	again
-	parse list> swap >func
-	swap global-make
-;
-
-: parse ( -- list )
+: parse-in ( -- list )
 	nil >list dup
 	loop
-		( head tail )
-		"to"  match? if parse-to        then
-		"end" match? if           break then
-		eof?         if           break then
-		close curr = if skip trim break then
+		eof?       if break then
+		"]" match? if break then
 		infix-unary
 	again
 	drop
+;
+
+: parse ( -- list )
+	trim "to" match? if
+		token> >word
+		nil loop
+			colon curr = -if break then
+			skip token> >word swap pair
+		again
+		nil >list dup loop
+			eof? if "'end' expected!" abort then
+			"end" match? if break then
+			infix-unary
+		again drop
+		list> swap >func swap global-make
+		nil >list
+		exit
+	else
+		parse-in
+	then
 ;
 
 ######################################################
@@ -543,8 +550,12 @@
 		over nil? if 2drop break then
 		over first dup list? if
 			logo-flatten list>
-			swap over swap rest!
-			list-last
+			dup nil? -if
+				swap over swap rest!
+				list-last
+			else
+				drop
+			then
 		else
 			nil pair
 			swap over swap rest!
@@ -698,7 +709,7 @@
 	# misc
 	{ A v logo-printraw cr           } "print"      [ A   ]-prim
 	{ A v logo-print    cr           } "printlist"  [ A   ]-prim
-	{ false readline >read parse     } "readlist"   [     ]-prim
+	{ false readline >read parse-in  } "readlist"   [     ]-prim
 	{ B v A v global-make            } "make"       [ A B ]-prim
 	{ B v A v env-make               } "local"      [ A B ]-prim
 	{     logo-stop                  } "stop"       [     ]-prim
