@@ -75,6 +75,10 @@
 :  split  dup first swap  rest                     ; ( pair -- first rest )
 : -split  dup  rest swap first                     ; ( pair -- rest first )
 
+: free-space ( -- words )
+	from @ heap-size + head @ -
+;
+
 : managed-begin ;
 :var   global-env
 :var   env
@@ -273,7 +277,7 @@
 : env-push  nil env @ >env env ! ; ( -- )
 : env-pop   env @ rest     env ! ; ( -- )
 
-: env-get ( word -- val | nil )
+: env-get ( word -- val )
 	env @ loop
 		dup nil? if break then
 		2dup envlist-find
@@ -700,7 +704,9 @@
 	{     logo-stop                  } "stop"       [     ]-prim
 	{ A v logo-stop                  } "output"     [ A   ]-prim
 	{ A v B v logo-bind              } "bind"       [ A B ]-prim
+	{ A v env-get                    } "thing"      [ A   ]-prim
 	{ logo-words                     } "words"      [     ]-prim
+	{ gc free-space . "words" typeln } "free"       [     ]-prim
 	{ A v logo-edit                  } "edit"       [ A   ]-prim
 	{ stacktrace                     } "trace"      [     ]-prim
 	{ A v true?  if B v eval then    } "if"         [ A B ]-prim
@@ -1040,8 +1046,13 @@
 		else
 			drop
 		then
-		parse eval
+		parse
+		DP @ swap
+		eval
 		nil last-text !
+		DP @ = -if
+			"I don't know what to do with that." abort
+		then
 	again
 ;
 

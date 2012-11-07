@@ -69,7 +69,7 @@ Logo also provides primitives for reading from and printing to the command conso
 Math
 ----
 
-- `negate` returns the inverse of a number.
+- `negate` returns the negation of a number.
 - `random` returns a random integer from 0 up to but not including a given number.
 - `equal` or infix `=` returns `'true` if both arguments are the same. Works for numbers, words or lists (which are compared recursively).
 - `less` or infix `<` returns `'true` if the first number is less than the second.
@@ -93,7 +93,7 @@ List Operations
 - `member` takes a value and a list, and returns a subsequence of the list starting with any instance of the given value, or an empty list if the original list did not contain the value.
 - `flatten` takes a list which may contain sublists and flattens all the elements recursively into a single list.
 
-All list operations are functional- that is, they return a new list rather than altering existing list in-place:
+All list operations are functional- that is, they return a new list rather than altering an existing list in-place:
 
 - `fput` takes a value and a list and adds the value to the beginning of the list.
 - `lput` takes a value and a list and adds the value to the end of the list.
@@ -104,8 +104,10 @@ Misc
 - `make` takes a name and a value, and gives the specified name the specified value in a global scope.
 - `local` takes a name and a value and gives the specified name the specified value in a local scope- that is, within the current function declaration.
 - `bind` takes two lists. The first should be a list of names, while the second is an executable list. `bind` attaches the first list as an arglist for the second. This is roughly equivalent to a Lisp `lambda`.
+- `thing` takes a name, and yields the value associated with that name. This works like `:` on a variable name, but can be chained to follow arbitrary degrees of indirect reference.
 - `words` prints out a list of all globally-defined names.
 - `trace` prints out a stack trace of the currently executing program, including all locally bound arguments and values.
+- `free` performs garbage collection and prints out how many words of heap space are still free.
 
 Examples
 --------
