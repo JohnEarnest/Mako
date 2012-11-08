@@ -125,6 +125,18 @@ Novel Control Structures:
 		while :cond :proc
 	end
 
+A Push-Down Stack:
+
+	to push :stack :value
+		make :stack fput :value thing :stack
+	end
+
+	to pop :stack
+		local  'top      first thing :stack
+		make   :stack butfirst thing :stack
+		output :top
+	end
+
 Dragon Curve:
 
 	to x :c

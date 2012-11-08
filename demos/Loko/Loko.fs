@@ -666,6 +666,13 @@
 	cr
 ;
 
+: logo-local ( name value -- )
+	env @ >r
+	env-pop
+	env-make
+	r> env !
+;
+
 :proto edit
 :proto showturtle
 :proto hideturtle
@@ -711,7 +718,7 @@
 	{ A v logo-print    cr           } "printlist"  [ A   ]-prim
 	{ false readline >read parse-in  } "readlist"   [     ]-prim
 	{ B v A v global-make            } "make"       [ A B ]-prim
-	{ B v A v env-make               } "local"      [ A B ]-prim
+	{ B v A v logo-local             } "local"      [ A B ]-prim
 	{     logo-stop                  } "stop"       [     ]-prim
 	{ A v logo-stop                  } "output"     [ A   ]-prim
 	{ A v B v logo-bind              } "bind"       [ A B ]-prim
