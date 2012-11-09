@@ -56,6 +56,13 @@
 	dup 0 = if "Cannot divide by zero." abort then
 ;
 
+: void ( val? flag -- )
+	if
+		"I don't know what to do with " type
+		logo-print "." abort
+	then
+;
+
 ######################################################
 ##
 ##  GC and List utilities:
@@ -335,7 +342,7 @@
 :proto eval
 :proto eval-token
 
-: call ( ... a2 a1 a0 list -- ret? )
+: call ( ... a2 a1 a0 list -- val? flag )
 	brk
 	dup .list-args @ loop
 		dup nil? if drop break then
@@ -350,12 +357,12 @@
 	then
 ;
 
-: eval-func ( list -- )
+: eval-func ( list -- val? flag )
 	dup list? -if logo-print " is not a procedure." abort then
 	dup >r .list-args @ list-size {
 		cursor-next
-		dup nil? if "Not enough arguments!" abort then
-		eval-token
+		dup nil?    if "Not enough arguments!"  abort then
+		eval-token -if "Not enough arguments!!" abort then
 	} repeat r>
 	dup tail-call? if
 		dup .env-continue @ RP !
@@ -368,21 +375,22 @@
 	call env-pop
 ;
 
-: eval-token ( ptr -- )
-	dup var?  if env-get then
-	dup num?  if    exit then
-	dup word? if    exit then
-	dup list? if    exit then
+: eval-token ( ptr -- val? flag )
+	dup var?  if env-get   then
+	dup num?  if true exit then
+	dup word? if true exit then
+	dup list? if true exit then
 	env-get eval-func
 ;
 
-: eval ( list -- )
+: eval ( list -- val? flag )
 	list> env @ .env-cursor !
 	loop
 		cursor-next
 		dup nil? if drop break then
-		eval-token
+		eval-token void
 	again
+	false
 ;
 
 ######################################################
@@ -692,7 +700,7 @@
 	word> edit
 	dup typeln
 	dup >word last-text !
-	>read parse eval
+	>read parse eval void
 	nil       last-text !
 	r> if showturtle then
 ;
@@ -714,75 +722,75 @@
 	"false" >word logo-f !
 
 	# misc
-	{ A v logo-printraw cr           } "print"      [ A   ]-prim
-	{ A v logo-print    cr           } "printlist"  [ A   ]-prim
-	{ false readline >read parse-in  } "readlist"   [     ]-prim
-	{ B v A v global-make            } "make"       [ A B ]-prim
-	{ B v A v logo-local             } "local"      [ A B ]-prim
-	{     logo-stop                  } "stop"       [     ]-prim
-	{ A v logo-stop                  } "output"     [ A   ]-prim
-	{ A v B v logo-bind              } "bind"       [ A B ]-prim
-	{ A v env-get                    } "thing"      [ A   ]-prim
-	{ logo-words                     } "words"      [     ]-prim
-	{ gc free-space . "words" typeln } "free"       [     ]-prim
-	{ A v logo-edit                  } "edit"       [ A   ]-prim
-	{ stacktrace                     } "trace"      [     ]-prim
-	{ A v true?  if B v eval then    } "if"         [ A B ]-prim
-	{ A v true? -if B v eval then    } "unless"     [ A B ]-prim
-	{ A n { B v eval } repeat        } "repeat"     [ A B ]-prim
-	{ A v env-pop eval-func env-push } "run"        [ A   ]-prim
+	{ A v logo-printraw cr             false } "print"      [ A   ]-prim
+	{ A v logo-print    cr             false } "printlist"  [ A   ]-prim
+	{ false readline >read parse-in    true  } "readlist"   [     ]-prim
+	{ B v A v global-make              false } "make"       [ A B ]-prim
+	{ B v A v logo-local               false } "local"      [ A B ]-prim
+	{     false logo-stop                    } "stop"       [     ]-prim
+	{ A v true  logo-stop                    } "output"     [ A   ]-prim
+	{ A v B v logo-bind                true  } "bind"       [ A B ]-prim
+	{ A v env-get                      true  } "thing"      [ A   ]-prim
+	{ logo-words                       false } "words"      [     ]-prim
+	{ gc free-space . "words" typeln   false } "free"       [     ]-prim
+	{ A v logo-edit                    false } "edit"       [ A   ]-prim
+	{ stacktrace                       false } "trace"      [     ]-prim
+	{ A v true?  if B v eval void then false } "if"         [ A B ]-prim
+	{ A v true? -if B v eval void then false } "unless"     [ A B ]-prim
+	{ A n { B v eval void } repeat     false } "repeat"     [ A B ]-prim
+	{ A v env-pop eval-func env-push         } "run"        [ A   ]-prim
 
 	# math
-	{ A n B n +        >num       } "sum"        [ A B ]-prim
-	{ A n B n -        >num       } "difference" [ A B ]-prim
-	{ A n B n *        >num       } "product"    [ A B ]-prim
-	{ A n B n  /0? /   >num       } "quotient"   [ A B ]-prim
-	{ A n B n  /0? mod >num       } "remainder"  [ A B ]-prim
-	{ RN @ A n /0? mod >num       } "random"     [ A   ]-prim
-	{ A n B n < >bool             } "less"       [ A B ]-prim
-	{ A n B n > >bool             } "greater"    [ A B ]-prim
-	{ A n -1 * >num               } "negate"     [ A   ]-prim
+	{ A n B n +        >num       true } "sum"        [ A B ]-prim
+	{ A n B n -        >num       true } "difference" [ A B ]-prim
+	{ A n B n *        >num       true } "product"    [ A B ]-prim
+	{ A n B n  /0? /   >num       true } "quotient"   [ A B ]-prim
+	{ A n B n  /0? mod >num       true } "remainder"  [ A B ]-prim
+	{ RN @ A n /0? mod >num       true } "random"     [ A   ]-prim
+	{ A n B n < >bool             true } "less"       [ A B ]-prim
+	{ A n B n > >bool             true } "greater"    [ A B ]-prim
+	{ A n -1 * >num               true } "negate"     [ A   ]-prim
 
 	# type predicates
-	{ A v word?           >bool   } "word?"      [ A   ]-prim
-	{ A v list?           >bool   } "list?"      [ A   ]-prim
-	{ A v  num?           >bool   } "num?"       [ A   ]-prim
-	{ A v nil >list logo= >bool   } "empty?"     [ A   ]-prim
+	{ A v word?           >bool   true } "word?"      [ A   ]-prim
+	{ A v list?           >bool   true } "list?"      [ A   ]-prim
+	{ A v  num?           >bool   true } "num?"       [ A   ]-prim
+	{ A v nil >list logo= >bool   true } "empty?"     [ A   ]-prim
 
 	# list manipulation
-	{ A v logo-first              } "first"      [ A   ]-prim
-	{ A v logo-butfirst           } "butfirst"   [ A   ]-prim
-	{ A v B v list> pair >list    } "fput"       [ A B ]-prim
-	{ A v B v nil pair pair >list } "list"       [ A B ]-prim
-	{ B v A n logo-item           } "item"       [ A B ]-prim
-	{ A v B v logo= >bool         } "equal"      [ A B ]-prim
-	{ A v B v logo-member         } "member"     [ A B ]-prim
-	{ A v list> list-size >num    } "size"       [ A   ]-prim
-	{ A v logo-last               } "last"       [ A   ]-prim
-	{ A v logo-butlast            } "butlast"    [ A   ]-prim
-	{ A v B v logo-lput           } "lput"       [ A B ]-prim
-	{ A v logo-flatten            } "flatten"    [ A   ]-prim
+	{ A v logo-first              true } "first"      [ A   ]-prim
+	{ A v logo-butfirst           true } "butfirst"   [ A   ]-prim
+	{ A v B v list> pair >list    true } "fput"       [ A B ]-prim
+	{ A v B v nil pair pair >list true } "list"       [ A B ]-prim
+	{ B v A n logo-item           true } "item"       [ A B ]-prim
+	{ A v B v logo= >bool         true } "equal"      [ A B ]-prim
+	{ A v B v logo-member         true } "member"     [ A B ]-prim
+	{ A v list> list-size >num    true } "size"       [ A   ]-prim
+	{ A v logo-last               true } "last"       [ A   ]-prim
+	{ A v logo-butlast            true } "butlast"    [ A   ]-prim
+	{ A v B v logo-lput           true } "lput"       [ A B ]-prim
+	{ A v logo-flatten            true } "flatten"    [ A   ]-prim
 
 	# turtle graphics
-	{ A n      draw   wait        } "forward"    [ A   ]-prim
-	{ A n -1 * draw   wait        } "back"       [ A   ]-prim
-	{ A n      angle+             } "right"      [ A   ]-prim
-	{ A n -1 * angle+             } "left"       [ A   ]-prim
-	{ home            wait        } "home"       [     ]-prim
-	{ clearscreen                 } "clear"      [     ]-prim
-	{ A n angle!                  } "setheading" [ A   ]-prim
-	{ A n posx!       wait        } "setx"       [ A   ]-prim
-	{ A n posy!       wait        } "sety"       [ A   ]-prim
-	{ angle >num                  } "heading"    [     ]-prim
-	{ posx  >num                  } "xcor"       [     ]-prim
-	{ posy  >num                  } "ycor"       [     ]-prim
-	{ pos                         } "pos"        [     ]-prim
-	{ A v setpos      wait        } "setpos"     [ A   ]-prim
-	{ showturtle                  } "showturtle" [     ]-prim
-	{ hideturtle                  } "hideturtle" [     ]-prim
-	{ false pen !                 } "pendown"    [     ]-prim
-	{ true  pen !                 } "penup"      [     ]-prim
-	{ A n setcolor                } "setcolor"   [ A   ]-prim
+	{ A n      draw   wait       false } "forward"    [ A   ]-prim
+	{ A n -1 * draw   wait       false } "back"       [ A   ]-prim
+	{ A n      angle+            false } "right"      [ A   ]-prim
+	{ A n -1 * angle+            false } "left"       [ A   ]-prim
+	{ home            wait       false } "home"       [     ]-prim
+	{ clearscreen                false } "clear"      [     ]-prim
+	{ A n angle!                 false } "setheading" [ A   ]-prim
+	{ A n posx!       wait       false } "setx"       [ A   ]-prim
+	{ A n posy!       wait       false } "sety"       [ A   ]-prim
+	{ angle >num                 true  } "heading"    [     ]-prim
+	{ posx  >num                 true  } "xcor"       [     ]-prim
+	{ posy  >num                 true  } "ycor"       [     ]-prim
+	{ pos                        true  } "pos"        [     ]-prim
+	{ A v setpos      wait       false } "setpos"     [ A   ]-prim
+	{ showturtle                 false } "showturtle" [     ]-prim
+	{ hideturtle                 false } "hideturtle" [     ]-prim
+	{ false pen !                false } "pendown"    [     ]-prim
+	{ true  pen !                false } "penup"      [     ]-prim
+	{ A n setcolor               false } "setcolor"   [ A   ]-prim
 ;
 
 ######################################################
@@ -1064,17 +1072,12 @@
 		else
 			drop
 		then
-		parse
-		DP @ swap
-		eval
+		parse eval void
 		nil last-text !
-		DP @ = -if
-			"I don't know what to do with that." abort
-		then
 	again
 ;
 
-: run  >read parse eval ; ( str -- )
+: run  >read parse eval void ; ( str -- )
 
 : main ( -- )
 	gc-init
