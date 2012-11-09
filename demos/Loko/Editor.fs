@@ -11,7 +11,7 @@
 ##
 ######################################################
 
-:array grid-buffer 1200 0
+:array grid-buffer 2400 0
 
 : save-grid ( -- )
 	grid-buffer

@@ -63,6 +63,11 @@
 	then
 ;
 
+: noargs ( word -- )
+	"Not enough arguments for " type 
+	logo-print "!" abort
+;
+
 ######################################################
 ##
 ##  GC and List utilities:
@@ -341,6 +346,7 @@
 
 :proto eval
 :proto eval-token
+:var   last-word
 
 : call ( ... a2 a1 a0 list -- val? flag )
 	brk
@@ -361,8 +367,8 @@
 	dup list? -if logo-print " is not a procedure." abort then
 	dup >r .list-args @ list-size {
 		cursor-next
-		dup nil?    if "Not enough arguments!"  abort then
-		eval-token -if "Not enough arguments!!" abort then
+		dup nil?    if last-word @ noargs then
+		eval-token -if last-word @ noargs then
 	} repeat r>
 	dup tail-call? if
 		dup .env-continue @ RP !
@@ -380,6 +386,7 @@
 	dup num?  if true exit then
 	dup word? if true exit then
 	dup list? if true exit then
+	dup last-word !
 	env-get eval-func
 ;
 
@@ -413,8 +420,8 @@
 :const close  93 # ]
 :const period 46 # .
 :const comma  44 # ,
-:const bang   63 # ?
-:const what   33 # !
+:const what   63 # ?
+:const bang   33 # !
 
 : tokenchar? ( -- flag )
 	name?
@@ -437,6 +444,7 @@
 	colon curr = if skip token> >var   exit then
 	tokenchar?   if      token> >call  exit then
 	numeral?     if number> >num       exit then
+	eof? if "Missing ')' ?" abort then
 	"The character '" type curr emit "' is not valid." abort
 ;
 
@@ -1064,7 +1072,8 @@
 			"n" @  over !  1 +
 			"d" @  over !  1 +
 			0      swap !
-			glue-buffer edit
+			glue-buffer
+			edit
 			dup typeln
 			dup >word last-text !
 			>read
