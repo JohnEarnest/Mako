@@ -15,8 +15,11 @@
 :proto logo-print
 :proto stacktrace
 
-:array data-stack   200 0
-:array return-stack 200 0
+:const stack-size    200
+:array data-stack    stack-size 0
+:array data-padding          10 0
+:array return-stack  stack-size 0
+:array return-padding        10 0
 
 : nip  swap drop                ; ( a b -- b )
 : min  2dup > if swap then drop ; ( a b -- min )
@@ -66,6 +69,16 @@
 : noargs ( word -- )
 	"Not enough arguments for " type 
 	logo-print "!" abort
+;
+
+: checkstacks ( -- )
+	RP @ return-stack stack-size + 10 - >=
+	DP @   data-stack stack-size + 10 - >=
+	or if "Stack overflow!" abort then
+;
+
+: heap-empty ( -- )
+	"Heap memory exhausted!" abort
 ;
 
 ######################################################
@@ -364,6 +377,7 @@
 ;
 
 : eval-func ( list -- val? flag )
+	checkstacks
 	dup list? -if logo-print " is not a procedure." abort then
 	dup >r .list-args @ list-size {
 		cursor-next
@@ -740,7 +754,7 @@
 	{ A v B v logo-bind                true  } "bind"       [ A B ]-prim
 	{ A v env-get                      true  } "thing"      [ A   ]-prim
 	{ logo-words                       false } "words"      [     ]-prim
-	{ gc free-space . "words" typeln   false } "free"       [     ]-prim
+	{ gc free-space . "cells" typeln   false } "free"       [     ]-prim
 	{ A v logo-edit                    false } "edit"       [ A   ]-prim
 	{ stacktrace                       false } "trace"      [     ]-prim
 	{ A v true?  if B v eval void then false } "if"         [ A B ]-prim
@@ -1140,8 +1154,9 @@
 	1 1 "Welcome to Loko 0.1" grid-type
 	1 2 "64k OK"              grid-type
 
-	' console-emit ' emit revector
-	' abort        ' fail revector
-	' repl          restart-vector !
+	' heap-empty   ' gc-fail revector
+	' console-emit ' emit    revector
+	' abort        ' fail    revector
+	' repl restart-vector !
 	repl
 ;
