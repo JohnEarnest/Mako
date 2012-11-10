@@ -487,9 +487,9 @@
 
 : infix ( tail -- tail' )
 	dup >r infix-add
-	">" match? if r> "greater"    >call list-insert infix     exit then
-	"<" match? if r> "less"       >call list-insert infix     exit then
-	"=" match? if r> "equal"      >call list-insert infix     exit then
+	">" match? if r> "greater?"   >call list-insert infix     exit then
+	"<" match? if r> "less?"      >call list-insert infix     exit then
+	"=" match? if r> "equal?"     >call list-insert infix     exit then
 	rdrop
 ;
 
@@ -769,8 +769,9 @@
 	{ A n B n  /0? /   >num       true } "quotient"   [ A B ]-prim
 	{ A n B n  /0? mod >num       true } "remainder"  [ A B ]-prim
 	{ RN @ A n /0? mod >num       true } "random"     [ A   ]-prim
-	{ A n B n < >bool             true } "less"       [ A B ]-prim
-	{ A n B n > >bool             true } "greater"    [ A B ]-prim
+	{ A v B v logo= >bool         true } "equal?"     [ A B ]-prim
+	{ A n B n < >bool             true } "less?"      [ A B ]-prim
+	{ A n B n > >bool             true } "greater?"   [ A B ]-prim
 	{ A n -1 * >num               true } "negate"     [ A   ]-prim
 
 	# type predicates
@@ -785,7 +786,6 @@
 	{ A v B v list> pair >list    true } "fput"       [ A B ]-prim
 	{ A v B v nil pair pair >list true } "list"       [ A B ]-prim
 	{ B v A n logo-item           true } "item"       [ A B ]-prim
-	{ A v B v logo= >bool         true } "equal"      [ A B ]-prim
 	{ A v B v logo-member         true } "member"     [ A B ]-prim
 	{ A v list> list-size >num    true } "size"       [ A   ]-prim
 	{ A v logo-last               true } "last"       [ A   ]-prim

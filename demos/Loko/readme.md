@@ -44,7 +44,7 @@ Procedures are defined by using the `to` keyword, specifying a series of argumen
 Here's an example procedure calculating the maximum of two values:
 
 	to maximum :a :b
-		if less :a :b [ output :b ]
+		if less? :a :b [ output :b ]
 		output :a
 	end
 
@@ -71,9 +71,9 @@ Math
 
 - `negate` returns the negation of a number.
 - `random` returns a random integer from 0 up to but not including a given number.
-- `equal` or infix `=` returns `'true` if both arguments are the same. Works for numbers, words or lists (which are compared recursively).
-- `less` or infix `<` returns `'true` if the first number is less than the second.
-- `greater` or infix `>` returns `'true` if the first number is greater than the second.
+- `equal?` or infix `=` returns `'true` if both arguments are the same. Works for numbers, words or lists (which are compared recursively).
+- `less?` or infix `<` returns `'true` if the first number is less than the second.
+- `greater?` or infix `>` returns `'true` if the first number is greater than the second.
 - `sum` or infix `+` returns the sum of two numbers.
 - `difference` or infix `-` returns the difference of two numbers.
 - `product` or infix `*` returns the product of two numbers.
