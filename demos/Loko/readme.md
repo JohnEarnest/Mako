@@ -80,6 +80,16 @@ Math
 - `quotient` or infix `/` returns the quotient of dividing two numbers.
 - `remainder` or infix `%` returns the remainder of dividing two numbers.
 
+Type Predicates
+---------------
+
+To distinguish between value types, Logo provides a set of predicates. Just like the comparison operators, these routines return either `'true` or `'false` as a word.
+
+- `num?` takes a value and returns `'true` if it is a number.
+- `word?` takes a value and returns `'true` if it is a word.
+- `list?` takes a value and returns `'true` if it is a list.
+- `empty?` takes a value and returns `'true` if it is an empty list (`[]`).
+
 List Operations
 ---------------
 
