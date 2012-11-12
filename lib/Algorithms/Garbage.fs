@@ -29,6 +29,10 @@
 : p@    ptr> @                  ; ( ptr -- n )
 : ps    ptr> 1 - @              ; ( ptr -- size )
 
+:vector gc-fail ( -- )
+	"heap exhausted!" typeln halt
+;
+
 ######################################################
 ##
 ##  The GC proper
@@ -112,8 +116,8 @@
 : enough?  head @ + 1 + from @ heap-size + <= ; ( size -- flag )
 
 : alloc ( size -- ptr )
-	dup enough? -if gc then
-	dup enough? -if "heap exhausted!" typeln halt then
+	dup enough? -if gc      then
+	dup enough? -if gc-fail then
 
 	>r
 	  head @ 1 + >ptr       # calculate new pointer
