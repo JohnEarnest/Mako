@@ -696,6 +696,28 @@
 	cr
 ;
 
+: [type] ( ptr -- )
+	loop dup @ dup if CO ! else 2drop exit then 1 + again
+;
+
+: logo-dump ( -- )
+	"exporting source..." typeln
+	global-env @ first loop
+		dup nil? if drop break then
+		dup rest rest .list-text @
+		dup nil? -if
+			"dumping " type
+			over rest first logo-printraw
+			"..." typeln
+			ptr> [type] 10 CO ! 10 CO !
+		else
+			drop
+		then
+		first
+	again
+	"source export complete." typeln
+;
+
 : logo-local ( name value -- )
 	env @ >r
 	env-pop
@@ -755,6 +777,7 @@
 	{ A v env-get                      true  } "thing"      [ A   ]-prim
 	{ logo-words                       false } "words"      [     ]-prim
 	{ gc free-space . "cells" typeln   false } "free"       [     ]-prim
+	{ logo-dump                        false } "dump"       [     ]-prim
 	{ A v logo-edit                    false } "edit"       [ A   ]-prim
 	{ stacktrace                       false } "trace"      [     ]-prim
 	{ A v true?  if B v eval void then false } "if"         [ A B ]-prim
