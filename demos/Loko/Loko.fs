@@ -450,9 +450,17 @@
 	{ tokenchar? numeral? or } accept>
 ;
 
+: parse-comment ( -- )
+	";" match? if
+		loop skip eof? newline? or until
+		skip trim
+	then
+;
+
 :proto parse-in
 
 : parse-token ( -- token )
+	parse-comment
 	open  curr = if skip trim parse-in exit then
 	tick  curr = if skip token> >word  exit then
 	colon curr = if skip token> >var   exit then
@@ -496,6 +504,7 @@
 : parse-in ( -- list )
 	nil >list dup
 	loop
+		parse-comment
 		eof?       if break then
 		"]" match? if break then
 		infix-unary
@@ -511,6 +520,7 @@
 			skip token> >word swap pair
 		again
 		nil >list dup loop
+			parse-comment
 			eof? if "'end' expected!" abort then
 			"end" match? if break then
 			infix-unary
