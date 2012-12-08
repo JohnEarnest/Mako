@@ -681,6 +681,9 @@
 	# escape to the parent environment
 	# of the closest synthetic function:
 	env @ loop
+		dup nil? if
+			"I'm not running a procedure!" abort
+		then
 		dup .env-func @ nil? -if
 			dup .env-func @ prim? -if
 				dup .env-continue @ RP !
