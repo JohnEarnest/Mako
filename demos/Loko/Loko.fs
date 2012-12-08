@@ -836,6 +836,7 @@
 	{ false pen !                false } "pendown"    [     ]-prim
 	{ true  pen !                false } "penup"      [     ]-prim
 	{ A n setcolor               false } "setcolor"   [ A   ]-prim
+	{ A n B n lineto             false } "lineto"     [ A B ]-prim
 ;
 
 ######################################################
