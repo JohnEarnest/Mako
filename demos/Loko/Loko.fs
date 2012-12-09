@@ -1031,7 +1031,7 @@
 		dup first dup
 		logo-print " -> " type
 		>r over r> swap
-		envlist-find rest logo-print space 
+		envlist-find rest logo-print space emit
 		rest
 	again
 ;
