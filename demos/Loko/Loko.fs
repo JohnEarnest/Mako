@@ -354,11 +354,7 @@
 
 	# we must find an identical func record
 	# higher on the environment chain:
-	env @ loop
-		dup nil?           if 2drop false break then
-		2dup .env-func @ = if nip   true  break then
-		rest
-	again
+	env @ 2dup .env-func @ = if nip true else 2drop false then
 ;
 
 ######################################################

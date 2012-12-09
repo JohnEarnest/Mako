@@ -123,6 +123,14 @@ Misc
 Examples
 --------
 
+Recursively Draw a Spiral:
+
+	to spiral :x
+		if equal? :x 0 [stop]
+		fd :x rt 45
+		spiral difference :x 1
+	end
+
 Novel Control Structures:
 
 	to forever :proc
@@ -146,6 +154,23 @@ A Push-Down Stack:
 		local  'top      first thing :stack
 		make   :stack butfirst thing :stack
 		output :top
+	end
+
+Recursive Tree:
+
+	to branch :a :b :depth
+		fd 10
+		tree difference :depth 1
+		setheading :a
+		setpos     :b
+	end
+
+	to tree :depth
+		if equal? :depth 0 [stop]
+		local 'dir   heading
+		local 'place pos
+		lt 15 branch :dir :place :depth
+		rt 15 branch :dir :place :depth
 	end
 
 Dragon Curve:
