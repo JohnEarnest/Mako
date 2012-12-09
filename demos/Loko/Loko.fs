@@ -112,6 +112,7 @@
 :var   A
 :var   B
 :data  last-text nil # pointer to word containing last entered proc def
+:var   last-word     # used in eval
 : managed-end ;
 
 : list-size ( list -- 0count )
@@ -345,11 +346,14 @@
 	env @ .env-cursor !
 ;
 
-: tail-call? ( list -- env? flag )
+: tail-call? ( list tail-flag -- env? flag )
+	# if we aren't eligible for a tail call, quit:
+	dup -if nip exit then drop
+
 	# never try to short-circuit tail calls in primitives:
 	dup prim? if drop false exit then
 
-	# we must be the last call in the current procedure:
+	# the current statement must be fully evaluated:
 	env @ .env-cursor @ nil? -if drop false exit then
 
 	# we must find an identical func record
@@ -368,7 +372,6 @@
 
 :proto eval
 :proto eval-token
-:var   last-word
 
 : call ( ... a2 a1 a0 list -- val? flag )
 	brk
@@ -385,15 +388,20 @@
 	then
 ;
 
-: eval-func ( list -- val? flag )
-	checkstacks
+: eval-func ( list tail-flag -- val? flag )
+	>r checkstacks
 	dup list? -if logo-print " is not a procedure." abort then
 	dup >r .list-args @ list-size {
 		cursor-next
 		dup nil?    if last-word @ noargs then
+
+		# if the previous word is 'output',
+		# this call to eval-token could be tail:
+		last-word @ word> "output" -text 0 =
+
 		eval-token -if last-word @ noargs then
-	} repeat r>
-	dup tail-call? if
+	} repeat
+	r> dup r> tail-call? if
 		dup .env-continue @ RP !
 		env !
 	else
@@ -404,13 +412,14 @@
 	call env-pop
 ;
 
-: eval-token ( ptr -- val? flag )
-	dup var?  if env-get   then
-	dup num?  if true exit then
-	dup word? if true exit then
-	dup list? if true exit then
-	dup last-word !
-	env-get eval-func
+: eval-token ( ptr tail-flag -- val? flag )
+	over var?  if swap env-get swap then
+	over num?  if drop true exit then
+	over word? if drop true exit then
+	over list? if drop true exit then
+	over last-word !
+	swap env-get swap
+	eval-func
 ;
 
 : eval ( list -- val? flag )
@@ -418,7 +427,7 @@
 	loop
 		cursor-next
 		dup nil? if drop break then
-		eval-token void
+		true eval-token void
 	again
 	false
 ;
@@ -805,7 +814,7 @@
 	{ A v true?  if B v eval void then false } "if"         [ A B ]-prim
 	{ A v true? -if B v eval void then false } "unless"     [ A B ]-prim
 	{ A n { B v eval void } repeat     false } "repeat"     [ A B ]-prim
-	{ A v env-pop eval-func env-push         } "run"        [ A   ]-prim
+	{ A v env-pop false eval-func env-push   } "run"        [ A   ]-prim
 
 	# math
 	{ A n B n +        >num       true } "sum"        [ A B ]-prim
