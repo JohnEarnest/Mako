@@ -313,6 +313,19 @@
 	nip
 ;
 
+: env-set ( val word -- )
+	env @ loop
+		( val word env-head )
+		dup nil? if drop break then
+		2dup envlist-find dup nil? -if
+			( val word env-head entry )
+			nip nip rest! exit
+		then
+		drop rest
+	again
+	global-env @ envlist-add
+;
+
 : env-make ( val word -- )
 	dup env @ envlist-find dup nil? if
 		drop env @ envlist-add
@@ -782,7 +795,7 @@
 	{ A v logo-printraw cr             false } "print"      [ A   ]-prim
 	{ A v logo-print    cr             false } "printlist"  [ A   ]-prim
 	{ false readline >read parse-in    true  } "readlist"   [     ]-prim
-	{ B v A v global-make              false } "make"       [ A B ]-prim
+	{ B v A v env-set                  false } "make"       [ A B ]-prim
 	{ B v A v logo-local               false } "local"      [ A B ]-prim
 	{     false logo-stop                    } "stop"       [     ]-prim
 	{ A v true  logo-stop                    } "output"     [ A   ]-prim
@@ -1188,7 +1201,7 @@
 		]
 	end" run
 
-	1 1 "Welcome to Loko 0.1" grid-type
+	1 1 "Welcome to Loko 0.2" grid-type
 	1 2 "64k OK"              grid-type
 
 	' heap-empty   ' gc-fail revector

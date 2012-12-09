@@ -112,7 +112,7 @@ All list operations are functional- that is, they return a new list rather than 
 Misc
 ----
 
-- `make` takes a name and a value, and gives the specified name the specified value in a global scope.
+- `make` takes a name and a value, and gives the specified name the specified value in the global scope, or if the name is already defined in the most recent definition's scope.
 - `local` takes a name and a value and gives the specified name the specified value in a local scope- that is, within the current function declaration.
 - `bind` takes two lists. The first should be a list of names, while the second is an executable list. `bind` attaches the first list as an arglist for the second. This is roughly equivalent to a Lisp `lambda`.
 - `thing` takes a name, and yields the value associated with that name. This works like `:` on a variable name, but can be chained to follow arbitrary degrees of indirect reference.
