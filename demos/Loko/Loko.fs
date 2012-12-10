@@ -588,9 +588,11 @@
 		dup prim? if
 			"primitive @" type list> .
 		else
-			"[ " type list> loop
+			"[" type list> loop
 				dup nil? if drop break then
-				-split logo-print space
+				-split logo-print
+				dup nil? if drop break then
+				space
 			again
 			"]" type
 		then exit
@@ -791,8 +793,8 @@
 :proto readline
 
 : prims-init ( -- )
-	"arg1"  >word A !
-	"arg2"  >word B !
+	"a1"    >word A !
+	"a2"    >word B !
 	"true"  >word logo-t !
 	"false" >word logo-f !
 
@@ -1038,7 +1040,7 @@
 	.list-args @ loop
 		dup nil? if drop break then
 		dup first dup
-		logo-print " -> " type
+		word> type "=" type
 		>r over r> swap
 		envlist-find rest logo-print space emit
 		rest
@@ -1053,7 +1055,7 @@
 			dup .env-func @ dup func-name
 			( func word? )
 			dup nil? if drop dup then
-			tab logo-print
+			space emit word> type
 			# print the arglist
 			tab .args cr
 		else
