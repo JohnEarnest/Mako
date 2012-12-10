@@ -531,7 +531,7 @@
 ;
 
 : parse ( -- list )
-	trim "to" match? if
+	trim "to " match? if
 		token> >word
 		nil loop
 			colon curr = -if break then
@@ -1132,7 +1132,7 @@
 	loop
 		false readline
 		dup >read
-		"to" starts? if
+		"to " starts? if
 			turtlemode @ dup >r
 			if hideturtle then
 			dup glue-buffer over size >move
