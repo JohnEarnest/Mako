@@ -227,7 +227,15 @@
 	ptr> 1 +
 ;
 
-: list>  .list-data @ ; ( ptr -- cons-list )
+: list> ( ptr -- cons-list )
+	dup list? -if logo-print " is not a list." abort then
+	.list-data @
+;
+
+: fixed-list? ( v count -- v )
+	over list> list-size =
+	-if "Supplied list is not the correct size." abort then
+;
 
 : word= ( p1 p2 -- flag )
 	2dup = if 2drop true exit then
@@ -787,8 +795,21 @@
 
 : wait      sync sync                               ; ( -- )
 : pos       posx >num posy >num nil pair pair >list ; ( -- list )
-: setpos    list> split first num> posy! num> posx! ; ( list -- )
-: setcolor  256 mod 256 * 0xFF000000 or linecolor ! ; ( int -- )
+
+: setpos ( list -- )
+	2 fixed-list? list>
+	split first
+	num> posy! num> posx!
+;
+
+: setcolor ( list -- )
+	3 fixed-list?
+	list> split split first
+	num> 0xFF and            swap # b
+	num> 0xFF and   256 * or swap # g
+	num> 0xFF and 65536 * or      # r
+	0xFF000000 or linecolor !
+;
 
 :proto readline
 
@@ -868,7 +889,7 @@
 	{ hideturtle                 false } "hideturtle" [     ]-prim
 	{ false pen !                false } "pendown"    [     ]-prim
 	{ true  pen !                false } "penup"      [     ]-prim
-	{ A n setcolor               false } "setcolor"   [ A   ]-prim
+	{ A v setcolor               false } "setcolor"   [ A   ]-prim
 	{ A n B n lineto             false } "lineto"     [ A B ]-prim
 ;
 

@@ -34,7 +34,7 @@ At startup, Loko awaits instructions in a scrolling command-line mode. The `show
 - `setpos` given a list of coordinates, set the turtle's position.
 - `penup` or `pu` tell the turtle to stop drawing a line as it moves.
 - `pendown` or `pd` resume drawing a line as the turtle moves.
-- `setcolor` given a number between 0 and 255, set the pen's grayscale value.
+- `setcolor` given list of 3 numbers between 0 and 255, set the pen's RGB color.
 - `lineto` given X and Y coordinates, draw a line from the turtle to an absolute position.
 
 Defining Procedures
