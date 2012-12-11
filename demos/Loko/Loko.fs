@@ -771,6 +771,15 @@
 :proto hideturtle
 :ref turtlemode
 
+: def-stub ( string -- )
+	# create a global stub linked to the string.
+	# this ensures that definitions containing
+	# syntax errors don't have to be totally re-entered.
+	dup >read "to" expect >word
+	nil >list dup >r .list-text ! r>
+	token> >word global-make
+;
+
 : logo-edit ( word -- )
 	dup word? -if "Only words can be edited." abort then
 	dup env-get
@@ -783,6 +792,7 @@
 	turtlemode @ dup >r
 	if hideturtle then
 	word> edit
+	dup def-stub
 	dup typeln
 	dup >word last-text !
 	>read parse eval void
@@ -1166,6 +1176,7 @@
 			0      swap !
 			glue-buffer
 			edit
+			dup def-stub
 			dup typeln
 			dup >word last-text !
 			>read
