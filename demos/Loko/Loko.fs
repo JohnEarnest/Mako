@@ -425,9 +425,11 @@
 	over num?  if drop true exit then
 	over word? if drop true exit then
 	over list? if drop true exit then
+	last-word @ >r
 	over last-word !
 	swap env-get swap
 	eval-func
+	r> last-word !
 ;
 
 : eval ( list -- val? flag )
