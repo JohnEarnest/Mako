@@ -733,11 +733,19 @@
 	list> swap list> list-reverse >func
 ;
 
+:proto plain-text
+:proto code-text
+
 : logo-words ( -- )
 	"global definitions: " typeln cr
 	global-env @ first loop
 		dup nil? if drop break then
-		dup rest first logo-printraw space
+		dup rest split
+		dup list? if
+			.list-text @ nil? -if code-text then
+		else drop then
+		logo-printraw plain-text
+		space
 		first
 	again
 	cr
