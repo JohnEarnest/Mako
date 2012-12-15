@@ -421,7 +421,11 @@
 ;
 
 : eval-token ( ptr tail-flag -- val? flag )
-	over var?  if swap env-get swap then
+	over var?  if
+		swap env-get swap
+		over call? if drop true exit then
+		over var?  if drop true exit then
+	then
 	over num?  if drop true exit then
 	over word? if drop true exit then
 	over list? if drop true exit then
