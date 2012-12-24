@@ -1065,7 +1065,7 @@
 ##
 ######################################################
 
-: envlist-findval ( word root -- entry | nil )
+: envlist-findval ( val root -- entry | nil )
 	first loop
 		dup nil? if nip break then
 		2dup rest rest = if
@@ -1076,21 +1076,23 @@
 ;
 
 : func-name ( func -- word | nil )
-	global-env @ loop
-		dup nil? if nip break then
+	env @ loop
+		dup nil? if break then
 		2dup envlist-findval
-		dup nil? -if nip nip first break then
+		dup nil? -if nip first break then
 		drop rest
 	again
+	nip
 ;
 
 : .args ( env func -- env )
 	.list-args @ loop
 		dup nil? if drop break then
+		space emit
 		dup first dup
 		word> type "=" type
 		>r over r> swap
-		envlist-find rest logo-print space emit
+		envlist-find rest logo-print
 		rest
 	again
 ;
@@ -1101,11 +1103,12 @@
 		dup nil? if drop break then
 		dup .env-func @ nil? -if
 			dup .env-func @ dup func-name
-			( func word? )
-			dup nil? if drop dup then
-			space emit word> type
-			# print the arglist
-			tab .args cr
+			dup nil? if
+				drop " (?)"
+			else
+				space emit word>
+			then
+			type .args cr
 		else
 			tab "[]" typeln
 		then
