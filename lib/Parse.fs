@@ -130,6 +130,7 @@
 ##  match?  - like starts? but accept the string on a match.
 ##  expect  - like match? but errors on failure.
 ##  number> - read an unsigned integer.
+##  signed? - return true if input begins with a signed integer.
 ##  signed> - read a signed integer.
 ##  input>  - read into a specified buffer as long as pred is satisfied.
 ##  accept> - read into pad as long as a pred is satisfied and trim.
@@ -178,6 +179,11 @@
 		10 * getc to-num +
 		numeral?
 	while trim
+;
+
+: signed?
+	numeral? if true exit then
+	"-" starts? 1 xq digit? and
 ;
 
 : signed> ( -- n )

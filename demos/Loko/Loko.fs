@@ -505,10 +505,8 @@
 :proto infix
 
 : infix-unary ( tail -- tail' )
-	"-" match? if
-		numeral? if number> -1 * >num list-cat exit then
-		"negate" >call list-cat infix-unary exit
-	then
+	signed?    if signed>  >num  list-cat             exit then
+	"-" match? if "negate" >call list-cat infix-unary exit then
 	"(" match? if loop infix ")" match? until         exit then
 	parse-token list-cat
 ;
