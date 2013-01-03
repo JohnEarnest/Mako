@@ -857,6 +857,7 @@
 	{ logo-words                       false } "words"      [     ]-prim
 	{ gc free-space . "cells" typeln   false } "free"       [     ]-prim
 	{ logo-dump                        false } "dump"       [     ]-prim
+	{ :proto showversion showversion   false } "version"    [     ]-prim
 	{ A v logo-edit                    false } "edit"       [ A   ]-prim
 	{ stacktrace                       false } "trace"      [     ]-prim
 	{ A v true?  if B v eval void then false } "if"         [ A B ]-prim
@@ -1209,6 +1210,13 @@
 
 : run  >read parse eval void ; ( str -- )
 
+: showversion ( -- )
+	0 0 "                      " grid-type
+	0 1 " Welcome to Loko 0.2  " grid-type
+	0 2 " 64k OK               " grid-type
+	0 3 "                      " grid-type
+;
+
 : main ( -- )
 	gc-init
 	env-init
@@ -1258,8 +1266,7 @@
 		]
 	end" run
 
-	1 1 "Welcome to Loko 0.2" grid-type
-	1 2 "64k OK"              grid-type
+	showversion
 
 	' heap-empty   ' gc-fail revector
 	' console-emit ' emit    revector
