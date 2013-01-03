@@ -115,6 +115,7 @@ Misc
 - `make` takes a name and a value, and gives the specified name the specified value in the global scope, or if the name is already defined in the most recent definition's scope.
 - `local` takes a name and a value and gives the specified name the specified value in a local scope- that is, within the current function declaration.
 - `bind` takes two lists. The first should be a list of names, while the second is an executable list. `bind` attaches the first list as an arglist for the second. This is roughly equivalent to a Lisp `lambda`.
+- `args` takes a list and returns the arglist associated with it or an empty list. Essentially the other half of `bind`.
 - `thing` takes a name, and yields the value associated with that name. This works like `:` on a variable name, but can be chained to follow arbitrary degrees of indirect reference.
 - `words` prints out a list of all globally-defined names.
 - `trace` prints out a stack trace of the currently executing program, including all locally bound arguments and values.

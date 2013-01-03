@@ -232,6 +232,11 @@
 	.list-data @
 ;
 
+: args> ( ptr -- list )
+	dup list? -if logo-print " is not a list." abort then
+	.list-args @ list-reverse >list
+;
+
 : fixed-list? ( v count -- v )
 	over list> list-size =
 	-if "Supplied list is not the correct size." abort then
@@ -853,6 +858,7 @@
 	{     false logo-stop                    } "stop"       [     ]-prim
 	{ A v true  logo-stop                    } "output"     [ A   ]-prim
 	{ A v B v logo-bind                true  } "bind"       [ A B ]-prim
+	{ A v args>                        true  } "args"       [ A   ]-prim
 	{ A v env-get                      true  } "thing"      [ A   ]-prim
 	{ logo-words                       false } "words"      [     ]-prim
 	{ gc free-space . "cells" typeln   false } "free"       [     ]-prim
