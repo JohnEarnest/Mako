@@ -912,8 +912,8 @@
 	{ A v setpos      wait       false } "setpos"     [ A   ]-prim
 	{ showturtle                 false } "showturtle" [     ]-prim
 	{ hideturtle                 false } "hideturtle" [     ]-prim
-	{ false pen !                false } "pendown"    [     ]-prim
-	{ true  pen !                false } "penup"      [     ]-prim
+	{ true  pen !                false } "pendown"    [     ]-prim
+	{ false pen !                false } "penup"      [     ]-prim
 	{ A v setcolor               false } "setcolor"   [ A   ]-prim
 	{ A n B n lineto             false } "lineto"     [ A B ]-prim
 ;
