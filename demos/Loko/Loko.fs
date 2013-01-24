@@ -21,7 +21,6 @@
 :array return-stack  stack-size 0
 :array return-padding        10 0
 
-: nip  swap drop                ; ( a b -- b )
 : min  2dup > if swap then drop ; ( a b -- min )
 : max  2dup < if swap then drop ; ( a b -- max )
 

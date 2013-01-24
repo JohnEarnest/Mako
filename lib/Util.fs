@@ -29,7 +29,6 @@
 : later    r> r> swap >r >r              ;
 : exitif   if rdrop exit then            ;
 : tuck     swap over                     ;
-: nip      swap drop                     ;
 : ?dup     dup if dup then               ;
 : within   over >= >r <= r> and          ; ( min v max -- flag )
 

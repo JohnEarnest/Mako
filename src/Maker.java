@@ -453,6 +453,7 @@ public class Maker implements MakoConstants {
 		else if (token.equals("2dup"))  { rom.addOver(); rom.addOver(); }
 		else if (token.equals("2drop")) { rom.addDrop(); rom.addDrop(); }
 		else if (token.equals("rdrop")) { rom.addRts();  rom.addDrop(); }
+		else if (token.equals("nip"))   { rom.addSwap(); rom.addDrop(); }
 		else if (token.equals("halt"))  { rom.addJump(-1); }
 		else if (token.equals("keys")) {
 			rom.addConst(KY);
