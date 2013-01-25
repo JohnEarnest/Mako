@@ -202,10 +202,10 @@
 	{ POP typeln finish } "typeln" primitive
 
 	# optional program maintenance vocabulary:
-	{ name> dict-find head !           finish } "forget" primitive
-	{ free-cells . "cells free" typeln finish } "free"   primitive
-	{ line> drop                       finish } "#"      immediate
-	{ :proto see name> see             finish } "see"    immediate
+	{ name> dict-find dup here ! .dict-link @ head ! finish } "forget" primitive
+	{ free-cells . "cells free" typeln               finish } "free"   primitive
+	{ :proto see name> see                           finish } "see"    primitive
+	{ line> drop                                     finish } "#"      immediate
 	{
 		loop
 			eof? if break then
@@ -228,6 +228,7 @@
 	} "words" primitive
 
 	# optional dictionary manipulation vocabulary:
+	(
 	{ head           PUSH finish } "head"    primitive
 	{ name>          PUSH finish } "name>"   primitive
 	{ POP .dict-link PUSH finish } "link"    primitive
@@ -237,6 +238,7 @@
 	{ POP .dict-data PUSH finish } "data"    primitive
 	{ ' branch0 , POP ,   finish } "branch0" primitive
 	{ ' branch  , POP ,   finish } "branch"  primitive
+	)
 ;
 
 ######################################################
@@ -352,6 +354,11 @@
 	#": const  create , does> @ ;" run
 	#"42 const life-universe" run
 	#"1 life-universe + . cr" run
+
+	": foo 1 2 3 ;" run
+	"words" run
+	"forget foo" run
+	"words" run 
 
 	"see body see ltest" run
 ;
