@@ -70,6 +70,12 @@
 	here @ head @ .dict-body ! # fixup body ptr
 ;
 
+: check-addr ( addr -- addr )
+	dup dictionary < over dictionary dict-size + > or if
+		. "bad address!" abort
+	then
+;
+
 ######################################################
 ##
 ##  Inner Interpreter
@@ -161,8 +167,8 @@
 	{ POP POP         xor                  PUSH finish } "xor"       primitive
 	{ POP POP swap    <                    PUSH finish } "<"         primitive
 	{ POP POP swap    >                    PUSH finish } ">"         primitive
-	{ POP POP swap    !                         finish } "!"         primitive
-	{ POP             @                    PUSH finish } "@"         primitive
+	{ POP POP swap    check-addr !              finish } "!"         primitive
+	{ POP             check-addr @         PUSH finish } "@"         primitive
 	{ POP not                              PUSH finish } "not"       primitive
 	{ POP dup PUSH PUSH                         finish } "dup"       primitive
 	{ POP POP dup swap PUSH swap PUSH PUSH      finish } "over"      primitive
@@ -293,6 +299,26 @@
 ##
 ######################################################
 
+: code-range ( str -- start end )
+	here @ swap head @ loop
+		dup -if
+			drop "unknown word '" type type "'!" abort
+		then
+		2dup .dict-name -text -if nip break then
+		>r nip i swap r>
+		.dict-link @
+	again .dict-code
+;
+
+: code>name ( addr -- str? flag )
+	head @ loop
+		( addr entry )
+		dup -if 2drop false exit then
+		2dup .dict-code = if nip .dict-name true exit then
+		.dict-link @
+	again
+;
+
 : .arg ( ptr addr str -- ptr' flag )
 	>r over @ = if
 		r> type 1 + dup @ . 1 + true
@@ -307,7 +333,11 @@
 	' branchi "branchi " .arg if exit then
 	' branch  "branch "  .arg if exit then
 	' lit     "literal " .arg if exit then
-	' call    "call "    .arg if exit then
+	dup @ ' call  = if
+		"call "  type 1 +
+		dup @ code>name if type else dup @ . then
+		1 + exit
+	then
 	dup @ ' leave = if "leave " type 1 + exit then
 	"???? " type dup @ . 1 +
 ;
@@ -316,17 +346,6 @@
 	loop
 		tab dup . ": " type .token cr 2dup =
 	until 2drop
-;
-
-: code-range ( str -- start end )
-	here @ swap head @ loop
-		dup -if
-			drop "unknown word '" type type "'!" abort
-		then
-		2dup .dict-name -text -if nip break then
-		>r nip i swap r>
-		.dict-link @
-	again .dict-code
 ;
 
 : see  code-range see-range cr ; ( str -- )
@@ -355,10 +374,10 @@
 	#"42 const life-universe" run
 	#"1 life-universe + . cr" run
 
-	": foo 1 2 3 ;" run
-	"words" run
-	"forget foo" run
-	"words" run 
+	#": foo 1 2 3 ;" run
+	#"words" run
+	#"forget foo" run
+	#"words" run 
 
 	"see body see ltest" run
 ;
