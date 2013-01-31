@@ -175,8 +175,8 @@
 	{ ' branch  , POP , resolve-break           finish } "again"     immediate
 	{ ' branch0 , POP , resolve-break           finish } "until"     immediate
 	{ ' branchi , POP , resolve-break           finish } "while"     immediate
-	{ ' lit     , name> dict-find ,             finish } "'"         immediate
-	{ RPOP dup RPUSH 1 + head @ .dict-data ! leave leave } "does>"   primitive
+	{ RPOP dup RPUSH 1 + head @ .dict-data ! leave leave } "does>"    primitive
+	{ name> dict-find .dict-code 1 - mode @ if ' lit , , else PUSH then finish } "'" immediate
 
 	# optional text output vocabulary:
 	{ POP .      finish } "."      primitive

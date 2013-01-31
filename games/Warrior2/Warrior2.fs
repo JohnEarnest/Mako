@@ -436,6 +436,7 @@
 	": var   create 0 , does>   ;" run
 	": const create   , does> @ ;" run
 	": = xor if 0 else -1 then  ;" run
+	": exec >r                  ;" run
 	"0 const N" run
 	"1 const E" run
 	"2 const S" run
