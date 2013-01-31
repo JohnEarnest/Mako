@@ -131,6 +131,7 @@
 :const W 3
 
 :var single  # test on just one level?
+:var fast    # display animations in 'fast mode'?
 :var actions
 :var kills
 :var health
@@ -369,12 +370,17 @@
 	"complete." abort
 ;
 
+: delay ( -- )
+	fast @ if 5 else 20 then
+	for sync next
+;
+
 : move-or-attack ( id -- )
 	3 for
 		dup ent-pos i relative player-pos = if
 			12 player-pos verb!
 			4 player-sprite tile!
-			20 for sync next
+			delay
 			health dec draw-hud
 			verb-sprite hide
 			health @ 1 < if
@@ -382,7 +388,7 @@
 				60 for sync next
 				"Melted by a slime!" abort
 			then
-			20 for sync next
+			delay
 			0 player-sprite tile!
 			drop exit
 		then
@@ -412,14 +418,13 @@
 	} ent-for
 
 	player-pos at-pos STAIRS = if
-		20 for sync next
+		delay
 		single @ if game-over then
 		level inc
 		level @ level-count >= if game-over then
 		copy-level
 	then
-
-	10 for sync next
+	delay
 ;
 
 : start-game ( level -- )
@@ -458,17 +463,17 @@
 
 	{
 		3 player-sprite tile!
-		10 for sync next
+		delay
 		0 {
 			dup slime? if
 				9 over ent-pos N relative verb!
-				20 for sync next
+				delay
 				swap 1 + swap
 			then drop
 		} ent-for PUSH
 		0 player-sprite tile!
 		verb-sprite hide
-		20 for sync next
+		delay
 		finish
 	} "listen" primitive ( -- n )
 
@@ -490,9 +495,9 @@
 		then
 		dup FLOOR = swap STAIRS = or -if
 			4 player-sprite tile!
-			30 for sync next
+			delay
 			0 player-sprite tile!
-			30 for sync next
+			delay
 			terminal
 			"Unable to walk " type
 			i N = if "north" type then
@@ -504,7 +509,7 @@
 		player-pos r> relative
 		dup boardx player-sprite px!
 		    boardy player-sprite py!
-		20 for sync next
+		delay
 		game-step finish
 	} "walk" primitive ( dir -- )
 
@@ -512,12 +517,12 @@
 		POP >r
 		3 player-sprite tile!
 		5 player-pos i relative verb!
-		20 for sync next
+		delay
 		verb-sprite hide
 		player-pos i relative ent-at if
 			dup slime? if
 				12 over tile!
-				20 for sync next
+				delay
 				dup ent-free
 				kills inc
 			then drop
@@ -552,7 +557,7 @@
 			5 for sync next
 			-1 verb-sprite +py
 		next
-		10 for sync next
+		delay
 		0 player-sprite tile!
 		verb-sprite hide
 
@@ -571,7 +576,7 @@
 
 		3 player-sprite tile!
 		7 player-pos i relative verb!
-		30 for sync next
+		delay
 
 		0 player-sprite tile!
 		verb-sprite hide
@@ -587,17 +592,19 @@
 		POP >r
 		2 player-sprite tile!
 		6 player-pos i relative verb!
-		20 for sync next
+		delay
 
 		0 player-sprite tile!
 		verb-sprite hide
-		10 for sync next
+		delay
 
 		player-pos r> relative at-pos PUSH finish
 	} "look" primitive ( dir -- kind )
 
-	{ false single ! 0   start-game finish } "begin"  primitive ( -- )
-	{ true  single ! POP start-game finish } "test"   primitive ( level -- )
+	{ false single ! 0   start-game finish } "begin" primitive ( -- )
+	{ true  single ! POP start-game finish } "test"  primitive ( level -- )
+	{ true  fast !                  finish } "fast"  primitive ( -- )
+	{ false fast !                  finish } "slow"  primitive ( -- )
 ;
 
 ######################################################
@@ -756,6 +763,54 @@
 
 ######################################################
 ##
+##  Title Screen
+##
+######################################################
+
+:image title-tiles "titleTiles.png" 8 8
+:data title-grid
+	 0  1  2  2  2  2  2  2  2  2  2  2  3  4  5  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  6  7  8  2  2 
+	 0  9  2 10 11  2  2  2  2  2  2  3 12 13 14  5  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2  2 15 16  0  0 17 18 
+	19  2 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45  2  2  2  2  2 46 47 48  0  0 49 50 
+	 0  2 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76  2  2  2  2 77 78  0 79 80 81 82 83 
+	 0 84 85 86 87  0  0 88 89 90 91 92 93 94 95 64 65 96 97 98  2 73 68  2 73 99 100 101  2  2  2  2 102 103  0 104 83 83 83 83 
+	 0 105  0  0  0  0  0 88 106 107 108 92 109 110 111 64 65 112 113  2  2 73 68  2 73 114 115 76  2  2  2  2  2 116  0 117 118 83 83 83 
+	119 120 121  0  0  0  0 122 123 124  2 125 126 127 128 129 130 131 132 133  2 134 135  2 134 135 136 137 138 139 140  2  2 141  0 142 83 83 83 83 
+	143 144 145 146 147 148 149  0 150 151 152  2 153 154 155  2 156 157 158 159 160 161 162 163 164 165 166 167 168 169 169 170 171 172  0 142 83 83 83 83 
+	 0 173 50 174  0  0  0  0 175 176 177  2  2 178  2  2 179 180 181 182 183 184 185 186 187 188 189 190  2  2  2 191 192 193 194 195 83 83 83 83 
+	83 83 83 196 197 198  0  0 199  2  2  2  2  2  2  2  2 200 201 202 203 204  2  2  2  2  2  2  2  2  2  2  2 205  0 206 83 83 83 83 
+	83 83 83 207 83 208  0  0 209  2  2  2  2  2  2  2 210 211 212 213 214 215 216 217  2  2  2  2 218 219  2  2 220 221  0 222 83 83 83 83 
+	83 83 83 83 83 83 83 83 223 224 225 226 227  2  2  2 228 229 230 231 232 233 234 235  2  2  2 236 237 238  2 239 240 241  0 242 83 83 83 83 
+	83 83 83 83 83 83 83 243 244 245  2 246 247 248 249 250 251 252 253 254 255 256 257 258  2  2 259 246  0 238  2  2  2 260  0 242 83 83 83 83 
+	83 83 83 83 83 83 83 261 262 263  2 246  0 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278  0 279 280 281 282  2 283 284 83 83 83 83 
+	83 83 83 83 83 83 285 286 287 288 289 290  0 291  2 292 293 294 295 296 297 298 299 300 301 302 303  0 304 81 81 81 305 306 307 83 83 83 83 308 
+	83 83 83 83 83 309 310 311  2  2  2 312  0 313 314 315 316 317 318 319 320 321 322 323  2 324 325  0 326 327 83 83 83 83 328 329 330 331 332 333 
+	83 83 83 83 83 334 52 335 336  2 337 338  0 339 340  2  2 341 342 343 344 345 346 347  2  2 348 349  0  0 83 83 350 351 352 353 353 353 354 355 
+	83 83 83 83 83 356 52 141 357  2 358 359 360 361 362 363 364 365 366 367 368 369 370 371 372  2 373 374  0  0 375 83 83 83 83 83 83 83 376 377 
+	83 83 83 83 83 356 52 378 199  2 379 380 381 382 383 384 384 385 386 387 388 389 390 391 392  2 393 394 395 396 397 83 83 83 83 83 83 398 399 400 
+	83 83 83 83 83 356 401 402 199  2 403  0  0  0 238 404 405 406 407 408 409 410 411 412 413 414 415 416 417 417 418 83 83 83 83 83 83 419 400 400 
+	83 83 83 83 83 420  0 421 422 423 424  0  0  0 425 426 427 428 429 430 431 432 433 434 435 436 437 438  0  0  0 439 83 83 83 83 440 400 400 400 
+	83 83 83 83 441 442 443  0  0  0  0  0  0  0 444 445 446 447 448 449 450 448 451  1  2 452 238  0  0  0  0 453 454 455 456 457 458 400 459 460 
+	83 83 83 83 461 462 462 463 464  0  0  0  0  0 465  2  2 466 467 468 469 470 471 472 473 474 475 476 477 478 479 480 400 400 400 481 482 483 484 485 
+	83 83 83 83 486  0  0  0  0  0  0  0 487 488  2 489 490 491 492 493 494 495 496 497 498 499 500 501 502 503 400 504 400 505 506 507 508 509 510 511 
+	83 83 83 83 512  0  0  0  0  0  0 513 514  2 515 516 517 518 519 520 521 522 523 524 525 526 527 528 529 530 531 532 533 534 400 400 535 536 537 538 
+	539 83 83 540  0  0  0  0  0  0  0 541 542  2 543 544 545 546 400 547 548 549 550 551 552 553 554 555 556 557 558 559 560 561 400 400 400 400 400 400 
+	562 563 564 565  0  0  0  0  0  0  0  0 566  2  2  2 567 568 569 570 571 572 573 574 575 576 400 400 400 400 400 400 400 400 400 400 400 400 400 400 
+	577 577 577 578 579 580 581  0  0  0  0 582 583 584 437  2 585 586 587 588 589 590 591 592 593 594 595 596 400 400 400 400 400 400 400 597 598 599 400 400 
+	600 600 600 600 601 602 603 604  0 605 606 607 608 606 609 610 611 612 613 614 615 616 617 618 619 620 621 622 623 400 400 459 624 625 626 627 628 629 630 631 
+	83 83 83 83 632  0  0  0  0 633 634 83 83 83 83 83 635 636 637 638 639 640 641 642 643 644 645 646 647 648 649 650 651 652 653 654 655 656 657 658 
+:array title-padding 41 0
+
+: intro ( -- )
+	CL @ GT @ GP @ -1 GS !
+	title-tiles GT !
+	title-grid  GP !
+	59 2 * for sync next
+	0 GS ! GP ! GT ! CL !
+;
+
+######################################################
+##
 ##  Main
 ##
 ######################################################
@@ -797,6 +852,8 @@
 			E walk
 		again
 	;" run
+	
+	intro
 
 	1 1 "Forth Warrior v0.1" grid-type
 	1 2 "MakoForth BIOS OK"  grid-type

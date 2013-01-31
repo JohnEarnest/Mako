@@ -47,3 +47,5 @@ Misc
 - `const` ( n -- )     Construct a named constant, like the common Forth word `constant`.
 - `=`     ( a b -- f ) Return -1 if a and b are equal. Otherwise, return 0.
 - `exec`  ( xt -- )    Given an execution token (as obtained with `'`), call it.
+- `fast`  ( -- )       Display game animations more quickly.
+- `slow`  ( -- )       Display game animations at normal speed. (default)
