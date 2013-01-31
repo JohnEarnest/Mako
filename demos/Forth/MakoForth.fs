@@ -211,7 +211,7 @@
 	{ name> dict-find dup here ! .dict-link @ head ! finish } "forget" primitive
 	{ free-cells . "cells free" typeln               finish } "free"   primitive
 	{ :proto see name> see                           finish } "see"    primitive
-	{ line> drop                                     finish } "#"      immediate
+	{ pad pad-size line> trim                        finish } "#"      immediate
 	{
 		loop
 			eof? if break then
