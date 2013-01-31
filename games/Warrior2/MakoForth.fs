@@ -12,7 +12,7 @@
 ##
 ######################################################
 
-:const dict-size 8888
+:const dict-size 9211
 :array dictionary dict-size 0
 :data  here dictionary
 :data  head 0
@@ -27,9 +27,11 @@
 ;
 
 : .dict-link                  ; ( entry -- addr )
-: .dict-flag 1 +              ; ( entry -- addr )
-: .dict-body 2 +              ; ( entry -- addr )
-: .dict-name 3 +              ; ( entry -- addr )
+: .dict-flag  1 +             ; ( entry -- addr )
+: .dict-body  2 +             ; ( entry -- addr )
+: .dict-stack 3 +             ; ( entry -- addr )
+: .dict-help  4 +             ; ( entry -- addr )
+: .dict-name  5 +             ; ( entry -- addr )
 : .dict-code .dict-body @     ; ( entry -- addr )
 : .dict-data .dict-body @ 1 + ; ( entry -- addr )
 
@@ -51,6 +53,8 @@
 	here @ 1 - head !          # update head to new entry
 	0 ,                        # init flag
 	0 ,                        # space for body ptr
+	0 ,                        # space for stack effect ptr
+	0 ,                        # space for help ptr
 	loop                       # copy in name
 		dup @ -if @ , break then
 		dup @ , 1 +

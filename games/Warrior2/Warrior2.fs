@@ -805,8 +805,115 @@
 	CL @ GT @ GP @ -1 GS !
 	title-tiles GT !
 	title-grid  GP !
-	59 2 * for sync next
+	59 2 * for
+		sync
+	next
 	0 GS ! GP ! GT ! CL !
+;
+
+######################################################
+##
+##  In-Game Help
+##
+######################################################
+
+: help! ( help-str stack-str name -- )
+	dict-find
+	dup >r
+	.dict-stack !
+	r> .dict-help !
+;
+
+: init-help ( -- )
+	{
+		name> dict-find
+		dup .dict-stack @ -if
+			"No help is available for this word." typeln
+			finish exit
+		then
+		dup .dict-stack @  code-text type
+		dup .dict-flag @ if "*" type then
+		dup .dict-help  @ plain-text " " type typeln
+		drop
+		finish
+	} "help" primitive
+
+	"Add b to a"                  "( a b -- n )"      "+"         help!
+	"Subtract b from a"           "( a b -- n )"      "-"         help!
+	"Multiply a by b"             "( a b -- n )"      "*"         help!
+	"Divide a by b"               "( a b -- n )"      "/"         help!
+	"Modulo a by b"               "( a b -- n )"      "mod"       help!
+	"Bitwise AND of a and b"      "( a b -- n )"      "and"       help!
+	"Bitwise OR of a and b"       "( a b -- n )"      "or"        help!
+	"Bitwise XOR of a and b"      "( a b -- n )"      "xor"       help!
+	"Is A less than B?"           "( a b -- f )"      "<"         help!
+	"Is A greater than B?"        "( a b -- f )"      ">"         help!
+	"Store n to address"          "( n addr -- )"     "!"         help!
+	"Load n from address"         "( addr -- n )"     "@"         help!
+	"Bitwise NOT of n"            "( n -- n' )"       "not"       help!
+	"Copy top stack element"      "( n -- n n )"      "dup"       help!
+	"Copy second stack element"   "( a b -- a b a )"  "over"      help!
+	"Discard top stack element"   "( n -- )"          "drop"      help!
+	"Switch top stack elements"   "( a b -- b a )"    "swap"      help!
+	"Move n to rstack"            "( n -- )"          ">r"        help!
+	"Move top rstack to stack"    "( -- n )"          "r>"        help!
+	"Fetch top rstack element"    "( -- n )"          "i"         help!
+	"Fetch second rstack element" "( -- n )"          "j"         help!
+	"Get addr of dictionary tail" "( -- addr )"       "here"      help!
+	"Are we compiling?"           "( -- flag )"       "mode"      help!
+	"Append n to dictionary"      "( n -- )"          ","         help!
+	"Switch to compiling mode"    "( -- )"            "]"         help!
+	"Switch to interpreting mode" "( -- )"            "["         help!
+	"Make last word immediate"    "( -- )"            "immediate" help!
+	"Compile a literal number"    "( n -- )"          "literal"   help!
+	"Start a new def"             "( -- )"            "create"    help!
+	"Start compiling a new def"   "( -- )"            ":"         help!
+	"Terminate a def"             "( -- )"            ";"         help!
+	"Compile exit from word"      "( -- )"            "exit"      help!
+	"Begin a conditional"         "( -- )"            "if"        help!
+	"Optional for if...then"      "( -- )"            "else"      help!
+	"Terminate an if"             "( -- )"            "then"      help!
+	"Exit a loop early"           "( -- )"            "break"     help!
+	"Begin a loop"                "( -- )"            "loop"      help!
+	"Close an unconditional loop" "( -- )"            "again"     help!
+	"Loop until true"             "( -- )"            "until"     help!
+	"Loop while true"             "( -- )"            "while"     help!
+	"Provide runtime semantics for a def" "( -- )"    "does>"     help!
+	"Obtain an xt for a word name"        "( -- n )"  "'"         help!
+
+	"Print a number"              "( n -- )"          "."         help!
+	"Print a space"               "( -- )"            "space"     help!
+	"Print a newline"             "( -- )"            "cr"        help!
+	"Print a string (0-term)"     "( str -- )"        "type"      help!
+	"Print a string and newline"  "( str -- )"        "typeln"    help!
+	"Erase defs after name"       "( -- )"            "forget"    help!
+	"Print remaining dict space"  "( -- )"            "free"      help!
+	"List def's threaded code"    "( -- )"            "see"       help!
+	"Single line comment"         "( -- )"            "#"         help!
+	"Multiline comment"           "( -- )"            "("         help!
+	"Print stack contents"        "( -- )"            "stack"     help!
+	"List available words"        "( -- )"            "words"     help!
+	"Define a variable"           "( -- )"            "var"       help!
+	"Define a constant"           "( n -- )"          "const"     help!
+	"Are two numbers equal?"      "( a b -- f )"      "="         help!
+	"Invoke an xt (as from ')"    "( xt -- )"         "exec"      help!
+	
+	"How many hearts remain?"     "( -- n )"          "health"    help!
+	"What level are we on?"       "( -- n )"          "level"     help!
+	"How many gems do we have?"   "( -- n )"          "gems"      help!
+	"How many keys do we have?"   "( -- n )"          "keys"      help!
+	"Do nothing for a timestep"   "( -- )"            "wait"      help!
+	"How many enemies are here?"  "( -- n )"          "listen"    help!
+	"Move to adjacent tile"       "( dir -- )"        "walk"      help!
+	"Attack adjacent tile"        "( dir -- )"        "attack"    help!
+	"Pick up adjacent gem or key" "( dir -- )"        "take"      help!
+	"Unlock adjacent door"        "( dir -- )"        "open"      help!
+	"Get type of adjacent tile"   "( dir -- type )"   "look"      help!
+	"Given word name, start game" "( -- )"            "begin"     help!
+	"Given word name, try level"  "( level -- )"      "test"      help!
+	"Faster game animations"      "( -- )"            "fast"      help!
+	"Normal game animation speed" "( -- )"            "slow"      help!
+	"Gee, I wonder?"              "( -- )"            "help"      help!
 ;
 
 ######################################################
@@ -825,6 +932,7 @@
 : main ( -- )
 	init-dictionary
 	init-game-vocab
+	init-help
 
 	terminal
 	' abort ' fail revector
@@ -857,12 +965,14 @@
 
 	1 1 "Forth Warrior v0.1" grid-type
 	1 2 "MakoForth BIOS OK"  grid-type
-	1 4 "(Type words for available commands.)" grid-type
-	1 5 "(Type begin example to play.)"        grid-type
+	1 4 "(Type words for available commands.)"  grid-type
+	1 5 "(Type help <word> for documentation.)" grid-type
+	1 6 "(Type begin <word> to play.)"          grid-type
 
 	code-text cc @ ascii !
-	7 4 "words"         grid-type
-	7 5 "begin example" grid-type
+	7 4 "words"        grid-type
+	7 5 "help <word>"  grid-type
+	7 6 "begin <word>" grid-type
 	plain-text cc @ ascii !
 
 	repl

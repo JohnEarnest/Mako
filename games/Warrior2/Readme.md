@@ -49,3 +49,4 @@ Misc
 - `exec`  ( xt -- )    Given an execution token (as obtained with `'`), call it.
 - `fast`  ( -- )       Display game animations more quickly.
 - `slow`  ( -- )       Display game animations at normal speed. (default)
+- `help`  ( -- )       Given a word name, print a brief explanation of what it does.
