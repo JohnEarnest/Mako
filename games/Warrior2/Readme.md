@@ -22,6 +22,7 @@ Type Constants
 - `KEY`    (4) Key for opening doors. `take` them to collect them.
 - `GEM`    (5) Worth points and heals damage. `take` them to collect them.
 - `SLIME`  (6) Deadly enemy. `attack` them to kill them and don't step on them.
+- `SPIKES` (7) These hurt to walk on. Avoid it when possible.
 
 Queries
 -------

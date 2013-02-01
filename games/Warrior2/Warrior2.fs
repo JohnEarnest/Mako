@@ -291,15 +291,6 @@
 		r>
 		FLOOR over !
 	then
-	dup @ START = if
-		>r
-		16x16 0
-		i boardx
-		i boardy
-		player-sprite >sprite
-		r>
-		FLOOR over !
-	then
 
 	# handle static geometry:
 	dup @ WALL = if
@@ -311,6 +302,11 @@
 		>r 12 13 28 29 r> draw-block
 		exit
 	then
+	dup @ SPIKES = if
+		dup paint-wall
+		>r 32 33 48 49 r> draw-block
+		exit
+	then
 	dup @ FLOOR = if
 		dup paint-wall
 		>r
@@ -319,6 +315,17 @@
 			RN @ 2 mod 16 * +
 		next
 		r> draw-block
+		exit
+	then
+	dup @ START = if
+		>r
+		16x16 0
+		i boardx
+		i boardy
+		player-sprite >sprite
+		 0  0 50 51 i N relative draw-block
+		36 37 52 53 i            draw-block
+		FLOOR r> !
 		exit
 	then
 	dup @ DOOR = if
@@ -340,6 +347,8 @@
 	ascii @	dup 96 + 96 + ascii !
 	1 1 "LEVEL  0" grid-type
 	8 1 level @ draw-number
+	1 28 level @ level-names + @ grid-type
+
 	ascii !
 	4 for
 		4 i - health @ < if 7 else 6 then 288 +
@@ -454,6 +463,7 @@
 	"4 const KEY"    run
 	"5 const GEM"    run
 	"6 const SLIME"  run
+	"7 const SPIKES" run
 	
 	{ health @ PUSH finish } "health" primitive ( -- n )
 	{ level  @ PUSH finish } "level"  primitive ( -- n )
@@ -481,9 +491,7 @@
 		POP >r
 		player-pos i relative at-pos
 		dup SLIME = if
-			player-pos r> relative
-			dup boardx player-sprite px!
-		    	boardy player-sprite py!
+			player-pos r> relative player-sprite set-pos
 			20 for sync next
 			4 player-sprite tile!
 			20 for sync next
@@ -493,7 +501,7 @@
 			60 for sync next
 			"Stepped on a slime and dissolved!" abort
 		then
-		dup FLOOR = swap STAIRS = or -if
+		dup dup FLOOR = over SPIKES = or swap STAIRS = or -if
 			4 player-sprite tile!
 			delay
 			0 player-sprite tile!
@@ -506,9 +514,17 @@
 			i W = if "west"  type then
 			"!" abort
 		then
-		player-pos r> relative
-		dup boardx player-sprite px!
-		    boardy player-sprite py!
+		player-pos r> relative player-sprite set-pos
+		SPIKES = if
+			health dec
+			draw-hud
+			4 player-sprite tile!
+			delay
+			0 player-sprite tile!
+			health @ 1 < if
+				"Impaled on spikes! Yeouch!" abort
+			then
+		then
 		delay
 		game-step finish
 	} "walk" primitive ( dir -- )
@@ -960,6 +976,8 @@
 			E walk
 		again
 	;" run
+
+	#": snake E loop go again ;" run
 	
 	intro
 
