@@ -1,10 +1,39 @@
 Forth Warrior Manual
 ====================
-Forth Warrior is currently a work in progress, as is this brief manual. Eventually the game will incorporate some built-in help facilities.
+(This game is currently a work in progress, as is this brief manual.)
+
+Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step!
 
 To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like begin but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
+The `words` command provides a listing of all currently defined words. To find out more information about a particular word, use `help` followed by the name of a word. For example, `help +`. An asterisk after the stack effect indicates an immediate word.
 
-Please consult the readme for MakoForth itself for an exhaustive list of provided general-purpose words.
+While the game is running, any debugging output will be shown a line at a time at the bottom of the screen, with brief pauses between lines. Control+C will immediately halt the program and return to the Forth prompt.
+
+The Forth Warrior Dialect
+-------------------------
+Forth Warrior provides a very small Forth kernel with only the essential primitives. Most of these words will seem familiar if you've programmed in Forth before. The following is a summary of major deviations from a common ANS-style Forth.
+
+- Word names become available immediately after `:`. Thus, recursive procedures can simply refer to themselves. Mutual recursion is best accomplished by using vectored words and `'`.
+
+- `'` is state-smart. If used in interpreting mode, it will push an xt onto the stack. Otherwise it will compile a literal into the current definition.
+
+- `#` is a single-line comment, rather than `\`.
+
+- String constants have special-cased syntax for convenience. When compiling, simply enclose a string in double quotes and the address to the head of the resulting null-terminated string will be compiled as a literal. All string-oriented routines use C-style null-terminated strings. Thus, a hello world program can simply be `: hello "Hello, World!" typeln ;`
+
+- Loop constructs are a little different from usual. This dialect provides a word `loop` to begin a loop, and this can be matched with `again`, `until` or `while` to loop unconditionally, until a flag is true or while a flag is true, respectively. `break` exits the innermost loop.
+
+To demonstrate, here's a simple counted loop written three different ways:
+
+		: A    0 loop dup . 1 +  dup 10 > until ;
+		: B    0 loop dup . 1 +  dup 11 < while ;
+		: C    0 loop dup . 1 +  dup 10 > if break then again ;
+
+Each will print out:
+
+		0 1 2 3 4 5 6 7 8 9 10
+
+If you think I've left something really important out, let me know and I'll consider expanding the built-in vocabulary.
 
 Direction Constants
 -------------------
@@ -32,7 +61,7 @@ Queries
 - `gems`   ( -- n )     How many gems the player has collected.
 - `keys`   ( -- n )     How many keys the player is carrying.
 - `listen` ( -- n )     How many enemies are still on this level.
-- `look`   ( dir -- t ) View the type of thing/tile in an adjacent space.
+- `look`   ( dir -- type ) View the type of thing/tile in an adjacent space.
 
 Commands
 --------
@@ -44,10 +73,6 @@ Commands
 
 Misc
 ----
-- `var`   ( -- )       Construct a named variable, like the common Forth word `variable`.
-- `const` ( n -- )     Construct a named constant, like the common Forth word `constant`.
-- `=`     ( a b -- f ) Return -1 if a and b are equal. Otherwise, return 0.
-- `exec`  ( xt -- )    Given an execution token (as obtained with `'`), call it.
-- `fast`  ( -- )       Display game animations more quickly.
-- `slow`  ( -- )       Display game animations at normal speed. (default)
-- `help`  ( -- )       Given a word name, print a brief explanation of what it does.
+- `fast`  ( -- ) Display game animations more quickly.
+- `slow`  ( -- ) Display game animations at normal speed. (default)
+- `help`  ( -- ) Given a word name, print a brief explanation of what it does.

@@ -12,7 +12,7 @@
 ##
 ######################################################
 
-:const dict-size 9211
+:const dict-size 9136
 :array dictionary dict-size 0
 :data  here dictionary
 :data  head 0

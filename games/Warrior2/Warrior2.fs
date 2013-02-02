@@ -81,7 +81,7 @@
 : emit, emit-ptr @ ! emit-ptr inc ; ( n -- )
 
 : game-cr ( -- )
-	drop 0 emit,
+	0 emit,
 	
 	# fill with clear color
 	0 29 tile-grid@ 40 0 fill
@@ -89,7 +89,7 @@
 	emit-buff emit-ptr !
 	
 	# wait for key press?
-	59 for sync next
+	89 for sync next
 
 	0 29 tile-grid@ 40 192 fill
 ;
@@ -375,7 +375,6 @@
 	299 for
 		299 i - board + draw-tile
 	next
-	draw-hud
 ;
 
 : game-over ( -- )
@@ -440,9 +439,35 @@
 		single @ if game-over then
 		level inc
 		level @ level-count >= if game-over then
-		copy-level
+		copy-level draw-hud
 	then
 	delay
+;
+
+: pithy-saying ( -- )
+	17 player-sprite tile!
+	RN @ 3 mod
+		#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	dup 0 = if
+		"'It's dangerous to go alone...'" typeln
+		2 player-sprite tile!
+		"Hmph, what does that old geezer know." typeln
+		0 player-sprite tile!
+		drop exit
+	then
+	dup 1 = if
+		"Heeere's Lizzy!" typeln
+		0 player-sprite tile!
+		drop exit
+	then
+	dup 2 = if
+		"Sweet- ancient ruins!" typeln
+		"Just like it said in the brochures!" typeln
+		drop exit
+	then
+	"Fame and riches, here I come!" typeln
+	0 player-sprite tile!
+	drop
 ;
 
 : start-game ( level -- )
@@ -451,6 +476,8 @@
 	init-game
 	copy-level
 	59 for sync next
+	single @ -if pithy-saying then
+	draw-hud
 	interpret
 	"Program ended." abort
 ;
@@ -963,10 +990,6 @@
 	' abort ' fail revector
 	' repl restart-vector !
 
-	#": foo 0 loop dup attack 1 + 4 mod again ;"   run
-	#": foo 0 loop dup look drop 1 + 4 mod again ;"   run
-	#": foo loop E walk again ; " run
-
 	(
 	": example
 		loop
@@ -987,11 +1010,6 @@
 		again
 	;" run
 	)
-
-	"create actions ' walk , 0 , ' walk , ' open , ' take , ' take , ' attack , ' walk ," run
-	": act    4 mod dup look dup WALL = if drop drop 0 exit then actions + @ exec -1 ;" run
-	": try    1 - dup act if exit then 1 + dup act if exit then 1 + dup act if exit then ;" run
-	": brain  E loop try again ;" run
 	
 	intro
 
