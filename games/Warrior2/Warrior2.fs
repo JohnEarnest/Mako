@@ -91,7 +91,7 @@
 	# wait for key press?
 	59 for sync next
 
-	0 29 tile-grid@ 40 196 fill
+	0 29 tile-grid@ 40 192 fill
 ;
 
 : game-emit ( char -- )
@@ -129,6 +129,15 @@
 :const E 1
 :const S 2
 :const W 3
+
+: check-dir ( dir -- dir )
+	dup 0 < over 4 > or if
+		terminal
+		. "invalid direction!" abort
+	then
+	dup E = if player-sprite face-left  then
+	dup W = if player-sprite face-right then
+;
 
 :var single  # test on just one level?
 :var fast    # display animations in 'fast mode'?
@@ -488,7 +497,7 @@
 	} "listen" primitive ( -- n )
 
 	{
-		POP >r
+		POP check-dir >r
 		player-pos i relative at-pos
 		dup SLIME = if
 			player-pos r> relative player-sprite set-pos
@@ -530,7 +539,7 @@
 	} "walk" primitive ( dir -- )
 
 	{
-		POP >r
+		POP check-dir >r
 		3 player-sprite tile!
 		5 player-pos i relative verb!
 		delay
@@ -549,7 +558,7 @@
 	} "attack" primitive ( dir -- )
 
 	{
-		POP >r
+		POP check-dir >r
 		player-pos i relative at-pos
 		dup KEY = swap GEM = or -if
 			"Nothing to pick up!" abort
@@ -581,7 +590,7 @@
 	} "take" primitive ( dir -- )
 
 	{
-		POP >r
+		POP check-dir >r
 		player-pos i relative at-pos DOOR = -if
 			"No door to open!" abort
 		then
@@ -605,7 +614,7 @@
 	} "open" primitive ( dir -- )
 
 	{
-		POP >r
+		POP check-dir >r
 		2 player-sprite tile!
 		6 player-pos i relative verb!
 		delay
@@ -958,6 +967,7 @@
 	#": foo 0 loop dup look drop 1 + 4 mod again ;"   run
 	#": foo loop E walk again ; " run
 
+	(
 	": example
 		loop
 			E look
@@ -976,8 +986,12 @@
 			E walk
 		again
 	;" run
+	)
 
-	#": snake E loop go again ;" run
+	"create actions ' walk , 0 , ' walk , ' open , ' take , ' take , ' attack , ' walk ," run
+	": act    4 mod dup look dup WALL = if drop drop 0 exit then actions + @ exec -1 ;" run
+	": try    1 - dup act if exit then 1 + dup act if exit then 1 + dup act if exit then ;" run
+	": brain  E loop try again ;" run
 	
 	intro
 
