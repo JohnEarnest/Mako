@@ -407,7 +407,7 @@
 			then
 			delay
 			0 player-sprite tile!
-			drop exit
+			rdrop drop exit
 		then
 	next
 	dup ent-pos RN @ 4 mod relative
