@@ -657,6 +657,15 @@
 	{ true  single ! POP start-game finish } "test"  primitive ( level -- )
 	{ true  fast !                  finish } "fast"  primitive ( -- )
 	{ false fast !                  finish } "slow"  primitive ( -- )
+
+	{
+		"warrior.fs" XA !
+		x-open-read  XS !
+		XA @ -1 = if "Couldn't find 'warrior.fs'!" abort then
+		{ XO @ } ' read revector clear-q trim
+		loop eof? if break then token again
+		"OK!" abort
+	} "load" primitive ( -- )
 ;
 
 ######################################################
@@ -966,6 +975,7 @@
 	"Faster game animations"      "( -- )"            "fast"      help!
 	"Normal game animation speed" "( -- )"            "slow"      help!
 	"Gee, I wonder?"              "( -- )"            "help"      help!
+	"Load code from 'warrior.fs'" "( -- )"            "load"      help!
 ;
 
 ######################################################
