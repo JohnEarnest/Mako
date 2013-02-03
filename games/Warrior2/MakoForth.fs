@@ -26,6 +26,10 @@
 	here @ ! here inc
 ;
 
+: fj ( -- )
+	{ "Unresolved forward branch!" abort } ,
+;
+
 : .dict-link                  ; ( entry -- addr )
 : .dict-flag  1 +             ; ( entry -- addr )
 : .dict-body  2 +             ; ( entry -- addr )
@@ -171,9 +175,9 @@
 	{ name> dict-add true  mode !               finish } ":"         primitive
 	{ ' leave ,      false mode !               finish } ";"         immediate
 	{ ' leave ,                                 finish } "exit"      immediate
-	{ ' branch0 , here @ 0 ,               PUSH finish } "if"        immediate
-	{ ' branch  , here @ 0 , here @ POP !  PUSH finish } "else"      immediate
-	{             here @            POP !       finish } "then"      immediate
+	{ ' branch0 , here @ fj                PUSH finish } "if"        immediate
+	{ ' branch  , here @ fj here @ POP !   PUSH finish } "else"      immediate
+	{             here @           POP !        finish } "then"      immediate
 	{ ' branch  , here @ bpush 0 ,              finish } "break"     immediate
 	{ 0 bpush     here @ PUSH                   finish } "loop"      immediate
 	{ ' branch  , POP , resolve-break           finish } "again"     immediate
