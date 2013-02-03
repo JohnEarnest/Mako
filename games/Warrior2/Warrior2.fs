@@ -504,7 +504,7 @@
 	{ health @ PUSH finish } "health" primitive ( -- n )
 	{ level  @ PUSH finish } "level"  primitive ( -- n )
 	{ gems   @ PUSH finish } "gems"   primitive ( -- n )
-	{ keys   @ PUSH finish } "keys"   primitive ( -- n )
+	{ gkeys  @ PUSH finish } "keys"   primitive ( -- n )
 	{ game-step     finish } "wait"   primitive ( -- )
 
 	{
