@@ -1023,7 +1023,7 @@
 	
 	intro
 
-	1 1 "Forth Warrior v0.1" grid-type
+	1 1 "Forth Warrior v0.2" grid-type
 	1 2 "MakoForth BIOS OK"  grid-type
 	1 4 "(Type words for available commands.)"  grid-type
 	1 5 "(Type help <word> for documentation.)" grid-type

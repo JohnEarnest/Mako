@@ -16,7 +16,7 @@ public class MakoVM implements MakoConstants {
 	public final java.util.Queue<Integer> keyQueue = new java.util.LinkedList<Integer>();
 
 	public int xc = 1;
-	public final java.util.Map<Integer, InputStream> xi  = new java.util.HashMap<Integer, InputStream>();
+	public final java.util.Map<Integer, PushbackInputStream> xi  = new java.util.HashMap<Integer, PushbackInputStream>();
 	public final java.util.Map<Integer, OutputStream> xo = new java.util.HashMap<Integer, OutputStream>();
 
 	public MakoVM(int[] m) {
@@ -81,6 +81,18 @@ public class MakoVM implements MakoConstants {
 		}
 	}
 
+	private int normalizeRead(PushbackInputStream str) throws IOException {
+		int ret = str.read();
+		if(ret == '\r') {
+			int tmp = str.read();
+			if(tmp != '\n') {
+				str.unread(tmp);
+			}
+			ret = '\n';
+		}
+		return ret;
+	}
+
 	private int load(int addr) {
 		if (addr == RN) { return rand.nextInt(); }
 		if (addr == KY) { return keys; }
@@ -94,7 +106,7 @@ public class MakoVM implements MakoConstants {
 		}
 		if (addr == XO) {
 			if (xi.containsKey(m[XA])) {
-				try { return xi.get(m[XA]).read(); }
+				try { return normalizeRead(xi.get(m[XA])); }
 				catch(IOException e) { e.printStackTrace(); }
 			}
 			return -1;
@@ -134,7 +146,7 @@ public class MakoVM implements MakoConstants {
 					xo.remove(m[XA]);
 				}
 				if (value == X_OPEN_READ) {
-					xi.put(xc, new FileInputStream(extractString(m[XA])));
+					xi.put(xc, new PushbackInputStream(new FileInputStream(extractString(m[XA]))));
 					m[XA] = xc++;
 				}
 				if (value == X_OPEN_WRITE) {
