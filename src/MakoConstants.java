@@ -49,7 +49,11 @@ public interface MakoConstants {
 	public static final int AU = 14; // audio-out (8khz, 8-bit)
 	public static final int KB = 15; // keyboard-in
 
-	public static final int RESERVED_HEADER = 16;
+	public static final int XO = 16; // bidirectional external IO
+	public static final int XA = 17; // external argument 
+	public static final int XS = 18; // external status
+
+	public static final int RESERVED_HEADER = 19;
 
 	public static final int H_MIRROR_MASK = 0x10000; // sprite is mirrored horizontally?
 	public static final int V_MIRROR_MASK = 0x20000; // sprite is mirrored vertically?
@@ -62,4 +66,8 @@ public interface MakoConstants {
 	public static final int KEY_A  = 0x10;
 	public static final int KEY_B  = 0x20;
 	public static final int KEY_MASK = KEY_UP | KEY_RT | KEY_DN | KEY_LF | KEY_A | KEY_B;
+
+	public static final int X_CLOSE      = 0;
+	public static final int X_OPEN_READ  = 1;
+	public static final int X_OPEN_WRITE = 2;
 }

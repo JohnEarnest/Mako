@@ -1,5 +1,6 @@
 import javax.sound.sampled.*;
 import java.util.Random;
+import java.io.*;
 
 public class MakoVM implements MakoConstants {
 
@@ -13,6 +14,10 @@ public class MakoVM implements MakoConstants {
 	private int apointer = 0;
 
 	public final java.util.Queue<Integer> keyQueue = new java.util.LinkedList<Integer>();
+
+	public int xc = 1;
+	public final java.util.Map<Integer, InputStream> xi  = new java.util.HashMap<Integer, InputStream>();
+	public final java.util.Map<Integer, OutputStream> xo = new java.util.HashMap<Integer, OutputStream>();
 
 	public MakoVM(int[] m) {
 		this.m = m;
@@ -85,9 +90,27 @@ public class MakoVM implements MakoConstants {
 		}
 		if (addr == CO) {
 			try { return System.in.read(); }
-			catch(java.io.IOException e) { e.printStackTrace(); }
+			catch(IOException e) { e.printStackTrace(); }
+		}
+		if (addr == XO) {
+			if (xi.containsKey(m[XA])) {
+				try { return xi.get(m[XA]).read(); }
+				catch(IOException e) { e.printStackTrace(); }
+			}
+			return -1;
+		}
+		if (addr == XS) {
+			return 3; // supports reading/writing local files
 		}
 		return m[addr];
+	}
+
+	private String extractString(int addr) {
+		StringBuilder ret = new StringBuilder();
+		while(addr >= 0 && addr < m.length && m[addr] != 0) {
+			ret.append((char)(m[addr++]));
+		}
+		return ret.toString();
 	}
 
 	private void stor(int addr, int value) {
@@ -95,6 +118,31 @@ public class MakoVM implements MakoConstants {
 		if (addr == AU) {
 			abuffer[apointer] = (byte)value;
 			if (apointer < abuffer.length - 1) { apointer++; }
+		}
+		if (addr == XO) {
+			if (xo.containsKey(m[XA])) {
+				try { xo.get(m[XA]).write(value); }
+				catch(IOException e) { e.printStackTrace(); }
+			}
+		}
+		if (addr == XS) {
+			try {
+				if (value == X_CLOSE) {
+					if (xi.containsKey(m[XA])) { xi.get(m[XA]).close(); }
+					if (xo.containsKey(m[XA])) { xo.get(m[XA]).close(); }
+					xi.remove(m[XA]);
+					xo.remove(m[XA]);
+				}
+				if (value == X_OPEN_READ) {
+					xi.put(xc, new FileInputStream(extractString(m[XA])));
+					m[XA] = xc++;
+				}
+				if (value == X_OPEN_WRITE) {
+					xo.put(xc, new FileOutputStream(extractString(m[XA])));
+					m[XA] = xc++;
+				}
+			}
+			catch(IOException e) { m[XA] = -1; }
 		}
 		m[addr] = value;
 	}
