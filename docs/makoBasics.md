@@ -311,6 +311,24 @@ Mako uses a single, contiguous addressing space for memory. The first dozen or s
 
 `KB` provides access to typed keyboard input. As the VM runs, keyboard characters are buffered in a FIFO queue. Reading from KB will pop the next ASCII character out of this queue, or return a -1 if no more characters are buffered. Characters will always reflect the modifiers depressed when the key is typed- for example, shift+A will result in a capital A (ASCII 65) and ctrl+C will result in ASCII 3. Implementations which cannot provide keyboard input capabilities should always return -1 when reading from this address.
 
+External IO
+-----------
+Mako has a series of registers related to general-purpose IO. Currently, the reference implementation defines support for basic reading and writing of local files. This centers around three registers:
+
+`XO` is a bidirectional IO port, similar to `CO`. If a stream is selected and open, reading from `XO` will return a character of data. -1 will be returned at the end of a file or if the selected stream id is closed.
+
+`XA` is used to select streams for `XO`. Mako will transparently maintain multiple stream handles for you, distinguished by ids. When files are first opened, an id will be assigned and stored to `XA`. Subsequent changes to `XA` can select between open streams.
+
+`XS` is the IO status register. Reading `XS` will return 0 for implementations which do not support external IO, and otherwise will return a bit vector representing supported features. Currently the lowest bit indicates support for reading local files and the second bit indicates support for writing to local files. Writing to `XS` delivers a command:
+
+- 0 (`x-close`) will close and flush the stream indicated by `XA`.
+- 1 (`x-open-read`) will open a new stream to read based on a path indicated by `XA`.
+- 2 (`x-open-write`) will open a new stream to write base don a path indicated by `XA`.
+
+More commands may be added in the future.
+
+Paths indicated by `XA` are a pointer to the head of a null-terminated string in Mako address space. Out of bounds or unterminated strings should result in silent failure when opening a file. Path formats are not currently defined in detail, so the only kind of path which should be used is a raw filename, interpreted as a file relative to the Mako executable.
+
 The Grid
 --------
 

@@ -26,6 +26,10 @@
 :const scroll-y    0
 :const clear-color 0xFF000000
 
+:const x-close      0
+:const x-open-read  1
+:const x-open-write 2
+
 :const true  -1
 :const false  0
 
