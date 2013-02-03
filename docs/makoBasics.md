@@ -317,7 +317,7 @@ Mako has a series of registers related to general-purpose IO. Currently, the ref
 
 `XO` is a bidirectional IO port, similar to `CO`. If a stream is selected and open, reading from `XO` will return a character of data. -1 will be returned at the end of a file or if the selected stream id is closed.
 
-`XA` is used to select streams for `XO`. Mako will transparently maintain multiple stream handles for you, distinguished by ids. When files are first opened, an id will be assigned and stored to `XA`. Subsequent changes to `XA` can select between open streams.
+`XA` is used to select streams for `XO`. Mako will transparently maintain multiple stream handles for you, distinguished by ids. When files are first opened, an id will be assigned and stored to `XA`. If for any reason a file cannot be opened, -1 will be stored in `XA`- this id can be considered "always invalid". Subsequent changes to `XA` can select between open streams.
 
 `XS` is the IO status register. Reading `XS` will return 0 for implementations which do not support external IO, and otherwise will return a bit vector representing supported features. Currently the lowest bit indicates support for reading local files and the second bit indicates support for writing to local files. Writing to `XS` delivers a command:
 
