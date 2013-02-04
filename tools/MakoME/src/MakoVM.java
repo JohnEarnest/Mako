@@ -61,6 +61,7 @@ public class MakoVM implements MakoConstants {
 		if (addr == RN) { return rand.nextInt(); }
 		if (addr == KY) { return keys; }
 		if (addr == KB) { return -1; }
+		if (addr == XS) { return 0; } // does not support any XO features
 		return m[addr];
 	}
 
