@@ -1,7 +1,5 @@
 Forth Warrior Manual
 ====================
-(This game is currently a work in progress, as is this brief manual.)
-
 Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step!
 
 To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like begin but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
@@ -9,7 +7,7 @@ The `words` command provides a listing of all currently defined words. To find o
 
 If you create a file called `warrior.fs` in the same directory as the game, the `load` command can be used to execute all the code in this file- this makes it easy to work on your Warrior in your favorite text editor. If you aren't starting the game "cold" every time you make some changes, you may want to use `forget` to clear out old definitions from your dictionary before issuing `load` again.
 
-While the game is running, any debugging output will be shown a line at a time at the bottom of the screen, with brief pauses between lines. Control+C will immediately halt the program and return to the Forth prompt.
+While the game is running, any debugging output will be shown a line at a time at the bottom of the screen, with brief pauses between lines. This means if you wish to print less than 40 characters at a time you should be using `typeln` or terminating your output with `cr`, the command for printing a carriage return. Control+C will immediately halt the program and return to the Forth prompt.
 
 The Forth Warrior Dialect
 -------------------------
