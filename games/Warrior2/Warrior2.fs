@@ -28,8 +28,11 @@
 :array game-grid    1271 0
 :array game-sprites 1024 0
 
+:var play
+
 :proto console-emit
 : terminal ( -- )
+	false play !
 	' console-emit ' emit revector
 	grid    GP !
 	sprites SP !
@@ -105,6 +108,7 @@
 ;
 
 : game ( -- )
+	true play !
 	emit-buff emit-ptr !
 	' game-emit ' emit revector
 	game-grid    GP !
@@ -506,13 +510,14 @@
 	"6 const SLIME"  run
 	"7 const SPIKES" run
 	
-	{ health @ PUSH finish } "health" primitive ( -- n )
-	{ level  @ PUSH finish } "level"  primitive ( -- n )
-	{ gems   @ PUSH finish } "gems"   primitive ( -- n )
-	{ gkeys  @ PUSH finish } "keys"   primitive ( -- n )
-	{ game-step     finish } "wait"   primitive ( -- )
+	{ play @ if health @ else 5 then PUSH finish } "health" primitive ( -- n )
+	{ play @ if level  @ else 0 then PUSH finish } "level"  primitive ( -- n )
+	{ play @ if gems   @ else 0 then PUSH finish } "gems"   primitive ( -- n )
+	{ play @ if gkeys  @ else 0 then PUSH finish } "keys"   primitive ( -- n )
+	{ play @ if game-step       then      finish } "wait"   primitive ( -- )
 
 	{
+		play @ -if 0 PUSH finish exit then
 		3 player-sprite tile!
 		delay
 		0 {
@@ -529,6 +534,7 @@
 	} "listen" primitive ( -- n )
 
 	{
+		play @ -if POP drop finish exit then
 		POP check-dir >r
 		player-pos i relative at-pos
 		dup SLIME = if
@@ -571,6 +577,7 @@
 	} "walk" primitive ( dir -- )
 
 	{
+		play @ -if POP drop finish exit then
 		POP check-dir >r
 		3 player-sprite tile!
 		5 player-pos i relative verb!
@@ -590,6 +597,7 @@
 	} "attack" primitive ( dir -- )
 
 	{
+		play @ -if POP drop finish exit then
 		POP check-dir >r
 		player-pos i relative at-pos
 		dup KEY = swap GEM = or -if
@@ -622,6 +630,7 @@
 	} "take" primitive ( dir -- )
 
 	{
+		play @ -if POP drop finish exit then
 		POP check-dir >r
 		player-pos i relative at-pos DOOR = -if
 			"No door to open!" game-over
@@ -646,6 +655,7 @@
 	} "open" primitive ( dir -- )
 
 	{
+		play @ -if POP drop 0 PUSH finish exit then
 		POP check-dir >r
 		2 player-sprite tile!
 		6 player-pos i relative verb!
@@ -672,7 +682,7 @@
 		{ XO @ } ' read revector clear-q trim
 		loop eof? if break then token again
 		"OK!" abort
-	} "load" primitive ( -- )
+	} "load" immediate ( -- )
 ;
 
 ######################################################
