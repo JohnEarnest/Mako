@@ -51,11 +51,11 @@
 : exit-door     6 sprite-id + @ ;
 
 :data   helo 2
-:string $ "     Shouldn't you be, like,"
-:string $ "     cleaning or something?"
+"     Shouldn't you be, like,"
+"     cleaning or something?"
 
 :data   laugh 1
-:string $ "     Tee hee hee!"
+"     Tee hee hee!"
 
 : janet-trigger
 	janet face-player
@@ -67,8 +67,8 @@
 ;
 
 :data   fluffles 2
-:string $ " Have you seen Fluffles anywhere,"
-:string $ " mister robot?"
+" Have you seen Fluffles anywhere,"
+" mister robot?"
 
 : meg-trigger
 	meg face-player

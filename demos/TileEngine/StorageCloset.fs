@@ -47,14 +47,14 @@
 :var talk-count
 
 :data   greetings 1
-:string $ "       <Greetings, Comrade!>"
+"       <Greetings, Comrade!>"
 
 :data   greetings2 1
-:string $ "<I trust your cleaning goes well?>"
+"<I trust your cleaning goes well?>"
 
 :data   greetings3 2
-:string $ "<My apologies, Comrade, but I"
-:string $ "   have much work to do...>"
+"<My apologies, Comrade, but I"
+"   have much work to do...>"
 
 : picky-trigger
 	picky face-player

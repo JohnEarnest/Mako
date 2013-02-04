@@ -108,8 +108,8 @@
 ;
 
 :data yomsg 2
-:string $ "Hey, dude."
-:string $ "What's up?"
+"Hey, dude."
+"What's up?"
 
 : yo
 	yomsg show-text
