@@ -91,11 +91,13 @@
 : VAL    pc @ 1 + @        ; ( -- n )
 : DATA   pc @ 2 +          ; ( -- addr )
 
+:ref cycles
 :var runwhile
 : interpret ( entry -- )
 	true runwhile !
 	.dict-code pc ! 0 RPUSH
 	loop
+		cycles inc
 		pc @ @
 		exec pc inc
 		kbrk runwhile @
@@ -140,6 +142,14 @@
 ######################################################
 
 :var mode
+
+: words ( -- )
+	head @ loop
+		dup -if drop break then
+		dup .dict-name type space
+		.dict-link @
+	again cr cr
+;
 
 : init-dictionary ( -- )
 	# core vocabulary:
@@ -216,13 +226,7 @@
 		">" typeln
 		finish
 	} "stack" primitive
-	{
-		head @ loop
-			dup -if drop break then
-			dup .dict-name type space
-			.dict-link @
-		again cr cr finish
-	} "words" primitive
+	{ words finish } "words" primitive
 ;
 
 ######################################################

@@ -142,6 +142,7 @@
 :var single  # test on just one level?
 :var fast    # display animations in 'fast mode'?
 :var actions
+:var cycles
 :var kills
 :var health
 :var level
@@ -154,6 +155,7 @@
 	dup level-count >= if "invalid level!" abort then
 	  level   !
 	0 actions !
+	0 cycles  !
 	0 kills   !
 	5 health  !
 	0 gems    !
@@ -377,9 +379,12 @@
 	next
 ;
 
-: game-over ( -- )
+: game-over ( str -- )
 	terminal
+	typeln cr
+
 	"level   : " type level   @ . cr
+	"cycles  : " type cycles  @ . cr
 	"actions : " type actions @ . cr
 	"gems    : " type gems    @ . cr
 	"kills   : " type kills   @ . cr
@@ -388,7 +393,7 @@
 ;
 
 : delay ( -- )
-	fast @ if 5 else 20 then
+	fast @ if 2 else 20 then
 	for sync next
 ;
 
@@ -403,7 +408,7 @@
 			health @ 1 < if
 				player-sprite hide
 				60 for sync next
-				"Melted by a slime!" abort
+				"Melted by a slime!" game-over
 			then
 			delay
 			0 player-sprite tile!
@@ -436,9 +441,9 @@
 
 	player-pos at-pos STAIRS = if
 		delay
-		single @ if game-over then
+		single @ if "Test Successful." game-over then
 		level inc
-		level @ level-count >= if game-over then
+		level @ level-count >= if "Victory!" game-over then
 		copy-level draw-hud
 	then
 	delay
@@ -479,7 +484,7 @@
 	single @ -if pithy-saying then
 	draw-hud
 	interpret
-	"Program ended." abort
+	"Program ended." game-over
 ;
 
 : init-game-vocab ( -- )
@@ -519,7 +524,7 @@
 		} ent-for PUSH
 		0 player-sprite tile!
 		verb-sprite hide
-		delay
+		delay actions inc
 		finish
 	} "listen" primitive ( -- n )
 
@@ -535,7 +540,7 @@
 			60 for sync next
 			player-sprite hide
 			60 for sync next
-			"Stepped on a slime and dissolved!" abort
+			"Stepped on a slime and dissolved!" game-over
 		then
 		dup dup FLOOR = over SPIKES = or swap STAIRS = or -if
 			4 player-sprite tile!
@@ -548,7 +553,7 @@
 			i E = if "east"  type then
 			i S = if "south" type then
 			i W = if "west"  type then
-			"!" abort
+			"!" game-over
 		then
 		player-pos r> relative player-sprite set-pos
 		SPIKES = if
@@ -558,7 +563,7 @@
 			delay
 			0 player-sprite tile!
 			health @ 1 < if
-				"Impaled on spikes! Yeouch!" abort
+				"Impaled on spikes! Yeouch!" game-over
 			then
 		then
 		delay
@@ -588,7 +593,7 @@
 		POP check-dir >r
 		player-pos i relative at-pos
 		dup KEY = swap GEM = or -if
-			"Nothing to pick up!" abort
+			"Nothing to pick up!" game-over
 		then
 
 		player-pos r> relative ent-at drop
@@ -619,10 +624,10 @@
 	{
 		POP check-dir >r
 		player-pos i relative at-pos DOOR = -if
-			"No door to open!" abort
+			"No door to open!" game-over
 		then
 		gkeys @ 1 < if
-			"Can't open a door without a key!" abort
+			"Can't open a door without a key!" game-over
 		then
 		gkeys dec
 
@@ -650,7 +655,9 @@
 		verb-sprite hide
 		delay
 
-		player-pos r> relative at-pos PUSH finish
+		player-pos r> relative at-pos PUSH
+		actions inc
+		finish
 	} "look" primitive ( dir -- kind )
 
 	{ false single ! 0   start-game finish } "begin" primitive ( -- )
@@ -887,6 +894,7 @@
 
 : init-help ( -- )
 	{
+		eof? if words finish exit then
 		name> dict-find
 		dup .dict-stack @ -if
 			"No help is available for this word." typeln
@@ -1029,10 +1037,16 @@
 	1 5 "(Type help <word> for documentation.)" grid-type
 	1 6 "(Type begin <word> to play.)"          grid-type
 
+	1  8 "To get started, try entering this:" grid-type
+	1 12 "And then typing " grid-type
+
 	code-text cc @ ascii !
 	7 4 "words"        grid-type
 	7 5 "help <word>"  grid-type
 	7 6 "begin <word>" grid-type
+
+	 2 10 ": brain  loop E walk again ;" grid-type
+	17 12 "begin brain" grid-type
 	plain-text cc @ ascii !
 
 	repl
