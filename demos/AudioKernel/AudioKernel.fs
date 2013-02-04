@@ -67,7 +67,7 @@
 
 		# if we're at the end of a note,
 		# transfer to the audio program:
-		1 - dup -if drop as @ leave then
+		1 - dup -if drop leave as @ then
 	next
 	at ! sync
 ;
@@ -135,8 +135,72 @@
 	again
 ;
 
+
+
+: cave-1 ( -- )
+	D$2 G$3 note
+	--- G$3 note
+	G$2 --- note
+	--- G$3 note
+	D$2 G$3 note
+	--- --- note
+	G$2 --- note
+	--- --- note
+
+	D-2 G$3 note
+	--- G$3 note
+	G$2 --- note
+	--- G$3 note
+	D-2 G$3 note
+	--- --- note
+	G$2 --- note
+	--- --- note
+
+	C$2 G$3 note
+	--- G$3 note
+	G$2 --- note
+	--- G$3 note
+	C$2 G$3 note
+	--- --- note
+	G$2 F$3 note
+	--- G$3 note
+;
+
+: cave-2 ( -- )
+	C-2 G$3 note
+	--- F$3 note
+	G$2 C-2 note
+	--- C-2 note
+	C-2 G$3 note
+	--- G$3 note
+	C$2 G$3 note
+	D-2 --- note
+;
+
+: cave-3 ( -- )
+	B-2 G$3 note
+	--- F$3 note
+	A$2 C-2 note
+	--- C-2 note
+	G$2 G$3 note
+	--- G$3 note
+	--- G$3 note
+	--- --- note
+;
+
+: cavestory-song ( -- )
+	900 dup as ! at !
+	loop
+		cave-1
+		cave-2
+		cave-1
+		cave-3
+	again
+;
+
 : main ( -- )
-	' gradius-song init-music
+	#' gradius-song init-music
+	' cavestory-song init-music
 	loop
 		tick
 	again
