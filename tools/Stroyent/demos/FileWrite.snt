@@ -1,0 +1,20 @@
+include <Print>;
+
+func main() {
+	XA := "outputFile.txt";
+	XS := X_OPEN_WRITE;
+	
+	print("Opened file to write on port: ");
+	printNum(*XS);
+	println();
+
+	var s := "Some Text!";
+	while(*s) {
+		XO := *s;
+		s  += 1;
+	}
+	
+	XS := X_CLOSE;
+	
+	print("Closed file.\n");
+}

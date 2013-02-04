@@ -22,6 +22,10 @@ const RN  11; // random number
 const KY  12; // key input
 const CO  13; // character-out (debug)
 const AU  14; // audio-out (8khz, 8-bit)
+const KB  15; // keyboard-in
+const XO  16; // bidirectional external IO
+const XA  17; // external argument 
+const XS  18; // external status
 
 // Additional constants:
 
@@ -31,6 +35,10 @@ const KEY_DN  0x04;
 const KEY_LF  0x08;
 const KEY_A   0x10;
 const KEY_B   0x20;
+
+const X_CLOSE      0;
+const X_OPEN_READ  1;
+const X_OPEN_WRITE 2;
 
 const true  -1;
 const false  0;
