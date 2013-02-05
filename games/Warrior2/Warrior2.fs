@@ -354,6 +354,119 @@
 
 ######################################################
 ##
+##  Endgame cutscenes:
+##
+######################################################
+
+: sec     29 for sync next                              ; ( -- )
+: stepE   16 player-sprite +px player-sprite face-left  ; ( -- )
+: stepW  -16 player-sprite +px player-sprite face-right ; ( -- )
+
+: endgame-1 ( -- )
+	42 43 58 59 11 7 board-pos draw-block # closed chest
+	sec
+	17 player-sprite tile!
+	"AHA! Treasure at last!" typeln
+	0 player-sprite tile!
+	sec stepE
+	sec stepE
+	sec 2 player-sprite tile!
+	"What was all that junk about a curse?" typeln
+	sec sec
+	17 player-sprite tile!
+	"Oh, whatever. I'm sure it's-" typeln
+	sec
+	44 45 60 61 11 7 board-pos draw-block # open chest
+	12 player-sprite tile!
+	"Blaugh!" typeln
+	1 for
+		18 player-sprite tile!
+		14 for sync next
+		19 player-sprite tile!
+		14 for sync next
+	next
+	sec sec
+	"Er..." typeln
+	sec sec sec sec
+	"I guess that explains all the slimes..." typeln
+	sec sec sec sec sec sec
+;
+
+: endgame-2 ( -- )
+	42 43 58 59 11 7 board-pos draw-block # closed chest
+	sec
+	17 player-sprite tile!
+	"Freakin' finally! The treasure room!" typeln
+	0 player-sprite tile!
+	sec stepE
+	sec stepE
+	sec sec 2 player-sprite tile!
+	sec sec
+	44 45 60 61 11 7 board-pos draw-block # open chest
+	0 player-sprite tile!
+	sec sec
+	"...Hunh?" typeln
+	sec sec
+	"'GOOD JOB! I AM ERROR'" typeln
+	sec sec
+	4 player-sprite tile!
+	"YOU'VE GOTTA BE KIDDING ME!" typeln
+	sec sec
+;
+
+: endgame-3 ( -- )
+	40 41 56 57 11 7 board-pos draw-block # no chest
+	16x16 13 176 112 verb-sprite >sprite
+	sec sec 14 verb-sprite tile! sec
+	"At last! My savior!" typeln
+	sec sec 2 player-sprite tile! sec
+	"Hunh?" typeln
+	0 player-sprite tile!
+	13 verb-sprite tile!
+	sec sec 14 verb-sprite tile! sec
+	"A maiden fair, here to rescue me" typeln
+	"from this dreadful dungeon!"      typeln
+	sec sec 2 player-sprite tile! sec
+	"Er..." typeln
+	sec sec sec sec
+	"Sorry, mario- your princess" typeln
+	"is in another castle."       typeln
+	sec sec 0 player-sprite tile! sec
+	"I don't date dudes dumb enough" typeln
+	"to get trapped in dungeons."    typeln
+	"I'm outta here."                typeln
+	sec stepW sec sec
+	player-sprite hide
+	13 verb-sprite tile!
+	sec sec sec sec sec sec
+	"...oh. Well then." typeln
+	sec sec sec sec
+;
+
+:data endgames
+	endgame-1
+	endgame-2
+	endgame-3
+
+: endgame ( -- )
+	GP @ GS @
+	max-ent for i ent-free next
+	endroom GP ! 0 GS !
+	16x16 0 128 112 player-sprite >sprite
+	RN @ 3 mod endgames + @ exec
+	verb-sprite   hide
+	player-sprite hide
+	GS ! GP !
+;
+
+: init-endgame ( -- )
+	-endroom endroom - 1 - for
+		i endroom + dup @ 288 + swap !
+	next
+;
+
+######################################################
+##
 ##  Core Game Logic:
 ##
 ######################################################
@@ -447,7 +560,7 @@
 		delay
 		single @ if "Test Successful." game-over then
 		level inc
-		level @ level-count >= if "Victory!" game-over then
+		level @ level-count >= if endgame "Victory!" game-over then
 		copy-level draw-hud
 	then
 	delay
@@ -1010,6 +1123,7 @@
 ;
 
 : main ( -- )
+	init-endgame
 	init-dictionary
 	init-game-vocab
 	init-help
@@ -1038,7 +1152,7 @@
 		again
 	;" run
 	)
-	
+
 	intro
 
 	1 1 "Forth Warrior v0.2" grid-type
