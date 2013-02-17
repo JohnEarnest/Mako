@@ -1,6 +1,6 @@
 ![Title Image](http://i.imgur.com/zL89d34.png)
 
-Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step!
+Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step! Your program must fit in 8 kilobytes and is scored based on how many cycles it takes to execute, how many actions are taken, how many gems are collected and how many slimes are defeated. Once you've made it through all the levels, try to optimize your code and hone your strategy to maximize your score!
 
 This game is intended to give beginning Forth enthusiasts a fun, well-defined task to cut their teeth on. While there are many differences in gameplay, I consider it to be a spiritual successor to [Ruby Warrior](https://github.com/ryanb/ruby-warrior).
 
@@ -29,7 +29,7 @@ When Forth Warrior boots up, you're given a command prompt which allows you to i
 To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like `begin` but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
 The `words` command provides a listing of all currently defined words. To find out more information about a particular word, use `help` followed by the name of a word. For example, `help +`. An asterisk after the stack effect indicates an immediate word.
 
-If you create a file called `warrior.fs` in the same directory as the game, the `load` command can be used to execute all the code in this file- this makes it easy to work on your Warrior in your favorite text editor. If you aren't starting the game "cold" every time you make some changes, you may want to use `forget` to clear out old definitions from your dictionary before issuing `load` again.
+If you create a file called `warrior.fs` in the same directory as the game, the `load` command can be used to execute all the code in this file- this makes it easy to work on your Warrior in your favorite text editor. If you aren't starting the game "cold" every time you make some changes, you may want to use `forget` to clear out old definitions from your dictionary before issuing `load` again. You can also specify a filename with `load`, which is useful if you're tinkering with several AIs- for example `load dummy.fs`.
 
 While the game is running, any debugging output will be shown a line at a time at the bottom of the screen, with brief pauses between lines. This means if you wish to print less than 40 characters at a time you should be using `typeln` or terminating your output with `cr`, the command for printing a carriage return. Control+C will immediately halt the program and return to the Forth prompt.
 
@@ -125,15 +125,18 @@ Many common words that are not included in the kernel can be synthesized in term
 		# used like:
 		create buffer 45 allot
 
-Direction Constants
--------------------
+Game API Reference
+------------------
+
+Direction Constants:
+
 - `N` (0)
 - `E` (1)
 - `S` (2)
 - `W` (3)
 
-Type Constants
---------------
+Type Constants:
+
 - `FLOOR`  (0) Passable ground terrain.
 - `WALL`   (1) Impassible.
 - `STAIRS` (2) The exit to a given level.
@@ -143,9 +146,7 @@ Type Constants
 - `SLIME`  (6) Deadly enemy. `attack` them to kill them and don't step on them.
 - `SPIKES` (7) These hurt to walk on. Avoid it when possible.
 
-Queries
--------
-(These actions do not advance time in the game world)
+Queries:
 
 - `health` ( -- n )     The number of hearts the player has.
 - `level`  ( -- n )     The current floor of the dungeon.
@@ -153,17 +154,18 @@ Queries
 - `keys`   ( -- n )     How many keys the player is carrying.
 - `listen` ( -- n )     How many enemies are still on this level.
 - `look`   ( dir -- type ) View the type of thing/tile in an adjacent space.
+(These actions do not advance time in the game world)
 
-Commands
---------
+Commands:
+
 - `wait`   ( -- )     Do nothing for a game tick.
 - `walk`   ( dir -- ) Move to an adjacent tile.
 - `attack` ( dir -- ) Attack any enemies in an adjacent tile.
 - `take`   ( dir -- ) Pick up an item in an adjacent tile.
 - `open`   ( dir -- ) Unlock an adjacent door.
 
-Misc
-----
+Misc:
+
 - `fast`  ( -- ) Display game animations more quickly.
 - `slow`  ( -- ) Display game animations at normal speed. (default)
 - `help`  ( -- ) Given a word name, print a brief explanation of what it does.
