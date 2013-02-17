@@ -2,7 +2,7 @@
 
 Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step! Your program must fit in 8 kilobytes and is scored based on how many cycles it takes to execute, how many actions are taken, how many gems are collected and how many slimes are defeated. Once you've made it through all the levels, try to optimize your code and hone your strategy to maximize your score!
 
-This game is intended to give beginning Forth enthusiasts a fun, well-defined task to cut their teeth on. While there are many differences in gameplay, I consider it to be a spiritual successor to [Ruby Warrior](https://github.com/ryanb/ruby-warrior).
+This game is intended to give intermediate Forth enthusiasts a fun, well-defined task to cut their teeth on. While there are many differences in gameplay, I consider it to be a spiritual successor to [Ruby Warrior](https://github.com/ryanb/ruby-warrior). When Forth Warrior boots up, you're given a command prompt which allows you to interactively edit and test Forth code. If you've never programmed in Forth before, read a few chapters of Leo Brodie's canonical [Starting Forth](http://www.forth.com/starting-forth/). For a faster-paced and somewhat less whimsical guide, take a look at [A Beginner's Guide to Forth](http://galileo.phys.virginia.edu/classes/551.jvn.fall01/primer.htm). As noted below, the dialect of Forth used in this game varies a bit from that used in these references, but the bulk of the language is the same.
 
 Installation
 ------------
@@ -24,8 +24,6 @@ Maker can also be used to output a ROM which can be baked into a standalone JAR,
 Getting Started
 ---------------
 
-When Forth Warrior boots up, you're given a command prompt which allows you to interactively edit and test Forth code. If you've never programmed in Forth before, read a few chapters of Leo Brodie's canonical [Starting Forth](http://www.forth.com/starting-forth/). For a faster-paced and somewhat less whimsical guide, take a look at [A Beginner's Guide to Forth](http://galileo.phys.virginia.edu/classes/551.jvn.fall01/primer.htm). As noted below, the dialect of Forth used in this game varies a bit from that used in these references, but the bulk of the language is the same.
-
 To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like `begin` but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
 The `words` command provides a listing of all currently defined words. To find out more information about a particular word, use `help` followed by the name of a word. For example, `help +`. An asterisk after the stack effect indicates an immediate word.
 
@@ -45,7 +43,7 @@ Game Elements
 
 ![Floor](http://i.imgur.com/I9hHLWk.png) The roughly finished stone floor of a dungeon is littered with the bones of previous visitors and marred by the viscous ichors of slime beasts. Otherwise unremarkable.
 
-![Spikes](http://i.imgur.com/jqrhYIf.png) The floor menaces with spikes of iron! Stepping onto a spiked panel will hurt Liz by heart, but she only takes damage upon entering the tile.
+![Spikes](http://i.imgur.com/jqrhYIf.png) The floor menaces with spikes of iron! Stepping onto a spiked panel will hurt Liz by one heart, but she only takes damage upon entering the tile.
 
 ![Door](http://i.imgur.com/jiDSLYI.png) Locked doors impede progress in your adventure. They must be `open`ed with a key.
 
