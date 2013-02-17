@@ -1,13 +1,99 @@
-Forth Warrior Manual
-====================
+![Title Image](http://i.imgur.com/zL89d34.png)
+
 Forth Warrior is a game of programming, stabbing and low cunning. Your Forth code controls the actions of a valiant adventurer as she plunges ever deeper into a mysterious dungeon. Gather precious gems, defeat slime creatures and watch your step!
 
-To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like begin but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
+This game is intended to give beginning Forth enthusiasts a fun, well-defined task to cut their teeth on. While there are many differences in gameplay, I consider it to be a spiritual successor to [Ruby Warrior](https://github.com/ryanb/ruby-warrior).
+
+Installation
+------------
+
+To build Forth Warrior from source, you'll need the Java SDK and Apache Ant. Download the Mako repository, build the "Maker" compiler and use it to compile and run Forth Warrior itself:
+
+		git clone https://github.com/JohnEarnest/Mako.git
+		cd Mako
+		ant
+		./maker games/Warrior2/Warrior2.fs --run
+
+Maker can also be used to output a ROM which can be baked into a standalone JAR, for easier distribution:
+
+		./maker games/Warrior2/Warrior2.fs tools/Standalone/Data
+		cd tools/Standalone
+		ant
+		java -jar Mako.jar
+
+Getting Started
+---------------
+
+When Forth Warrior boots up, you're given a command prompt which allows you to interactively edit and test Forth code. If you've never programmed in Forth before, read a few chapters of Leo Brodie's canonical [Starting Forth](http://www.forth.com/starting-forth/). For a faster-paced and somewhat less whimsical guide, take a look at [A Beginner's Guide to Forth](http://galileo.phys.virginia.edu/classes/551.jvn.fall01/primer.htm). As noted below, the dialect of Forth used in this game varies a bit from that used in these references, but the bulk of the language is the same.
+
+To begin a game, use the `begin` command. It reads the name of a word, so `begin example` will start the game using the word `example` as an entrypoint. An individual level may be tested independently by using the `test` command, which works like `begin` but additionally takes a level number from the stack. Thus, `2 test example` will start on level 2 and use the word `example` as an entrypoint.
 The `words` command provides a listing of all currently defined words. To find out more information about a particular word, use `help` followed by the name of a word. For example, `help +`. An asterisk after the stack effect indicates an immediate word.
 
 If you create a file called `warrior.fs` in the same directory as the game, the `load` command can be used to execute all the code in this file- this makes it easy to work on your Warrior in your favorite text editor. If you aren't starting the game "cold" every time you make some changes, you may want to use `forget` to clear out old definitions from your dictionary before issuing `load` again.
 
 While the game is running, any debugging output will be shown a line at a time at the bottom of the screen, with brief pauses between lines. This means if you wish to print less than 40 characters at a time you should be using `typeln` or terminating your output with `cr`, the command for printing a carriage return. Control+C will immediately halt the program and return to the Forth prompt.
+
+Game Elements
+-------------
+![Liz](http://i.imgur.com/gUbEKVo.png) Our heroine, Liz, is a courageous and daring dungeon-delver. While she can ably dispatch many a foe in battle, she's not the best original thinker. Fortunately, like any adventurer worth their salt, Liz is fluent in Forth. With your instructions as her guide, she will plumb the depths of a mysterious and deadly ruin! Liz can be hurt by spikes and slimes, so keep a close eye on her health meter.
+
+![Stairs](http://i.imgur.com/RevoVLx.png) These stairs lead deeper into the dungeon. Completing a level is a simple matter of making it to the stairs. Easy, right?
+
+![Gem](http://i.imgur.com/sfbFmA4.png) Gems are exceedingly valuable, both for the way they catch the light and the more utilitarian fact that they will heal one heart's worth of an adventurer's wounds when picked up. Get as many as you can!
+
+![Slime](http://i.imgur.com/XkyvnAb.png) Slime beasts lurk in this dungeon. Beware their acidic pseudopods and for heaven's sake don't step in them. I wonder where they all come from?
+
+![Floor](http://i.imgur.com/I9hHLWk.png) The roughly finished stone floor of a dungeon is littered with the bones of previous visitors and marred by the viscous ichors of slime beasts. Otherwise unremarkable.
+
+![Spikes](http://i.imgur.com/jqrhYIf.png) The floor menaces with spikes of iron! Stepping onto a spiked panel will hurt Liz by heart, but she only takes damage upon entering the tile.
+
+![Door](http://i.imgur.com/jiDSLYI.png) Locked doors impede progress in your adventure. They must be `open`ed with a key.
+
+![Key](http://i.imgur.com/mlmNBrh.png) Problem, meet solution. Keys can be carried between rooms, and odds are you'll need all of them eventually.
+
+Examples
+--------
+
+An extremely simple brain that can make it past a few obstacles:
+
+		: dummy ( -- )
+			E loop
+				dup look
+				dup STAIRS = swap FLOOR = or if
+					dup walk
+				else
+					1 + 4 mod
+				then
+			again
+		;
+
+A more sophisticated brain which handles many types of obstacles and attempts to traverse mazes by following the left wall:
+
+		create actions
+			' walk   , # floor
+				 0   , # wall
+			' walk   , # stairs
+			' open   , # door
+			' take   , # key
+			' take   , # gem
+			' attack , # slime
+			' walk   , # spikes
+		
+		: act ( dir -- dir )
+			dup 4 mod dup look
+			dup WALL = if drop drop 0 exit then
+			actions + @ exec -1
+		;
+		
+		: try ( dir -- dir' )
+			1 - act if exit then
+			1 + act if exit then
+			1 + act if exit then
+		;
+		
+		: lefthand ( -- )
+			E loop try again
+		;
 
 The Forth Warrior Dialect
 -------------------------
@@ -33,7 +119,11 @@ Each will print out:
 
 		0 1 2 3 4 5 6 7 8 9 10
 
-If you think I've left something really important out, let me know and I'll consider expanding the built-in vocabulary.
+Many common words that are not included in the kernel can be synthesized in terms of the primitives available. For example, here's how we might define `allot`:
+
+		: allot  loop 0 , 1 - dup while drop ; ( length -- )
+		# used like:
+		create buffer 45 allot
 
 Direction Constants
 -------------------
@@ -56,6 +146,7 @@ Type Constants
 Queries
 -------
 (These actions do not advance time in the game world)
+
 - `health` ( -- n )     The number of hearts the player has.
 - `level`  ( -- n )     The current floor of the dungeon.
 - `gems`   ( -- n )     How many gems the player has collected.
