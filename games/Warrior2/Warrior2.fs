@@ -789,9 +789,14 @@
 	{ false fast !                  finish } "slow"  primitive ( -- )
 
 	{
-		"warrior.fs" XA !
-		x-open-read  XS !
-		XA @ -1 = if "Couldn't find 'warrior.fs'!" abort then
+		eof? if "warrior.fs" else name> then
+		dup         XA !
+		x-open-read XS !
+		XA @ -1 = if
+			"Couldn't find '" type type "'!" abort
+		else
+			drop
+		then
 		{ XO @ } ' read revector clear-q trim
 		loop eof? if break then token again
 		"OK!" abort
