@@ -280,6 +280,11 @@ Defining words are words that create other words, much like `:`. Some Forth impl
 	# load a sheet of 16 pixel wide by 32 pixel tall tiles
 	:image sprite-tiles "Scrubby.png"  16 32
 
+`:binary` can be used to include a raw binary file in a Mako rom, optionally unpacking 8-, 16- or 32-bit words into mako cells and padding the binary to some fixed number of cells.
+
+	# include a binary file, storing 1 byte per cell, padded to 4096 cells:
+	:binary some-bin "File.bin" 1 4096
+
 Talking to the Hardware
 -----------------------
 

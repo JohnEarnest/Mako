@@ -343,6 +343,38 @@ public class Maker implements MakoConstants {
 			int tileHeight = getConstant(tokens.remove());
 			rom.addImage(fileName, tileWidth, tileHeight);
 		}
+		else if (token.equals(":binary")) {
+			String name = tokens.remove().toString();
+			String fileName = new File(
+				currentPath.peek(),
+				new File(unquote(tokens.remove().toString())).getName()
+			).toString();
+			defineVariable(name, rom.size());
+			int perCell = getConstant(tokens.remove());
+			int padTo   = getConstant(tokens.remove());
+			
+			InputStream in = new FileInputStream(fileName);
+			int index = 0;
+			int bytes = perCell;
+			int cell  = 0;
+			while(true) {
+				int b = in.read();
+				if (b == -1) { break; }
+				cell = (cell << 8) | b;
+				index++;
+				bytes--;
+				if (bytes == 0) {
+					rom.add(cell, MakoRom.Type.Data);
+					bytes = perCell;
+					cell  = 0;
+				}
+			}
+			in.close();
+			while(index < padTo) {
+				rom.add(0, MakoRom.Type.Data);
+				index++;
+			}
+		}
 		else if (token.equals(":include")) {
 			String srcName = tokens.remove().toString();
 			if (srcName.startsWith("<")) {
