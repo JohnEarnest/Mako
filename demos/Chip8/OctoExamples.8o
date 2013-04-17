@@ -1,0 +1,87 @@
+######################################################
+##
+##  OctoExamples:
+##
+##  A small example Octo program demonstrating the
+##  use of several Chip8 opcodes and Octo control
+##  flow constructs.
+##
+##  John Earnest
+##
+######################################################
+
+# constants can be used anywhere numbers are
+# as a means of making code more readable:
+
+:const CORNER_X 10
+:const CORNER_Y  2
+
+:data solid
+	0b11111100
+	0b11111100
+	0b11111100
+	0b11111100
+	0b11111100
+	0b11111100
+	0b11111100
+	0b00000000
+
+# note- instructions must be placed at
+# even addresses, so be sure to pad data
+# to an even size. Octo will not do this
+# automatically!
+
+: step-line
+	v1 += 5
+	v3 := 0b11
+	v3 &= v0
+	if v3 != 3 then exit
+
+	# advance line
+	v1 := CORNER_X
+	v2 += 6
+;
+
+# draw a grid of digits, demonstrating
+# both the use of the conditional
+# break (while) and the built in font:
+
+: draw-nums
+	v0 := 0        # loop counter
+	v1 := CORNER_X # x-coordinate
+	v2 := CORNER_Y # y-coordinate
+	loop
+		a := hex v0
+		draw v1 v2 5
+		step-line
+		v0 += 1
+		while v0 != 16
+	again
+;
+
+# wait for keypresses and display
+# the corresponding character as
+# inverted text, along with a beep:
+
+: vshow-key
+	v3 :=  5 # constant for sound effect
+	v1 := 31 # x-coordinate
+	v2 :=  1 # y-coordinate
+	a  := solid
+	draw v1 v2 7
+	v1 +=  1
+	v2 +=  1
+	v0 := key
+	loop
+		st := v3
+		a  := hex v0
+		draw v1 v2 5
+		v0 := key
+		draw v1 v2 5
+	again
+;
+
+: main
+	draw-nums
+	show-key
+;
