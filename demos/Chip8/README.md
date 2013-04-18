@@ -38,6 +38,7 @@ These mostly have a 1:1 mapping to chip8 opcodes:
 - `save vx`       save registers v0-vx to A.
 - `load vy`       load registers v0-vx from A.
 - `draw vx vy n`  draw a sprite at x/y position, n rows tall.
+- `jump n`        jump to address.
 - `jump0 n`       jump to address n + v0.
 
 Assignments
