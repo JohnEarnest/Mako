@@ -39,6 +39,7 @@ public class Octo {
 			out.write(rom.get(x+1));
 		}
 		System.out.println();
+		System.out.format("%d bytes, %d free.%n", rom.size(), 3584-rom.size());
 		out.close();
 	}
 
@@ -60,7 +61,7 @@ public class Octo {
 	}
 	static int reg(String n) {
 		if (!isReg(n)) { throw new Error("Register expected, got '"+n+"'"); }
-		return n.charAt(1) - '0';
+		return "0123456789abcdef".indexOf(n.charAt(1));
 	}
 
 	static void jump(int a, int b) {
@@ -112,6 +113,7 @@ public class Octo {
 		else if ("loop".equals(token))    { loops.push(here()); whiles.push(null); }
 		else if ("while".equals(token))   { cond(true); whiles.push(here()); imm(0x10, 0); }
 		else if ("jump0".equals(token))   { imm(0xB0, value()); }
+		else if ("jump".equals(token))    { imm(0x10, value()); }
 		else if ("draw".equals(token))    { inst(0xD0 | reg(), (reg() << 4) | value()); }
 		else if ("again".equals(token))   {
 			imm(0x10, loops.pop());
