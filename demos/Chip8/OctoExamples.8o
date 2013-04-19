@@ -63,7 +63,7 @@
 # the corresponding character as
 # inverted text, along with a beep:
 
-: vshow-key
+: show-key
 	v3 :=  5 # constant for sound effect
 	v1 := 31 # x-coordinate
 	v2 :=  1 # y-coordinate
