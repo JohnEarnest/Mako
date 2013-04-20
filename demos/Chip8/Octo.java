@@ -144,8 +144,8 @@ public class Octo {
 				if (isReg()) { inst(0x80 | t, (reg() << 4) | 0x4); }
 				else         { inst(0x70 | t, value()); }
 			}
-			else if ("<<".equals(token)) { for(int z = value(); z > 0; z--) { inst(0x80 | t, 0x06); }}
-			else if (">>".equals(token)) { for(int z = value(); z > 0; z--) { inst(0x80 | t, 0x0E); }}
+			else if ("<<".equals(token)) { for(int z = value(); z > 0; z--) { inst(0x80 | t, 0x0E); }}
+			else if (">>".equals(token)) { for(int z = value(); z > 0; z--) { inst(0x80 | t, 0x06); }}
 			else if ("|=".equals(token)) { inst(0x80 | t, (reg() << 4) | 0x1); }
 			else if ("&=".equals(token)) { inst(0x80 | t, (reg() << 4) | 0x2); }
 			else if ("^=".equals(token)) { inst(0x80 | t, (reg() << 4) | 0x3); }
