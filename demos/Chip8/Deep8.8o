@@ -9,7 +9,7 @@
 ##
 ######################################################
 
-:const MOVE_SPEED 2
+:const MOVE_SPEED 3
 :const KEY_LF     4
 :const KEY_RT     6
 :const KEY_FIRE   1
@@ -69,6 +69,36 @@
 	0b00100100
 	0b00100001
 
+:data title-0
+	0b00010000
+	0b00010000
+	0b00010000
+	0b00010000
+	0b01110000
+	0b10010000
+	0b10010000
+	0b10010000
+	0b10010000
+	0b01110000
+:data title-1
+	0b01100000
+	0b10010000
+	0b11110000
+	0b10000000
+	0b10000000
+	0b01110000
+:data title-2
+	0b11100000
+	0b10010000
+	0b10010000
+	0b10010000
+	0b10010000
+	0b11100010
+	0b10000000
+	0b10000000
+	0b10000000
+	0b10000000
+
 :data end-0
 	0b11101010
 	0b01001110
@@ -85,9 +115,6 @@
 	0b01010101
 	0b01010110
 
-# alignment padding
-0
-
 # register scratchpad:
 :data scratch      0 0 0 0
 
@@ -98,6 +125,7 @@
 :data e1  1 0 0
 :data e2 20 0 0
 :data e3 40 0 0
+:data e4 90 0 0
 
 ######################################################
 ##
@@ -116,12 +144,33 @@
 	again
 ;
 
+: title
+	draw-waves
+	a  := title-0
+	v0 := 16
+	v1 := 12
+	draw v0 v1 10
+	a  := title-1
+	v0 +=  8
+	v1 +=  4
+	draw v0 v1  6
+	v0 +=  8
+	draw v0 v1  6
+	a  := title-2
+	v0 +=  8
+	draw v0 v1 10
+	v0 := key
+;
+
 : draw-score
 	a := score-digits
 	load v2
-	a  := hex v1
-	v0 := 54
+	a  := hex v0
+	v0 := 49
 	v3 :=  1
+	draw v0 v3 5
+	a  := hex v1
+	v0 += 5
 	draw v0 v3 5
 	a  := hex v2
 	v0 += 5
@@ -143,6 +192,7 @@
 : init-game
 	cls
 	draw-waves
+	v8 :=  0    # enemy  tick timer
 	v9 :=  0    # player score
 	va := 32    # player horizontal position
 	vb :=  1    # player vertical   position
@@ -261,9 +311,12 @@
 
 : update-enemies
 	v3 := 1
+	v8 ^= v3
+	if v8 == 0 then exit
 	a  := e1 load v2 update-enemy a := e1 save v2
 	a  := e2 load v2 update-enemy a := e2 save v2
 	a  := e3 load v2 update-enemy a := e3 save v2
+	a  := e4 load v2 update-enemy a := e4 save v2
 ;
 
 ######################################################
@@ -332,17 +385,10 @@
 ######################################################
 
 : main
+	title
 	init-game
 	loop
 		update-player
 		update-bomb
-		update-player
-		update-bomb
-		update-player
-		update-bomb
 		update-enemies
 	again
-;
-
-
-
