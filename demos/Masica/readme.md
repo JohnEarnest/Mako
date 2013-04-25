@@ -45,16 +45,19 @@ Examples
 --------
 
 Hello, World:
+
 	10 print "Hello, World!";
 	20 goto 10
 
 Die Roller:
+
 	10 c = 10
 	20 print rnd(6)+1;
 	30 c = c - 1
 	40 if c > 0 then goto 20
 
 Lunar Lander:
+
 	10 a = 100 + rnd(20)
 	11 v = rnd(5)
 	12 f = 80 + rnd(10)
