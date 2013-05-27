@@ -123,7 +123,7 @@ public class Octo {
 		else if ("a".equals(token)) {
 			token = next();
 			if (":=".equals(token)) {
-				Object o = next();
+				Object o = tokens.remove();
 				if ("hex".equals(o)) { inst(0xF0 | reg(), 0x29); }
 				else                 { imm(0xA0, value(o)); }
 			}
