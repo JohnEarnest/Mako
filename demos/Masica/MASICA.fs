@@ -52,6 +52,7 @@
 	then
 
 	typeln
+	x-close XS !
 	data-stack   DP !
 	return-stack RP !
 	restart-vector @ exec
@@ -832,6 +833,32 @@
 	0 program-lines !
 ;
 
+:array xobuff 256 0
+: filename> ( -- str )
+	xobuff 255 { newline? not eof? not and }
+	input> xobuff
+;
+
+: xo-typeln ( str -- )
+	loop
+		dup @ dup
+		if XO ! else 2drop 10 XO ! exit then
+		1 +
+	again
+;
+
+: xo-readln ( -- eof-flag str )
+	xobuff loop
+		XO @
+		( addr char )
+		dup dup -1 = swap 10 = or if
+			-1 = swap 0 swap ! xobuff
+			break
+		then
+		over ! 1 +
+	again
+;
+
 :proto repl-line
 
 : command ( -- )
@@ -877,14 +904,46 @@
 		number> finish remove-line
 		exit
 	then
+	"export" match? if
+		program-lines @ -if
+			"no program entered." abort
+		then
+		filename> XA !
+		x-open-write XS !
+		program-lines @ loop
+			dup first rest nil? if drop break then
+			dup first rest ptr>
+			xo-typeln
+			rest
+		again
+		x-close XS !
+		"export successful!" typeln
+		exit
+	then
+	"import" match? if
+		filename> XA !
+		x-open-read XS !
+		XA @ -1 = if
+			"Couldn't find input file!" abort
+		then
+		init
+		loop
+			xo-readln dup typeln repl-line
+		until
+		x-close XS !
+		"import successful!" typeln
+		exit
+	then
 	"help" match? if
 		finish
-		"help  - list available commands"      typeln
-		"new   - reset the interpreter"        typeln
-		"list  - display program code"         typeln
-		"run   - execute the program"          typeln
-		"edit  - modify a line of code"        typeln
-		"erase - delete a line of code"        typeln
+		"help   - list available commands"     typeln
+		"new    - reset the interpreter"       typeln
+		"list   - display program code"        typeln
+		"run    - execute the program"         typeln
+		"edit   - modify a line of code"       typeln
+		"erase  - delete a line of code"       typeln
+		"export - write listing to a file"     typeln
+		"import - read listing from a file"    typeln
 		cr
 		"print - write values to display"      typeln
 		"input - read values into variables"   typeln
