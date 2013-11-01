@@ -24,6 +24,8 @@
 			debuglevel="lines,vars,source"
 			includeantruntime="false"
 			deprecation="on"
+			source="1.5"
+			target="1.5"
 		/>
 	</target>
 
