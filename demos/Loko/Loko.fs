@@ -572,6 +572,97 @@
 
 ######################################################
 ##
+##  Import/Export:
+##
+######################################################
+
+: xo-typeln ( str -- )
+	loop
+		dup @ dup
+		if XO ! else 2drop 10 XO ! exit then
+		1 +
+	again
+;
+
+:proto logo-printraw
+: logo-export ( filename -- )
+	word> XA ! x-open-write XS !
+	global-env @ first loop
+		dup nil? if drop break then
+		dup rest rest .list-text @
+		dup nil? -if
+			"exporting " type
+			over rest first logo-printraw
+			"..." typeln
+			word> xo-typeln 10 XO !
+		else
+			drop
+		then
+		first
+	again
+	x-close XS !
+	"export successful!" typeln
+;
+
+: xo-read ( -- )
+	clear-q
+	{ XO @ } ' read revector
+;
+
+:array import-buffer 2048 0
+
+: xo-readto ( -- )
+	import-buffer loop
+		( dest )
+		"to" starts? if break then
+		skip
+	again
+	1 for getc over ! 1 + next
+	0 loop
+		( dest brackets )
+		dup -if "end" starts? if break then then
+		curr open  = if 1 + then
+		curr close = if 1 - then
+		swap getc over ! 1 + swap
+	again
+	drop
+	( dest )
+	2 for getc over ! 1 + next
+	0 swap !
+;
+
+: logo-import ( filename -- )
+	# parse and load pass:
+	word> dup XA !
+	x-open-read XS !
+
+	XA @ -1 = if
+		"Couldn't find input file!" typeln
+		drop exit
+	then
+	xo-read
+	loop
+		parse eval void
+		eof?
+	until
+	x-close XS !
+
+	# pseudoparse and stash source pass:
+	XA ! x-open-read XS ! xo-read
+	loop
+		xo-readto
+		import-buffer >word                           # copy buffer to the heap
+		import-buffer >read "to" expect token> >word  # parse the buffer for a word name
+		"importing " type dup word> type "..." typeln # print word name
+		env-get .list-text !                          # stash the heap copy as the word's source text
+		xo-read trim eof?
+	until
+	x-close XS !
+	"import successful!" typeln
+;
+
+######################################################
+##
 ##  Primitives:
 ##
 ##  All primitive functions must have function
@@ -756,28 +847,6 @@
 	cr
 ;
 
-: [type] ( ptr -- )
-	loop dup @ dup if CO ! else 2drop exit then 1 + again
-;
-
-: logo-dump ( -- )
-	"exporting source..." typeln
-	global-env @ first loop
-		dup nil? if drop break then
-		dup rest rest .list-text @
-		dup nil? -if
-			"dumping " type
-			over rest first logo-printraw
-			"..." typeln
-			ptr> [type] 10 CO ! 10 CO !
-		else
-			drop
-		then
-		first
-	again
-	"source export complete." typeln
-;
-
 : logo-local ( name value -- )
 	env @ >r
 	env-pop
@@ -861,7 +930,8 @@
 	{ A v env-get                      true  } "thing"      [ A   ]-prim
 	{ logo-words                       false } "words"      [     ]-prim
 	{ gc free-space . "cells" typeln   false } "free"       [     ]-prim
-	{ logo-dump                        false } "dump"       [     ]-prim
+	{ A v logo-export                  false } "export"     [ A   ]-prim
+	{ A v logo-import                  false } "import"     [ A   ]-prim
 	{ :proto showversion showversion   false } "version"    [     ]-prim
 	{ A v logo-edit                    false } "edit"       [ A   ]-prim
 	{ stacktrace                       false } "trace"      [     ]-prim
@@ -1217,7 +1287,7 @@
 
 : showversion ( -- )
 	0 0 "                      " grid-type
-	0 1 " Welcome to Loko 0.3  " grid-type
+	0 1 " Welcome to Loko 0.4  " grid-type
 	0 2 " 64k OK               " grid-type
 	0 3 "                      " grid-type
 ;
