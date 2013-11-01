@@ -281,7 +281,7 @@ public class MakoRom implements MakoConstants {
 	}
 
 	public String getLabel(int address) {
-		for(Map.Entry entry : labels.entrySet()) {
+		for(Map.Entry<String, Integer> entry : labels.entrySet()) {
 			if (entry.getValue().equals(address)) {
 				return String.format("(%s)", entry.getKey());
 			}
