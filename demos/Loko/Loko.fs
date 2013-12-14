@@ -748,6 +748,10 @@
 	again
 ;
 
+: logo-word? ( ptr -- flag )
+	dup word? over call? or swap var? or
+;
+
 : logo-item ( list index -- val )
 	dup 0 < if 2drop nil >list exit then
 	dup 0 > if
@@ -953,7 +957,7 @@
 	{ A n -1 * >num               true } "negate"     [ A   ]-prim
 
 	# type predicates
-	{ A v word?           >bool   true } "word?"      [ A   ]-prim
+	{ A v logo-word?      >bool   true } "word?"      [ A   ]-prim
 	{ A v list?           >bool   true } "list?"      [ A   ]-prim
 	{ A v  num?           >bool   true } "num?"       [ A   ]-prim
 	{ A v nil >list logo= >bool   true } "empty?"     [ A   ]-prim
