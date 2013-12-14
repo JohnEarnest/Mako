@@ -259,10 +259,9 @@
 ;
 
 : logo= ( ptr ptr -- flag )
-	2dup =                 if 2drop true  exit then
-	over kind over kind = -if 2drop false exit then
-	dup num?  if num> swap num> =         exit then
-	dup list? if list=                    exit then
+	2dup =    if 2drop true exit then # exit early on the cheap case
+	dup list? if over list? -if 2drop false exit then list=            exit then
+	dup num?  if over num?  -if 2drop false exit then num> swap num> = exit then
 	word=
 ;
 
