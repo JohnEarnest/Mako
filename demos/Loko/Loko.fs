@@ -1290,7 +1290,7 @@
 
 : showversion ( -- )
 	0 0 "                      " grid-type
-	0 1 " Welcome to Loko 0.4  " grid-type
+	0 1 " Welcome to Loko 0.5  " grid-type
 	0 2 " 64k OK               " grid-type
 	0 3 "                      " grid-type
 ;
