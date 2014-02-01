@@ -77,7 +77,7 @@ A more sophisticated brain which handles many types of obstacles and attempts to
 			' attack , # slime
 			' walk   , # spikes
 		
-		: act ( dir -- dir )
+		: act ( dir -- dir f )
 			dup 4 mod dup look
 			dup WALL = if drop drop 0 exit then
 			actions + @ exec -1
