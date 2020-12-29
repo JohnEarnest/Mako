@@ -1,6 +1,7 @@
 Mako
 ====
 ![Mako VM Logo](images/logo.png)
+
 Mako is a portable stack-based virtual game console. Mako was designed to be simple to port and implement: even including optional features, the reference implementation is only a few pages of Java. All the games and demos written for Mako can now be tried directly in your browser thanks to [Mako.JS](http://johnearnest.github.io/Mako.js/).
 
 ![Deep Screenshot](images/deep.png)
